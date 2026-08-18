@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../design/scss/login.scss";
-import SedresLogo from "../../assets/images/SedresLogo.png";
 import useAuthReducer from "../../store/AuthReducer";
 import { setItem } from "../../shared/helpers/localStorage";
 
@@ -80,12 +79,12 @@ function Index() {
       <div className="left-wrap">
         <div className="content-wrap">
           <h1 className="title">
-            Smarter Port,
-            <span>Stronger Operations.</span>
+            Smarter Boards,
+            <span>Stronger Workflows.</span>
           </h1>
           <p className="des">
-            Delivering smarter coordination, faster workflows and seamless
-            port-management solutions for global marine services.
+            Plan, track and move work forward with a Kanban board that adapts
+            to how your team actually works.
           </p>
         </div>
       </div>
@@ -94,7 +93,7 @@ function Index() {
       <div className="form-wrap">
         <div className="content-wrap">
           <div className="logo-wrap">
-            <img src={SedresLogo} alt="Sedres Logo" />
+            <span className="app-logo-text">FFD</span>
           </div>
 
           <div className="head-wrap">

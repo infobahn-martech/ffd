@@ -27,10 +27,9 @@ export function isValidImage(url) {
   return s.length > 3;
 }
 
-/** Primary line for API cards: vessel name, else card name, else title. */
+/** Primary line for API cards: card name, else title. */
 export function getApiCardDisplayTitle(card) {
   if (!card || typeof card !== "object") return "";
-  if (hasText(card.vesselName)) return String(card.vesselName).trim();
   if (hasText(card.cardName)) return String(card.cardName).trim();
   if (hasText(card.title)) return String(card.title).trim();
   return "";

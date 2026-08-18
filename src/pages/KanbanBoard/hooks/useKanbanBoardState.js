@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { initialData } from "../../../shared/helpers/data";
-import { operatorKanbanStaticWorkflows } from "../../../shared/helpers/kanbanOperatorStaticData";
 import {
   mapFullBoardApiResponse,
   extractFullBoardBackground,
@@ -9,11 +8,6 @@ import kanbanBoardService from "../../../services/kanbanBoardService";
 import { findWorkflowByCardId } from "../utils/boardHelpers";
 import { reorderWorkflowsByPinState } from "../utils/workflowHelpers";
 
-const isDev =
-  typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV;
-
-const isOperatorBoardId = (id) => String(id ?? "").toLowerCase() === "operator";
-
 /** Pinned workflows (from `is_pinned` on get_full_board) sort to the front, order preserved otherwise. */
 const sortByPinState = (mapped) => {
   const pinState = Object.fromEntries(mapped.map((wf) => [wf.id, Boolean(wf.isPinned)]));
@@ -21,9 +15,7 @@ const sortByPinState = (mapped) => {
 };
 
 export default function useKanbanBoardState(selectedBoardId) {
-  const [workflows, setWorkflows] = useState(() =>
-    isOperatorBoardId(selectedBoardId) ? operatorKanbanStaticWorkflows : []
-  );
+  const [workflows, setWorkflows] = useState([]);
   const [boardLoading, setBoardLoading] = useState(false);
   const [boardLoadError, setBoardLoadError] = useState(null);
   const [boardBackground, setBoardBackground] = useState(null);
@@ -39,7 +31,7 @@ export default function useKanbanBoardState(selectedBoardId) {
   }, [selectedBoardId]);
 
   const refetchBoard = useCallback(async () => {
-    if (!selectedBoardId || isOperatorBoardId(selectedBoardId)) return;
+    if (!selectedBoardId) return;
     setBoardLoading(true);
     setBoardLoadError(null);
     try {
@@ -70,14 +62,6 @@ export default function useKanbanBoardState(selectedBoardId) {
   useEffect(() => {
     if (!selectedBoardId) {
       setWorkflows(initialData);
-      setBoardBackground(null);
-      setBoardLoadError(null);
-      setBoardLoading(false);
-      return undefined;
-    }
-
-    if (isOperatorBoardId(selectedBoardId)) {
-      setWorkflows(operatorKanbanStaticWorkflows);
       setBoardBackground(null);
       setBoardLoadError(null);
       setBoardLoading(false);

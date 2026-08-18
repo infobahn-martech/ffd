@@ -3,12 +3,7 @@ import { KANBAN_DND_DISABLED } from "../../../../../../shared/constants/kanbanCo
 import PropTypes from "prop-types";
 import { Tooltip } from "react-tooltip";
 import "../../../../../../design/css/components/CardItem.css";
-// Company logos
-import saudimarcapLogo from "../../../../../../assets/images/saudimarcap.png";
-import saipemLogo from "../../../../../../assets/images/saipem.png";
-import lamprellLogo from "../../../../../../assets/images/lamprell.png";
-import gulfmarineLogo from "../../../../../../assets/images/gulfmarine.png";
-import { FiFileText, FiDownload, FiLoader, FiMoreHorizontal, FiTrendingUp } from "react-icons/fi";
+import { FiMoreHorizontal } from "react-icons/fi";
 import { resolveIconComponentStrict } from "../../../../../../structure/SideNav/components/DynamicIcon";
 import {
   hasText,
@@ -175,14 +170,6 @@ function ApiCardCircularKpi({ progress }) {
   );
 }
 
-// Status colors
-const STATUS_COLORS = {
-  done: "#28a745", // Green - Completed
-  inProgress: "#ffc107", // Yellow - In Progress
-  rejected: "#dc3545", // Red - Pending/Rejected
-  pending: "#6c757d" // Gray (default)
-};
-
 // Icon components
 const CarIcon = ({ size = 20, color = "#666" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
@@ -219,124 +206,8 @@ const WasteDisposalIcon = ({ size = 20, color = "#666" }) => (
   </svg>
 );
 
-const LaunchHireIcon = ({ size = 20, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <path d="M3 18H21L20 14H4L3 18ZM3 18L2 19H22L21 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <path d="M6 14L7 8H17L18 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <path d="M12 8V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <path d="M12 3L14 5H10L12 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
-);
-
-// Footer-1 status icons (from 1st image: priority, subtasks, deadline, watchers)
-const PriorityTriangleIcon = ({ size = 16, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <path d="M12 5L4 19H20L12 5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
-);
-
-const SubtasksIcon = ({ size = 16, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-  </svg>
-);
-
-const ClockIcon = ({ size = 16, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" fill="none" />
-    <path d="M12 7V12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const EyeIcon = ({ size = 16, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none" />
-  </svg>
-);
-
-const LinkCardIcon = ({ size = 16, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
-);
-
-const EtaIcon = ({ size = 16, color = "#666" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
-    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-    <path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-  </svg>
-);
-
-// Company logo mapping by name (case-insensitive)
-const companyLogoMap = {
-  "gulf marine": gulfmarineLogo,
-  "gulfmarine": gulfmarineLogo,
-  "saudi marcap": saudimarcapLogo,
-  "saudimarcap": saudimarcapLogo,
-  "snamprogetti": saipemLogo, // Using Saipem logo as Snamprogetti is a subsidiary of Saipem
-  "saipem": saipemLogo,
-  "lamprell": lamprellLogo,
-};
-
-const getRandomEta = (cardId) => {
-  if (!cardId) return "2025-11-24 16:48";
-
-  let h = 0;
-  for (let i = 0; i < cardId.length; i++) {
-    h = (h << 5) - h + cardId.charCodeAt(i);
-    h |= 0;
-  }
-
-  const daysToAdd = Math.abs(h % 30) + 1;      // 1–30 days
-  const hoursToAdd = Math.abs((h >> 8) % 24);  // 0–23 hours
-  const minutesToAdd = Math.abs((h >> 16) % 60); // 0–59 minutes
-
-  const date = new Date();
-  date.setDate(date.getDate() + daysToAdd);
-  date.setHours(date.getHours() + hoursToAdd);
-  date.setMinutes(date.getMinutes() + minutesToAdd);
-
-  const pad = (n) => n.toString().padStart(2, "0");
-
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
-};
-
-// Function to get company icon based on card name
-const getCompanyIcon = (cardId, cardName, entityLogo) => {
-  if (entityLogo) {
-    return { type: "image", src: entityLogo };
-  }
-
-  // Match by company name
-  if (cardName) {
-    const normalizedName = cardName.toLowerCase().trim();
-    const logo = companyLogoMap[normalizedName];
-    if (logo) {
-      return { type: "image", src: logo };
-    }
-  }
-
-  // Default fallback - return null or a placeholder if no match
-  return null;
-};
-
-// Status icon component
-const StatusIcon = ({ status = "pending", IconComponent, size = 20 }) => {
-  const color = STATUS_COLORS[status] || STATUS_COLORS.pending;
-  return <IconComponent size={size} color={color} />;
-};
-
-// Taxi Boat Captain (21) / Taxi Boat Operator (20): show card_name here instead of task_name.
-const TAXI_BOAT_ROLE_IDS = new Set(["20", "21"]);
-
 function ApiCardTaskLine({ card }) {
-  const roleId = card.workflow_role_id != null ? String(card.workflow_role_id) : "";
-  const taskName =
-    TAXI_BOAT_ROLE_IDS.has(roleId) && hasText(card.cardName)
-      ? String(card.cardName).trim()
-      : getApiCardTaskName(card);
+  const taskName = getApiCardTaskName(card);
   if (!hasText(taskName)) return null;
   return (
     <p className="card-api-task-name" title={taskName}>
@@ -509,27 +380,12 @@ function CardItem({
   index,
   setSelectedCard,
   isShrunk = false,
-  hideExtraDetails = false,
   isClassicLayout = false,
   isModernLayout = false,
   isDarkMode = false,
-  columnTitle = "",
   fixedDimensions = null,
 }) {
-  const isApiCard = card.cardSource === "api";
   const cardColor = card.color || "#2A00FF";
-  const invoiceAmount = card.invoiceAmount != null ? Number(card.invoiceAmount) : null;
-  const highlightInvoice = !!card.highlightInvoice; // 1st card (DA board): show invoice trend icon, no border pulse
-  const formatInvoiceAmount = (val) =>
-    new Intl.NumberFormat("en-SA", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val) + " SAR";
-
-  // Helper function to truncate text
-  const TruncatedText = ({ text, maxLength = 20 }) => {
-    if (!text) return null;
-    const isTruncated = text.length > maxLength;
-    const displayText = isTruncated ? text.substring(0, maxLength) + "..." : text;
-    return <span>{displayText}</span>;
-  };
 
   const fixedBoardSizeStyle =
     fixedDimensions != null
@@ -554,21 +410,11 @@ function CardItem({
       })()
       : null;
 
-  /** Matches icon blocks below — hide separator + row when nothing would render after KPI/footer. */
-  const ed = card.extraDetailsShowIcons;
-  const hasExtraDetailsIcons =
-    (card.transport != null && card.transport !== "") ||
-    (Array.isArray(ed) && ed.includes("hotel")) ||
-    (Array.isArray(ed) && ed.includes("medical")) ||
-    (Array.isArray(ed) && ed.includes("material")) ||
-    (Array.isArray(ed) && ed.includes("waste")) ||
-    (Array.isArray(ed) && ed.includes("launch"));
-
   return (
     <Draggable draggableId={card.id} index={index} isDragDisabled={KANBAN_DND_DISABLED}>
       {(provided, snapshot) => (
         <div
-          className={`kanban-card ${isApiCard ? "kanban-card--api" : ""} ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""} ${fixedBoardSizeStyle ? "kanban-card--fixed-board" : ""}`}
+          className={`kanban-card kanban-card--api ${snapshot.isDragging ? "dragging" : ""} ${card.priority ? "priority-blink" : ""} ${isShrunk ? "card-shrunk" : ""} ${isClassicLayout ? "kanban-card-classic" : ""} ${isModernLayout ? "kanban-card-modern" : ""} ${isDarkMode ? "kanban-card-dark" : ""} ${fixedBoardSizeStyle ? "kanban-card--fixed-board" : ""}`}
           ref={provided.innerRef}
           {...(KANBAN_DND_DISABLED ? {} : provided.draggableProps)}
           {...(KANBAN_DND_DISABLED ? {} : provided.dragHandleProps)}
@@ -578,380 +424,18 @@ function CardItem({
             "--card-color": cardColor,
           }}
         >
-          {isApiCard && card.cardTypeIcon && (
+          {card.cardTypeIcon && (
             <ApiCardTypeIcon card={card} />
           )}
-          {isApiCard ? (
-            isShrunk ? (
-              <ApiKanbanCardShrunk card={card} setSelectedCard={setSelectedCard} />
-            ) : (
-              <ApiKanbanCardFull
-                card={card}
-                setSelectedCard={setSelectedCard}
-                isModernLayout={isModernLayout}
-                isClassicLayout={isClassicLayout}
-              />
-            )
-          ) : isShrunk ? (
-            // Compact view for shrunk columns - Enhanced UI
-            <>
-              {/* Compact Content Container */}
-              <div className="card-content-compact">
-                {/* Icon with colored accent */}
-                <div className="card-icon-wrapper-compact">
-                  <div
-                    className="card-header-icon-compact"
-                    style={{ backgroundColor: cardColor }}
-                  >
-                    {card.iconType === "inprogress" && <FiLoader size={14} color="white" />}
-                    {card.iconType === "download" && <FiDownload size={14} color="white" />}
-                    {card.iconType === "document" && <FiFileText size={14} color="white" />}
-                  </div>
-                  {/* Colored accent line */}
-                  <div
-                    className="card-accent-line-compact"
-                    style={{ backgroundColor: cardColor }}
-                  />
-                </div>
-
-                {/* Title with better styling */}
-                <div
-                  className="card-title-compact"
-                  onClick={() => setSelectedCard(card)}
-                >
-                  {(card.vesselName || card.cardName || card.title) && ((card.vesselName || card.cardName || card.title).length > 12 ? (card.vesselName || card.cardName || card.title).substring(0, 12) + "..." : (card.vesselName || card.cardName || card.title))}
-                </div>
-              </div>
-            </>
+          {isShrunk ? (
+            <ApiKanbanCardShrunk card={card} setSelectedCard={setSelectedCard} />
           ) : (
-            // Full view for normal/expanded columns (legacy / static mock cards)
-            <>
-              {/* Header */}
-              <div className="card-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-                {!isModernLayout && (
-                  <div
-                    className="card-header-icon"
-                    style={{ backgroundColor: cardColor }}
-                  >
-                    {card.iconType === "inprogress" && <FiLoader size={14} color="white" />}
-                    {card.iconType === "download" && <FiDownload size={14} color="white" />}
-                    {card.iconType === "document" && <FiFileText size={14} color="white" />}
-                  </div>
-                )}
-                {!isModernLayout && card.name && (() => {
-                  const tooltipId = `card-name-${card.id}`;
-                  const companyIcon = getCompanyIcon(card.id, card.name, card.entityLogo);
-
-                  if (!companyIcon) return null;
-
-                  return (
-                    <>
-                      <div
-                        data-tooltip-id={tooltipId}
-                        data-tooltip-content={card.name}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                          marginLeft: "auto",
-                        }}
-                      >
-                        {companyIcon.type === "image" && (
-                          <img
-                            src={companyIcon.src}
-                            alt={card.name}
-                            style={{
-                              width: "26px",
-                              height: "26px",
-                              padding: "4px",
-                              objectFit: "contain",
-                            }}
-                          />
-                        )}
-                      </div>
-                      <Tooltip id={tooltipId} place="top" className="card-name-tooltip" offset={5} />
-                    </>
-                  );
-                })()}
-                {isModernLayout && (
-                  <button
-                    type="button"
-                    className="card-action-menu-btn"
-                    onClick={(e) => { e.stopPropagation(); setSelectedCard(card); }}
-                    aria-label="Actions"
-                  >
-                    <FiMoreHorizontal size={18} />
-                  </button>
-                )}
-              </div>
-
-              {/* Title */}
-              <div className="card-title-row" style={{ position: "relative" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3
-                    className={`card-title ${isModernLayout ? "card-title-modern" : ""}`}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setSelectedCard(card)}
-                  >
-                    {card.vesselName || card.cardName || card.title}
-                  </h3>
-                  {isClassicLayout && (
-                    <div className="card-mini-tags">
-                      {card.port && (
-                        <span className="card-mini-tag card-mini-tag-port" title="Port">{card.port}</span>
-                      )}
-                      {(card.priorityLevel || card.priority) && (
-                        <span
-                          className={`card-mini-tag card-mini-tag-priority ${String(card.priorityLevel || (card.priority ? 'H' : 'M')).toLowerCase() === 'l' ? 'low' :
-                            String(card.priorityLevel || '').toLowerCase() === 'm' ? 'medium' : ''
-                            }`}
-                          title="Priority"
-                        >
-                          {card.priorityLevel || (card.priority ? 'H' : 'M')}
-                        </span>
-                      )}
-                      {card.name && (
-                        <span className="card-mini-tag card-mini-tag-client" title="Client">{card.name.charAt(0)}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                {card.user && (
-                  <div
-                    className="card-avatar"
-                    data-initial={card.user[0]?.toUpperCase() || ""}
-                    style={{ "--card-color": cardColor }}
-                  />
-                )}
-              </div>
-
-              {/* Footer-1: deadline, link; ETA only in Enroute column – hidden in Modern or when hideExtraDetails (e.g. GRO); at least one icon always shown */}
-              {!isModernLayout && !hideExtraDetails && (() => {
-                const hasDeadline = card.footerShowIcons?.includes("deadline");
-                const hasLink = card.footerShowIcons?.includes("link");
-                const isEnroute = (columnTitle || "").toLowerCase() === "enroute";
-                const hasAny = hasDeadline || hasLink || isEnroute;
-                if (!hasAny) return null;
-                return (
-                  <div className="card-footer footer-1" style={{ display: "flex", gap: "10px", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap" }}>
-                    {hasDeadline && (
-                      <span className="footer-1-item" title="Deadline" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <ClockIcon size={16} color="#666" />
-                        <span>{card.footerDeadline ?? "21d"}</span>
-                      </span>
-                    )}
-                    {hasLink && (
-                      <span className="footer-1-item" title="Link card" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <LinkCardIcon size={16} color="#666" />
-                        <span>{card.footerLinkCount ?? 0}</span>
-                      </span>
-                    )}
-                    {isEnroute && (
-                      <span className="footer-1-item" title="ETA" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <EtaIcon size={16} color="#666" />
-                        <span>{card.footerEta ?? getRandomEta(card.id)}</span>
-                      </span>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* Invoice Amount */}
-              {invoiceAmount != null && !isShrunk && (
-                <div className="card-invoice-amount">
-                  <span className="card-invoice-label">Invoice Amount</span>{" "}
-                  <span className="card-invoice-amount-value">
-                    {formatInvoiceAmount(invoiceAmount)}
-                    {highlightInvoice && (
-                      <span
-                        className="card-invoice-trend"
-                        title="Notable invoice amount"
-                        role="img"
-                        aria-label="Notable invoice amount"
-                      >
-                        <FiTrendingUp size={14} strokeWidth={2.5} aria-hidden />
-                      </span>
-                    )}
-                  </span>
-                </div>
-              )}
-
-              {/* Footer: time left + progress */}
-              <div className={`card-footer ${isModernLayout ? "card-footer-modern" : ""}`}>
-                <span className="card-time-left">{card?.timeLeft}</span>
-                {isModernLayout ? (
-                  <div className="footer-progress-horizontal">
-                    <div className="progress-bar-horizontal">
-                      <div
-                        className="progress-fill-horizontal"
-                        style={{
-                          width: `${card.progress || 0}%`,
-                          backgroundColor: "var(--card-color, #0d9488)",
-                        }}
-                      />
-                    </div>
-                    <span className="progress-text-horizontal">{card.progress || 0}%</span>
-                  </div>
-                ) : (
-                  <div className="footer-progress">
-                    <div className="circular-progress">
-                      <svg className="progress-svg">
-                        <circle className="bg" cx="13" cy="13" r="11.5" />
-                        <circle
-                          className="progress"
-                          cx="13"
-                          cy="13"
-                          r="11.5"
-                          style={{
-                            stroke: "#0d9488",
-                            strokeDashoffset: `calc(72 - (72 * ${card.progress || 0}) / 100)`,
-                          }}
-                        />
-                      </svg>
-                      <div className="progress-text">{card.progress || 0}%</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Separator only when extra-details row has content (avoids orphan line + empty padding). */}
-              {!hideExtraDetails && !isModernLayout && hasExtraDetailsIcons && (
-                <div className="card-eta-footer-separator" aria-hidden="true" />
-              )}
-
-              {/* Extra Details Section — same visibility as separator */}
-              {!hideExtraDetails && !isModernLayout && hasExtraDetailsIcons && (
-                <div className="card-extra-details" style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "flex-start", padding: "8px 0" }}>
-                  {/* Render transport only when BE/card payload provides it; otherwise hide */}
-                  {card.transport != null && card.transport !== "" && (
-                    <>
-                      <div
-                        data-tooltip-id={`transport-${card.id}`}
-                        data-tooltip-content="Transport"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <CarIcon
-                          size={18}
-                          color={card.transport === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                        />
-                      </div>
-                      <Tooltip id={`transport-${card.id}`} place="top" />
-                    </>
-                  )}
-
-                  {card.extraDetailsShowIcons?.includes("hotel") && (
-                    <>
-                      <div
-                        data-tooltip-id={`hotel-${card.id}`}
-                        data-tooltip-content="Hotel"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <HotelIcon
-                          size={18}
-                          color={card.hotel === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                        />
-                      </div>
-                      <Tooltip id={`hotel-${card.id}`} place="top" />
-                    </>
-                  )}
-
-                  {Array.isArray(card.extraDetailsShowIcons) && card.extraDetailsShowIcons.includes("medical") && (
-                    <>
-                      <div
-                        data-tooltip-id={`medical-${card.id}`}
-                        data-tooltip-content="Medical"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <MedicalIcon
-                          size={18}
-                          color={card.medicalService === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                        />
-                      </div>
-                      <Tooltip id={`medical-${card.id}`} place="top" />
-                    </>
-                  )}
-
-                  {Array.isArray(card.extraDetailsShowIcons) && card.extraDetailsShowIcons.includes("material") && (
-                    <>
-                      <div
-                        data-tooltip-id={`material-${card.id}`}
-                        data-tooltip-content="Material Management"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <MaterialManagementIcon
-                          size={18}
-                          color={card.materialManagement === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                        />
-                      </div>
-                      <Tooltip id={`material-${card.id}`} place="top" />
-                    </>
-                  )}
-
-                  {Array.isArray(card.extraDetailsShowIcons) && card.extraDetailsShowIcons.includes("waste") && (
-                    <>
-                      <div
-                        data-tooltip-id={`waste-${card.id}`}
-                        data-tooltip-content="Waste Disposal"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <WasteDisposalIcon
-                          size={18}
-                          color={card.wasteDisposal === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                        />
-                      </div>
-                      <Tooltip id={`waste-${card.id}`} place="top" />
-                    </>
-                  )}
-
-                  {Array.isArray(card.extraDetailsShowIcons) && card.extraDetailsShowIcons.includes("launch") && (
-                    <>
-                      <div
-                        data-tooltip-id={`launch-${card.id}`}
-                        data-tooltip-content="Launch Hire"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <LaunchHireIcon
-                          size={18}
-                          color={card.launchHire === "done" ? STATUS_COLORS.done : STATUS_COLORS.rejected}
-                        />
-                      </div>
-                      <Tooltip id={`launch-${card.id}`} place="top" />
-                    </>
-                  )}
-                </div>
-              )}
-            </>
+            <ApiKanbanCardFull
+              card={card}
+              setSelectedCard={setSelectedCard}
+              isModernLayout={isModernLayout}
+              isClassicLayout={isClassicLayout}
+            />
           )}
         </div>
       )}
@@ -976,7 +460,6 @@ CardItem.propTypes = {
     timeLeft: PropTypes.string,
     progress: PropTypes.number,
     priority: PropTypes.bool,
-    vesselName: PropTypes.string,
     taskName: PropTypes.string,
     taskId: PropTypes.string,
     transport: PropTypes.string,
@@ -1011,11 +494,9 @@ CardItem.propTypes = {
   index: PropTypes.number.isRequired,
   setSelectedCard: PropTypes.func.isRequired,
   isShrunk: PropTypes.bool,
-  hideExtraDetails: PropTypes.bool,
   isClassicLayout: PropTypes.bool,
   isModernLayout: PropTypes.bool,
   isDarkMode: PropTypes.bool,
-  columnTitle: PropTypes.string,
   fixedDimensions: PropTypes.shape({
     width: PropTypes.number.isRequired,
     height: PropTypes.number,

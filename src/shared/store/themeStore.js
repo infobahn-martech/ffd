@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-const STORAGE_KEY = "sedres-theme";
+const STORAGE_KEY = "ffd-theme";
 
 function resolveInitialTheme() {
   const saved = localStorage.getItem(STORAGE_KEY);

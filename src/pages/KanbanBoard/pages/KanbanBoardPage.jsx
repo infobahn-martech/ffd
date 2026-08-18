@@ -18,9 +18,6 @@ import useKanbanDnD from "../hooks/useKanbanDnD";
 import useKanbanRoleAccess from "../hooks/useKanbanRoleAccess";
 import { createNewCardDraft } from "../utils/cardHelpers";
 import { findWorkflowByCardId } from "../utils/boardHelpers";
-import { resolveCardFormVariant } from "../../../shared/helpers/cardFormVariant";
-import { getFirstUserRoleId } from "../../../shared/helpers/groUserRoles";
-import useAuthReducer from "../../../store/AuthReducer";
 import workflowService from "../../../services/workflowService";
 import { notify } from "../../../components/Toaster";
 import { useThemeStore } from "../../../shared/store/themeStore";
@@ -34,8 +31,6 @@ export default function KanbanBoardPage() {
   }, [boardIdParam, location.pathname]);
 
   const isOperatorBoard = String(selectedBoardId ?? "").toLowerCase() === "operator";
-  const userProfile = useAuthReducer((state) => state.userProfile);
-  const userRoleId = getFirstUserRoleId(userProfile);
   const { layoutView, setPageBackground } = useLayoutView();
   const isClassicLayout = layoutView === "classic";
   const isModernLayout = layoutView === "modern";
@@ -81,8 +76,7 @@ export default function KanbanBoardPage() {
   const { maxColumnHeights, handleColumnHeightChange } = useColumnHeights(workflows);
   const { findCardColumn, moveCardToColumn, createDragEndHandler } = useKanbanDnD(
     workflows,
-    setWorkflows,
-    { userProfile, refetchBoard, boardId: selectedBoardId }
+    setWorkflows
   );
 
   useKanbanRoleAccess();
@@ -333,7 +327,6 @@ export default function KanbanBoardPage() {
           columnOrder={columnOrderForCardForm}
           currentColumn={isAddMode ? null : findCardColumn(selectedCard.id)}
           isAddMode={isAddMode}
-          variant={selectedCard?.cardVariant ?? resolveCardFormVariant(selectedCard?.workflow_role_id, userRoleId)}
           boardId={selectedBoardId}
           onBoardRefresh={isOperatorBoard ? undefined : refetchBoard}
           patchCardColor={patchCardColor}

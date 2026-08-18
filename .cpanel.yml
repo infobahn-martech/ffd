@@ -1,7 +1,9 @@
 ---
+# TODO(FFD deploy): DEPLOYPATH below is the old Sedres cPanel path — replace with
+# FFD's own hosting path/domain once assigned. Left unset rather than guessed.
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/onlirdcv/sedres.onlinebareed.com/
+    - export DEPLOYPATH=/home/REPLACE_ME/REPLACE_ME.example.com/
     - /bin/rm -rf $DEPLOYPATH/assets
     - /usr/bin/find $DEPLOYPATH -maxdepth 1 -type f ! -name '.htaccess' -delete
     - /bin/cp -a dist/. $DEPLOYPATH

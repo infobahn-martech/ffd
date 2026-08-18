@@ -2,8 +2,6 @@ import { useRef, useEffect, useLayoutEffect } from "react";
 import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import CardItem from "../cards/CardItem";
-import TaxiBoatSmallCard from "../cards/components/TaxiBoat/TaxiBoatSmallCard";
-import DASmallCard from "../cards/components/DA/DASmallCard";
 import { buildSwimlaneDroppableId } from "../../hooks/useKanbanDnD";
 import { CARD_GAP, CELL_PADDING_X, getCardsPerRow, getCardWidth } from "../../utils/boardGridHelpers";
 import "../../../../design/scss/pages/kanban-board/column.scss";
@@ -143,34 +141,17 @@ export default function SwimlaneColumnCell({
               ...(column.backgroundColor ? { backgroundColor: column.backgroundColor } : {}),
             }}
           >
-            {cards.map((card, index) =>
-              card.cardVariant === "taxi-boat" ? (
-                <TaxiBoatSmallCard
-                  key={card.id}
-                  card={card}
-                  index={index}
-                  setSelectedCard={setSelectedCard}
-                />
-              ) : card.cardVariant === "da" ? (
-                <DASmallCard
-                  key={card.id}
-                  card={card}
-                  index={index}
-                  setSelectedCard={setSelectedCard}
-                />
-              ) : (
-                <CardItem
-                  key={card.id}
-                  card={card}
-                  index={index}
-                  setSelectedCard={setSelectedCard}
-                  isClassicLayout={isClassicLayout}
-                  isModernLayout={isModernLayout}
-                  columnTitle={column.title}
-                  fixedDimensions={{ width: cardWidth }}
-                />
-              )
-            )}
+            {cards.map((card, index) => (
+              <CardItem
+                key={card.id}
+                card={card}
+                index={index}
+                setSelectedCard={setSelectedCard}
+                isClassicLayout={isClassicLayout}
+                isModernLayout={isModernLayout}
+                fixedDimensions={{ width: cardWidth }}
+              />
+            ))}
             {provided.placeholder}
           </div>
         )}

@@ -12,7 +12,6 @@ import {
   FiLayers,
   FiMoon,
   FiSun,
-  FiBarChart2,
   FiShoppingBag,
   FiActivity,
   FiTruck,
@@ -21,7 +20,6 @@ import {
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 
-import logo from '../../assets/images/SedresLogoWhite.png';
 import { useBreakpoint } from '../../shared/hooks/useWindowSize';
 import useAuthReducer from '../../store/AuthReducer';
 import MyAccountsModal from './MyAccountsModal';
@@ -171,8 +169,11 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
     navigate('/');
   };
 
+  // Support URL is not yet defined for FFD — set VITE_SUPPORT_URL to enable the Help button.
+  const supportUrl = import.meta.env.VITE_SUPPORT_URL || null;
   const handleHelpClick = () => {
-    window.open("https://sedres.com/contact-us", "_blank", "noopener,noreferrer");
+    if (!supportUrl) return;
+    window.open(supportUrl, "_blank", "noopener,noreferrer");
   };
 
   // Apply dark mode to body for header/sidebar/scroll styling
@@ -211,13 +212,13 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
           </>
         )}
 
-        <img
-          src={logo}
-          alt="Sedres Logo"
-          className="sedres-logo"
+        <span
+          className="sedres-logo app-logo-text"
           onClick={() => navigate('/workspaces')}
           style={{ cursor: 'pointer' }}
-        />
+        >
+          FFD
+        </span>
 
         {!restrictedBoardUser && (pathname === '/kanban-board/operator' || pathname === '/compact') && (
           <div className="top-links">
@@ -331,27 +332,6 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
                 </NavTabButton> */}
               </>
             )}
-            {/* <Tooltip id="board" place="bottom" content="Board" />
-            <NavTabButton
-              className="icon-btn icon-btn-hide-mobile"
-              active={pathname === '/kanban-board/operator'}
-              aria-label="Board"
-              onClick={handleKanbanBoardClick}
-              disabled={kanbanBoardLoading}
-              data-tooltip-id="board"
-            >
-              <FiGrid />
-            </NavTabButton> */}
-            <Tooltip id="kpi-dashboard" place="bottom" content="KPI Dashboard" />
-            <NavTabButton
-              className="icon-btn icon-btn-hide-mobile"
-              active={pathname === '/kpi-dashboard'}
-              aria-label="KPI Dashboard"
-              onClick={() => navigate('/kpi-dashboard')}
-              data-tooltip-id="kpi-dashboard"
-            >
-              <FiBarChart2 />
-            </NavTabButton>
             {/* <Tooltip id="documents" place="bottom" content="Documents" />
             <button
               className={`icon-btn icon-btn-hide-mobile ${showDocumentsModal ? 'active' : ''}`}

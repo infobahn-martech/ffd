@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import DefaultMenu from './components/DefaultMenu';
@@ -12,29 +12,15 @@ import TagsModal from './components/TagsModal';
 import TypesModal from './components/TypesModal';
 import AddDashboardModal from './components/AddDashboardModal';
 import SelectWorkflowModal from './components/SelectWorkflowModal';
-const CallTypeBuilderModal = lazy(() => import('../../pages/CallType/CallTypeBuilderModal'));
 import WorkspacesSideNavPanel from './components/WorkspacesSideNavPanel';
-import OutlookModal from './components/OutlookModal';
 import MyAccountsModal from '../Header/MyAccountsModal';
-import OnStationModal from '../Header/OnStationModal';
 import '../../design/scss/common.scss';
 import '../../design/scss/sidebar.scss';
 
 // Existing icons
 import dashboardIcon from '../../assets/images/icon-dashboard.svg';
-import portIcon from '../../assets/images/icon-prospect.svg';
-import workerIcon from '../../assets/images/icon-workers.svg';
 import settingsIcon from '../../assets/images/icon-settings.svg';
-
-// New menu-specific icons
-import crewIcon from '../../assets/images/icon-crew.svg';
-import inspectionIcon from '../../assets/images/icon-inspection.svg';
-import hotelIcon from '../../assets/images/icon-hotel.svg';
-import wasteIcon from '../../assets/images/icon-waste.svg';
-import materialIcon from '../../assets/images/icon-material.svg';
-import billingIcon from '../../assets/images/icon-billing.svg';
 import usersIcon from '../../assets/images/icon-users.svg';
-import configIcon from '../../assets/images/icon-config.svg';
 
 import { useBreakpoint } from '../../shared/hooks/useWindowSize';
 import {
@@ -46,7 +32,7 @@ import {
 // 🆕 Kanban sidebar icons + tooltip
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiMail, FiSettings, FiEdit3, FiMapPin, FiLayers } from 'react-icons/fi';
+import { FiPlus, FiInbox, FiFilter, FiPlusCircle, FiActivity, FiLayout, FiSettings, FiEdit3, FiLayers } from 'react-icons/fi';
 import TaskCardModal from '../../pages/TaskCard';
 import { useLayoutView } from '../../shared/context/LayoutViewContext';
 import useWorkSpaceReducer from '../../store/WorkSpaceReducer';
@@ -61,7 +47,6 @@ import usePermissions from '../../shared/hooks/usePermissions';
 import { PERMISSION_MODULES, PERMISSION_SUBMODULES, PERMISSION_ACTIONS } from '../../shared/constants/permissions';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
-  const isVendorPortal = activePortal === 'vendor';
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { width, isMobile } = useBreakpoint();
@@ -76,39 +61,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
 
   const isWorkspacesShell = pathname === '/workspaces' || pathname.startsWith('/workspaces/dashboard');
 
-  // Vendor Portal menu - simple direct links, no accordions
-  const vendorMenus = [
-    { menu: 'Dashboard', isDefaultMenu: true, to: '/vendor-portal/dashboard', icon: dashboardIcon, hasPermission: true },
-    { menu: 'Invoice Management', isDefaultMenu: true, to: '/vendor-portal/orders', icon: materialIcon, hasPermission: true },
-  ];
-
-  const medicalMenus = [
-    { menu: 'Dashboard', isDefaultMenu: true, to: '/medical-portal/dashboard', icon: dashboardIcon, hasPermission: true },
-    { menu: 'Invoice Management', isDefaultMenu: true, to: '/medical-portal/invoices', icon: materialIcon, hasPermission: true },
-  ];
-
-  const transportMenus = [
-    { menu: 'Dashboard', isDefaultMenu: true, to: '/transport-portal/dashboard', icon: dashboardIcon, hasPermission: true },
-    { menu: 'Invoice Management', isDefaultMenu: true, to: '/transport-portal/invoices', icon: materialIcon, hasPermission: true },
-  ];
-
-  const inhouseDriverMenus = [
-    { menu: 'Dashboard', isDefaultMenu: true, to: '/inhouse-driver/dashboard', icon: dashboardIcon, hasPermission: true },
-    { menu: 'Invoice Management', isDefaultMenu: true, to: '/inhouse-driver/invoices', icon: materialIcon, hasPermission: true },
-  ];
-
-  const hotelPortalMenus = [
-    { menu: 'Dashboard', isDefaultMenu: true, to: '/hotel-portal/dashboard', icon: dashboardIcon, hasPermission: true },
-    { menu: 'Invoice Management', isDefaultMenu: true, to: '/hotel-portal/invoices', icon: materialIcon, hasPermission: true },
-  ];
-
-  const portalMenuMap = {
-    vendor: vendorMenus,
-    medical: medicalMenus,
-    transport: transportMenus,
-    'inhouse-driver': inhouseDriverMenus,
-    hotel: hotelPortalMenus,
-  };
   const { layoutView } = useLayoutView();
   const isDarkMode = layoutView === 'dark';
   const userProfile = useAuthReducer((state) => state.userProfile);
@@ -164,9 +116,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         icons.push({ id: 9, icon: FiEdit3, label: 'Edit Workflow' });
       }
       icons.push(
-        { id: 10, icon: FiMapPin, label: 'On Station' },
         { id: 11, icon: FiLayers, label: 'Task' },
-        // { id: 7, icon: FiMail, label: 'Outlook' },
         { id: 8, icon: FiSettings, label: 'Settings' }
       );
       return icons;
@@ -175,10 +125,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     if (showEditWorkflowSidebarIcon) {
       icons.push({ id: 9, icon: FiEdit3, label: 'Edit Workflow' });
     }
-    icons.push(
-      { id: 11, icon: FiLayers, label: 'Task' },
-      { id: 7, icon: FiMail, label: 'Outlook' }
-    );
+    icons.push({ id: 11, icon: FiLayers, label: 'Task' });
     return icons;
   }, [showEditWorkflowSidebarIcon, kanbanFullSidebar, isPortSupervisorRole]);
 
@@ -208,7 +155,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     { label: 'Stickers', modal: 'stickers' },
     { label: 'Tags', modal: 'tags' },
     { label: 'Types', modal: 'types' },
-    { label: 'Templates', modal: 'templates' },
   ];
 
   // Select icons based on route (restricted roles: only Workspaces + fixed board)
@@ -233,11 +179,8 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
   const [showTypesModal, setShowTypesModal] = useState(false);
   const [showAddDashboardModal, setShowAddDashboardModal] = useState(false);
   const [showMyAccountsModal, setShowMyAccountsModal] = useState(false);
-  const [showOnStationModal, setShowOnStationModal] = useState(false);
-  const [showOutlookModal, setShowOutlookModal] = useState(false);
   const [showSelectWorkflowModal, setShowSelectWorkflowModal] = useState(false);
   const [showSubTaskModal, setShowSubTaskModal] = useState(false);
-  const [showCallTypeBuilderModal, setShowCallTypeBuilderModal] = useState(false);
   const [addModalStep, setAddModalStep] = useState('workflow');
   const [selectedWorkflowId, setSelectedWorkflowId] = useState(null);
   const [selectedSwimlaneId, setSelectedSwimlaneId] = useState(null);
@@ -358,176 +301,28 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
 
   const [expand, setExpand] = useState(false);
 
-  // ✅ NEW: arranged sidebar order (as per your screenshot + recommended grouping)
+  // Generic sidebar: only routes the FFD foundation actually ships. Board/workflow
+  // navigation lives in the kanban icon strip above, not here — this is the
+  // non-board (Dashboard/User Management/Settings) menu tree.
   const menus = [
     {
       menu: 'Dashboard',
       isDefaultMenu: true,
       to: ROUTE_PATHS.DASHBOARD,
-      icon: dashboardIcon, // 2x2 grid icon
+      icon: dashboardIcon,
       hasPermission: true,
     },
-    // ✅ Admin + Configuration
     {
       menu: 'User Management',
       isDefaultMenu: true,
       hasPermission: true,
       isOpen: false,
       subMenus: [
-        // { menu: 'Roles', to: '/roles', hasPermission: true },
         { menu: 'Users', to: '/users', hasPermission: canViewUsersMenu },
         { menu: 'Permissions', to: '/permissions', hasPermission: true },
       ],
-      icon: usersIcon, // User management-specific icon
+      icon: usersIcon,
     },
-    {
-      menu: 'Entity Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Billing Entity', to: '/billing-entity', hasPermission: true },
-        { menu: 'Group Email', to: '/group-email', hasPermission: true },
-        { menu: 'Billing Instruction', to: '/billing-instruction', hasPermission: true },
-        { menu: 'Customer Pricing', to: '/customer-pricing', hasPermission: true },
-        { menu: 'Customer Pricing Infobhan', to: '/customer-pricing-infobhan', hasPermission: true },
-        { menu: 'Crew Management', to: '/crew-management', hasPermission: true },
-        { menu: 'MWP History', to: "/mwp-history", hasPermission: true },
-        // { menu: 'Job Status', to: '/job-status', hasPermission: true },
-      ],
-      icon: billingIcon, // Billing-specific icon
-    },
-    {
-      menu: 'Vessel Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Vessel', to: '/vessel-onboarding', hasPermission: true },
-        { menu: 'Vessel Types', to: '/vessel-types', hasPermission: true },
-        { menu: 'Barge Types', to: '/barge-types', hasPermission: true },
-        { menu: 'Tug Type', to: '/tug-type', hasPermission: true },
-      ],
-      icon: billingIcon, // Billing-specific icon
-    },
-    {
-      menu: 'Operations Configuration',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Report Templates', to: '/appointment-acceptance', hasPermission: true },
-        // { menu: 'Pre-Arrival Information', to: '/pre-arrival-information', hasPermission: true },
-        { menu: 'Crew Template', to: '/crew-template', hasPermission: true },
-        { menu: 'Coordinates', to: '/coordinates', hasPermission: true },
-        // { menu: 'CG Pass Template', to: '/cg-pass-template', hasPermission: true },
-        // { menu: 'Vessel Reg. Template', to: '/vessel-registration-template', hasPermission: true },
-        // { menu: 'Custom Fields', to: '/custom-fields', hasPermission: true },
-      ],
-      icon: configIcon, // Configuration-specific icon
-    },
-    {
-      menu: 'Time Object Management',
-      isDefaultMenu: true,
-      icon: materialIcon, // Material-specific icon
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Time Objects', to: '/time-objects', hasPermission: true },
-        { menu: 'Stage Time Mappings', to: '/stage-time-mappings', hasPermission: true },
-      ],
-    },
-    {
-      menu: 'Checklist Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        // { menu: 'Task Management', to: '/task-management', hasPermission: true },
-        { menu: 'Task Roles', to: '/task-roles', hasPermission: true },
-        { menu: 'Checklist', to: '/check-list', hasPermission: true },
-      ],
-      icon: workerIcon, // Two stylized human figures
-    },
-    {
-      menu: 'Launch Hire Management',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Operators', to: ROUTE_PATHS.OPERATORS, hasPermission: true },
-        { menu: 'Fleet', to: '/fleet', hasPermission: true },
-        { menu: 'Captains', to: '/captains', hasPermission: true },
-        { menu: 'Services', to: '/lh-services', hasPermission: true },
-        // { menu: 'Location', to: '/location', hasPermission: true },
-      ],
-      icon: workerIcon, // Two stylized human figures
-    },
-    {
-      menu: 'Hotel Management',
-      isDefaultMenu: true,
-      to: '/hotel-management',
-      icon: hotelIcon, // Hotel-specific icon
-      hasPermission: true,
-    },
-    {
-      menu: 'Hospital Management',
-      isDefaultMenu: true,
-      icon: usersIcon, // Hospital-specific icon
-      hasPermission: true,
-      subMenus: [
-        { menu: 'Hospitals', to: '/hospital-management', hasPermission: true },
-        { menu: 'Medical Services', to: '/medical-services', hasPermission: true },
-        { menu: 'Hospital Services', to: '/hospital-services', hasPermission: true },
-      ],
-    },
-    {
-      menu: 'Transport Management',
-      isDefaultMenu: true,
-      icon: settingsIcon, // Gear/cogwheel icon
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Driver Management', to: '/driver-management', hasPermission: true },
-        { menu: 'Vehicle Management', to: '/vehicle-management', hasPermission: true },
-        { menu: 'Driver Vehicle Mapping', to: '/driver-vehicle-mapping', hasPermission: true },
-        { menu: 'Transport Company', to: '/transport-company', hasPermission: true },
-
-      ],
-    },
-    {
-      menu: 'Third Party Service',
-      isDefaultMenu: true,
-      to: '/third-party-service',
-      icon: workerIcon, // Third Party Services-specific icon
-      hasPermission: true,
-    },
-    {
-      menu: 'Material Management',
-      isDefaultMenu: true,
-      icon: materialIcon, // Material-specific icon
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        // { menu: 'Material Types', to: '/material-type', hasPermission: true },
-        { menu: 'Waste Types', to: '/waste-types', hasPermission: true },
-        { menu: 'Packaging Types', to: '/packing-type', hasPermission: true },
-        { menu: 'Logistics Warehouses', to: '/logistics-warehouse', hasPermission: true },
-        { menu: 'Order History', to: '/order-history', hasPermission: true },
-      ],
-    },
-    {
-      menu: 'KPI Dashboard',
-      isDefaultMenu: true,
-      hasPermission: true,
-      isOpen: false,
-      subMenus: [
-        { menu: 'Tasks', to: '/kpi-tasks', hasPermission: true },
-        { menu: 'Dashboard', to: '/kpi-dashboard', hasPermission: true },
-      ],
-      icon: dashboardIcon, // Two stylized human figures
-    },
-    // ✅ Settings (last)
     {
       menu: 'Settings',
       isDefaultMenu: true,
@@ -537,9 +332,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       subMenus: [
         { menu: 'My Accounts', to: '/my-accounts', hasPermission: true },
         { menu: 'Activity Log', to: '/activity-log', hasPermission: true },
-        // { menu: 'Notification', to: '/notification', hasPermission: true },
-        // { menu: 'Report Management', to: '/report-management', hasPermission: true },
-        // { menu: 'Status Management', to: '/status-management', hasPermission: true },
       ],
     },
   ];
@@ -557,7 +349,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         menu: 'Kanban Board',
         isDefaultMenu: true,
         to: restrictedBoardBasePath,
-        icon: materialIcon,
+        icon: dashboardIcon,
         hasPermission: true,
       },
     ],
@@ -782,7 +574,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
-        setShowOnStationModal(false);
         if (newShowState) setActiveKanbanIcon(item.id);
         return;
       }
@@ -798,7 +589,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
-        setShowOnStationModal(false);
         return;
       }
 
@@ -810,7 +600,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         setShowSettingsSubmenu(false);
         setShowBusinessRulesModal(false);
         setShowCardManagementSubmenu(false);
-        setShowOnStationModal(false);
         if (newShowState) setActiveKanbanIcon(item.id);
         return;
       }
@@ -823,7 +612,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
         setActiveKanbanIcon(item.id);
-        setShowOnStationModal(false);
         return;
       }
 
@@ -835,7 +623,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowBusinessRulesModal(false);
-        setShowOnStationModal(false);
         setShowBlockersModal(false);
         setShowStickersModal(false);
         setShowTagsModal(false);
@@ -851,7 +638,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         setShowFilterPanel(false);
         setShowBoardTeamsSubmenu(false);
         setShowBusinessRulesModal(false);
-        setShowOnStationModal(false);
         if (!newShowState) {
           setShowCardManagementSubmenu(false);
           setShowBlockersModal(false);
@@ -869,32 +655,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
-        setShowOnStationModal(false);
         navigate(`/edit-workflow?boardId=${kanbanBoardIdForEditWorkflow}`);
-        setActiveKanbanIcon(item.id);
-        return;
-      }
-
-      if (item.label === 'On Station') {
-        closeSelectWorkflowModal();
-        setShowFilterPanel(false);
-        setShowBoardTeamsSubmenu(false);
-        setShowSettingsSubmenu(false);
-        setShowCardManagementSubmenu(false);
-        setShowOutlookModal(false);
-        setShowOnStationModal((prev) => !prev);
-        setActiveKanbanIcon(item.id);
-        return;
-      }
-
-      if (item.label === 'Outlook') {
-        closeSelectWorkflowModal();
-        setShowFilterPanel(false);
-        setShowBoardTeamsSubmenu(false);
-        setShowSettingsSubmenu(false);
-        setShowCardManagementSubmenu(false);
-        setShowOnStationModal(false);
-        setShowOutlookModal((prev) => !prev);
         setActiveKanbanIcon(item.id);
         return;
       }
@@ -903,8 +664,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       if (showBoardTeamsSubmenu) setShowBoardTeamsSubmenu(false);
       if (showSettingsSubmenu) setShowSettingsSubmenu(false);
       if (showCardManagementSubmenu) setShowCardManagementSubmenu(false);
-      if (showOnStationModal) setShowOnStationModal(false);
-      if (showOutlookModal) setShowOutlookModal(false);
       if (showBusinessRulesModal) setShowBusinessRulesModal(false);
       if (showBlockersModal) setShowBlockersModal(false);
       if (showStickersModal) setShowStickersModal(false);
@@ -928,7 +687,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
-        setShowOnStationModal(false);
         setShowSubTaskModal(true);
         setActiveKanbanIcon(item.id);
         return;
@@ -940,7 +698,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         setShowBoardTeamsSubmenu(false);
         setShowSettingsSubmenu(false);
         setShowCardManagementSubmenu(false);
-        setShowOnStationModal(false);
         setActiveKanbanIcon(item.id);
         return;
       }
@@ -966,7 +723,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       setShowStickersModal(false);
       setShowTagsModal(false);
       setShowTypesModal(false);
-      setShowOnStationModal(false);
       setShowBusinessRulesModal(true);
     };
 
@@ -985,7 +741,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     const handleSubmenuClickKanban = (item) => {
       setShowBoardTeamsSubmenu(false);
       setShowSettingsSubmenu(false);
-      setShowOnStationModal(false);
       if (item.modal === 'managers') setShowManagersModal(true);
       else if (item.modal === 'dashboards') setShowDashboardsModal(true);
     };
@@ -993,7 +748,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     const handleCardManagementSubmenuClick = (item) => {
       setShowCardManagementSubmenu(false);
       setShowSettingsSubmenu(false);
-      setShowOnStationModal(false);
 
       setShowFilterPanel(false);
       setShowBoardTeamsSubmenu(false);
@@ -1003,13 +757,11 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       setShowStickersModal(false);
       setShowTagsModal(false);
       setShowTypesModal(false);
-      setShowCallTypeBuilderModal(false);
 
       if (item.modal === 'blockers') setShowBlockersModal(true);
       if (item.modal === 'stickers') setShowStickersModal(true);
       if (item.modal === 'tags') setShowTagsModal(true);
       if (item.modal === 'types') setShowTypesModal(true);
-      if (item.modal === 'templates') setShowCallTypeBuilderModal(true);
     };
 
     return (
@@ -1029,8 +781,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
                 (item.label === 'Business rules' && showBusinessRulesModal) ||
                 (item.label === 'Card management' && showCardManagementSubmenu) ||
                 (item.label === 'Edit Workflow' && pathname.startsWith('/edit-workflow')) ||
-                (item.label === 'On Station' && showOnStationModal) ||
-                (item.label === 'Outlook' && showOutlookModal) ||
                 (item.label === 'Settings' && (showSettingsSubmenu || showCardManagementSubmenu)) ||
                 (item.label === 'Add new dashboard' && showAddDashboardModal) ||
                 (item.label === 'Add' && showSelectWorkflowModal) ||
@@ -1124,12 +874,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         )}
 
         <BoardFilterPanel show={showFilterPanel} onClose={() => setShowFilterPanel(false)} />
-        <OnStationModal
-          show={showOnStationModal}
-          onClose={() => {
-            setShowOnStationModal(false);
-          }}
-        />
         <ManagersModal show={showManagersModal} onClose={() => setShowManagersModal(false)} />
         <DashboardsModal show={showDashboardsModal} onClose={() => setShowDashboardsModal(false)} />
         <BusinessRulesModal show={showBusinessRulesModal} onClose={() => setShowBusinessRulesModal(false)} />
@@ -1137,7 +881,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
         <StickersModal show={showStickersModal} onClose={() => setShowStickersModal(false)} />
         <TagsModal show={showTagsModal} onClose={() => setShowTagsModal(false)} />
         <TypesModal show={showTypesModal} onClose={() => setShowTypesModal(false)} />
-        <OutlookModal show={showOutlookModal} onClose={() => setShowOutlookModal(false)} />
         <AddDashboardModal
           show={showAddDashboardModal}
           onClose={() => setShowAddDashboardModal(false)}
@@ -1165,14 +908,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
           onContinue={handleAddModalContinue}
           onExited={handleSelectWorkflowModalExited}
         />
-        {showCallTypeBuilderModal && (
-          <Suspense fallback={null}>
-            <CallTypeBuilderModal
-              show={showCallTypeBuilderModal}
-              onClose={() => setShowCallTypeBuilderModal(false)}
-            />
-          </Suspense>
-        )}
         <TaskCardModal
           show={showSubTaskModal}
           onClose={() => setShowSubTaskModal(false)}
@@ -1211,7 +946,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
 
         <div className="menuWrp">
           <ul className="menu">
-            {(activePortal ? (portalMenuMap[activePortal] || []) : effectiveMenuState)
+            {effectiveMenuState
               .filter((e) => e.hasPermission === true)
               .map(({ menu, subMenus, to, isDefaultMenu, icon, isOpen }) => {
                 if (!isDefaultMenu) return null;

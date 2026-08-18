@@ -11,7 +11,6 @@ import userIcon from "../../../assets/images/DummyProPic.avif";
 import edit from "../../../assets/images/edit.svg";
 import useUserReducer from "../../../store/UserReducer";
 import useRoleReducer from "../../../store/RoleReducer";
-import usePortReducer from "../../../store/PortReducer";
 import Gateway from "../../../gateway/gateway";
 
 export function UserModal({ showModal, closeModal, onSuccess }) {
@@ -36,7 +35,6 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       username: "",
       email: "",
       roleid: "",
-      port_id: "",
       address: "",
     },
   });
@@ -47,9 +45,6 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     (state) => state
   );
   const { fetchRoles, roles, isLoading: isLoadingRoles } = useRoleReducer(
-    (state) => state
-  );
-  const { getPorts, ports, isLoading: isLoadingPorts } = usePortReducer(
     (state) => state
   );
 
@@ -67,27 +62,9 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
     [roleOptions]
   );
 
-  const portOptions = useMemo(() => {
-    return (ports || []).map((port) => {
-      const id = port?.port_id ?? port?._id ?? port?.id;
-      const name = port?.port ?? port?.name ?? port?.port_name ?? "";
-      return {
-        id: String(id ?? ""),
-        name,
-      };
-    });
-  }, [ports]);
-
-  const isPortsReady = !isLoadingPorts && portOptions.length > 0;
-  const portSelectOptions = useMemo(
-    () => portOptions.map((port) => ({ value: port.id, label: port.name })),
-    [portOptions]
-  );
-
   // Fetch roles when modal opens
   useEffect(() => {
     fetchRoles({ params: { page: 1, limit: 100 } });
-    getPorts({ params: { page: 1, limit: 1000 } });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -101,7 +78,6 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
         phone: showModal?.phone || "",
         address: showModal?.address || "",
         roleid: "", // ✅ keep empty first, set after roles loaded
-        port_id: "",
       });
 
       setProfileImagePreview(showModal?.avatar_path || userIcon);
@@ -113,7 +89,6 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
         username: "",
         email: "",
         roleid: "",
-        port_id: "",
         address: "",
       });
 
@@ -139,22 +114,6 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       setValue("roleid", incomingRoleId, { shouldValidate: true });
     }
   }, [showModal?.user_id, showModal?.role_id, isRolesReady, roleOptions, setValue, getValues]);
-
-  useEffect(() => {
-    if (!showModal?.user_id) return;
-    if (!isPortsReady) return;
-
-    const incomingPortId = String(showModal?.port_id || "");
-    if (!incomingPortId) return;
-
-    const exists = portOptions.some((p) => p.id === incomingPortId);
-    if (!exists) return;
-
-    const current = String(getValues("port_id") || "");
-    if (current !== incomingPortId) {
-      setValue("port_id", incomingPortId, { shouldValidate: true });
-    }
-  }, [showModal?.user_id, showModal?.port_id, isPortsReady, portOptions, setValue, getValues]);
 
   useEffect(() => {
     const usernameInput = (watchedUsername || "").trim();
@@ -209,7 +168,6 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       formData.append("phone", data.phone);
       formData.append("address", data.address || "");
       formData.append("roleid", data.roleid);
-      formData.append("port_id", data.port_id);
 
       if (profileImage) {
         formData.append("profileimg", profileImage);
@@ -404,10 +362,10 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
             </div>
           </div>
 
-          {/* ===== Phone + Port ===== */}
+          {/* ===== Phone ===== */}
           <div className="mb-lg-3 mb-sm-0">
             <div className="row g-3">
-              <div className="col-lg-6 col-sm-12">
+              <div className="col-12">
                 <div className="form-field">
                   <div className="phone-wrapper">
                     <label className="phone-label">Phone</label>
@@ -436,41 +394,6 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
                   {errors.phone && (
                     <span className="field-error">
                       {errors.phone.message}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="col-lg-6 col-sm-12">
-                <div className="form-field">
-                  <div className="phone-wrapper">
-                    <label className="phone-label">Port</label>
-                    <Controller
-                      name="port_id"
-                      control={control}
-                      render={({ field }) => (
-                        <PremiumSelect
-                          value={field.value != null ? String(field.value) : ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          options={portSelectOptions}
-                          placeholder={
-                            isLoadingPorts ? "Loading ports..." : "Select Port"
-                          }
-                          searchPlaceholder="Search port..."
-                          disabled={!isPortsReady}
-                          hasError={Boolean(errors.port_id)}
-                          menuPortalTarget={
-                            typeof document !== "undefined"
-                              ? document.body
-                              : undefined
-                          }
-                          menuClassName="user-modal-premium-select-menu"
-                        />
-                      )}
-                    />
-                  </div>
-                  {errors.port_id && (
-                    <span className="field-error">
-                      {errors.port_id.message}
                     </span>
                   )}
                 </div>
