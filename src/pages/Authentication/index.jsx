@@ -5,12 +5,13 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../design/scss/login.scss";
 import useAuthReducer from "../../store/AuthReducer";
 import { setItem } from "../../shared/helpers/localStorage";
+import { isMockDataEnabled, mockUserProfile } from "../../mocks/ffd";
+import { normalizePermissionSections } from "../../shared/utils/permissions";
 
 function Index() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
-  const [isTestingMode, setIsTestingMode] = useState(true); // Testing mode: true = normal flow, false = skip validation/API
   const {
     register,
     handleSubmit,
@@ -40,37 +41,32 @@ function Index() {
   }, [isLoggedIn, navigate]);
 
   const onSubmit = async (data) => {
-    if (isTestingMode) {
-      // Normal flow: validation and API calls
+    if (!isMockDataEnabled) {
       await login({ email: data.email, password: data.password, remember_me: data.rememberMe || false });
-    } else {
-      // Testing mode: skip validation and API, set auth state and navigate
-      // Set a dummy token in localStorage so route guards pass for testing
-      setItem("accessToken", "test-token");
-      setItem("userid", "test-user-id");
-      setItem("refreshToken", "test-refresh-token");
-      // Update Zustand store to mark user as logged in with mock profile
-      // Using role_id "1" (Super Admin) to have access to all routes
-      useAuthReducer.setState({
-        isLoggedIn: true,
-        isProfileFetchLoading: false, // Prevent loading spinner
-        authData: {
-          userid: "test-user-id",
-          name: data.email,
-          email: data.email,
-        },
-        userProfile: {
-          userid: "test-user-id",
-          name: data.email,
-          email: data.email,
-          role: {
-            role_id: "1", // Super Admin - has access to all routes including /workspaces
-            role_name: "Super Admin",
-          },
-        },
-      });
-      navigate(getPostLoginRedirect(), { replace: true });
+      return;
     }
+
+    // TEMPORARY: dev-only mock login (VITE_USE_MOCK_DATA=true) — bypasses the
+    // real login API so the app is reachable before a backend exists. See
+    // src/mocks/ffd/index.js for the switch and mockUserProfile. Remove this
+    // branch once the backend exists.
+    setItem("accessToken", "ffd-mock-token");
+    setItem("userid", mockUserProfile.userid);
+    setItem("refreshToken", "ffd-mock-refresh-token");
+    setItem("userProfile", JSON.stringify(mockUserProfile));
+    useAuthReducer.setState({
+      isLoggedIn: true,
+      isProfileFetchLoading: false,
+      authData: {
+        userid: mockUserProfile.userid,
+        name: mockUserProfile.name,
+        email: mockUserProfile.email,
+      },
+      userProfile: mockUserProfile,
+      profileData: mockUserProfile,
+      permissionMap: normalizePermissionSections(mockUserProfile.permissions.sections),
+    });
+    navigate(getPostLoginRedirect(), { replace: true });
   };
 
   return (

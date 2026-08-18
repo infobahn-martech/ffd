@@ -1,4 +1,5 @@
 import Gateway from '../gateway/gateway';
+import { isMockDataEnabled, mockKanbanBoardService } from '../mocks/ffd';
 
 /**
  * Full board payload for the Kanban UI: one entry per workflow.
@@ -107,7 +108,7 @@ const updateCardNote = (payload) =>
 const deleteCardNote = (noteId) =>
   Gateway.post(`/kanban_card/delete_card_note/${encodeURIComponent(String(noteId))}`);
 
-export default {
+const realKanbanBoardService = {
   getFullBoard,
   getCardById,
   updateCardColor,
@@ -134,3 +135,12 @@ export default {
   updateCardNote,
   deleteCardNote,
 };
+
+// TEMPORARY: dev-only mock switch — see src/mocks/ffd/index.js. Mock methods not
+// covered by mockKanbanBoardService (subtasks/comments/notes — not used by the
+// current generic board/card UI) fall through to the real, unmocked calls.
+// Remove this conditional (keep `export default realKanbanBoardService`) once
+// the backend exists.
+export default isMockDataEnabled
+  ? { ...realKanbanBoardService, ...mockKanbanBoardService }
+  : realKanbanBoardService;

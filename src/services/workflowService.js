@@ -1,4 +1,5 @@
 import Gateway from '../gateway/gateway';
+import { isMockDataEnabled, mockWorkflowService } from '../mocks/ffd';
 
 const getWorkflowByBoard = (boardId) =>
     Gateway.get(`/kanban_workflow/get_workflow_by_board/${boardId}`);
@@ -51,7 +52,7 @@ const updateWorkflowColumn = (columnId, data) =>
 const removeWorkflowColumn = (columnId) =>
     Gateway.post(`/kanban_workflow/remove_workflow_column/${columnId}`, { column_id: columnId });
 
-export default {
+const realWorkflowService = {
     getWorkflowByBoard,
     renameWorkflow,
     deleteWorkflow,
@@ -70,3 +71,13 @@ export default {
     updateWorkflowColumn,
     removeWorkflowColumn,
 };
+
+// TEMPORARY: dev-only mock switch — see src/mocks/ffd/index.js. Only the board
+// accordion's expand/collapse/pin calls are mocked; the full Workflow Editor CRUD
+// surface (create/rename/delete workflow/swimlane/column) is not — it still hits
+// the real (unavailable) backend and reports/handles that failure as it already
+// does today. Remove this conditional (keep `export default realWorkflowService`)
+// once the backend exists.
+export default isMockDataEnabled
+  ? { ...realWorkflowService, ...mockWorkflowService }
+  : realWorkflowService;

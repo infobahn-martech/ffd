@@ -1,4 +1,5 @@
 import Gateway from '../gateway/gateway';
+import { isMockDataEnabled, mockWorkSpaceService } from '../mocks/ffd';
 
 const createWorkspace = (data) =>
   Gateway.post('/kanban_workspace/create_workspace', {
@@ -52,7 +53,7 @@ const changeBoardBackground = (boardId, data) =>
 const removeBoardBackground = (boardId) =>
   Gateway.post(`/kanban_board/remove_background/${boardId}`);
 
-export default {
+const realWorkSpaceService = {
   createWorkspace,
   listAllWorkspaces,
   renameWorkspace,
@@ -65,3 +66,9 @@ export default {
   changeBoardBackground,
   removeBoardBackground,
 };
+
+// TEMPORARY: dev-only mock switch — see src/mocks/ffd/index.js. Remove this
+// conditional (keep `export default realWorkSpaceService`) once the backend exists.
+export default isMockDataEnabled
+  ? { ...realWorkSpaceService, ...mockWorkSpaceService }
+  : realWorkSpaceService;
