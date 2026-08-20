@@ -1,3 +1,4 @@
+@import "../../partials/partials";
 @import "../../../css/common/CardForm.css";
 @import "../../sedres-color-picker";
 
@@ -117,14 +118,14 @@
 }
 
 .gro-summary-card--error .cf-multi-select-email-input {
-  box-shadow: inset 0 -2px 0 #dc2626;
+  box-shadow: inset 0 -2px 0 $status-danger;
 }
 
 .gro-summary-field-error {
   margin-top: 6px;
   font-size: 12px;
   font-weight: 500;
-  color: #dc2626;
+  color: $status-danger;
 }
 
 .gro-card-view .gro-document-section {
@@ -242,17 +243,17 @@
 }
 
 .gro-card-view .gro-pass-segment--active {
-  background: #00368c !important;
-  border-color: #00368c !important;
+  background: $ffd-navy !important;
+  border-color: $ffd-navy !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 14px #00368c(16, 185, 129, 0.28);
+  box-shadow: 0 4px 14px rgba($ffd-navy, 0.28);
 }
 
 .gro-card-view .gro-pass-segment--popover-open {
-  // background: #00368c !important;
-  border-color: #00368c !important;
-  color: #00368c !important;
-  box-shadow: 0 0 0 2px #00368c(16, 185, 129, 0.2);
+  // background: $ffd-navy !important;
+  border-color: $ffd-navy !important;
+  color: $ffd-navy !important;
+  box-shadow: 0 0 0 2px rgba($ffd-navy, 0.2);
 }
 
 .gro-card-view .gro-pass-segment--popover-open:disabled {
@@ -418,20 +419,20 @@
 }
 
 .gro-card-view .gro-pass-status-badge--success {
-  background: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
+  background: $status-completed-bg;
+  color: $status-completed-text;
+  border: 1px solid rgba($status-completed-text, 0.35);
 }
 
 .gro-card-view .gro-pass-status-badge--warning {
-  background: #fffbeb;
-  color: #b45309;
-  border: 1px solid #fde68a;
+  background: $status-pending-bg;
+  color: $status-pending-text;
+  border: 1px solid rgba($status-pending-text, 0.35);
 }
 
 .gro-card-view .gro-pass-status-badge--danger {
   background: var(--surface-primary);
-  color: #b91c1c;
+  color: $status-cancelled-text;
   border: 1px solid var(--border-primary);
 }
 
@@ -495,12 +496,12 @@
 }
 
 .gro-card-view .gro-crew-change-action-btn {
-  border-color: #00368c !important;
-  color: #00368c !important;
+  border-color: $ffd-navy !important;
+  color: $ffd-navy !important;
 }
 
 .gro-card-view .gro-crew-change-action-btn:hover:not(:disabled) {
-  background: #00368c !important;
+  background: $ffd-navy !important;
   color: #ffffff !important;
 }
 
@@ -603,21 +604,21 @@
 }
 
 .gro-card-view .gro-crew-immigration-icon-action:hover {
-  border-color: #93c5fd;
-  background: #eff6ff;
-  color: #2563eb;
+  border-color: rgba($status-info-text, 0.4);
+  background: $status-info-bg;
+  color: $status-info-text;
 }
 
 .gro-card-view .gro-crew-immigration-icon-action--uploaded {
-  border-color: #86efac;
+  border-color: rgba($status-completed-text, 0.4);
   background: var(--surface-primary);
-  color: #16a34a;
+  color: $status-completed-text;
 }
 
 .gro-card-view .gro-crew-immigration-icon-action--uploaded:hover {
-  border-color: #4ade80;
-  background: #dcfce7;
-  color: #15803d;
+  border-color: rgba($status-completed-text, 0.55);
+  background: $status-completed-bg;
+  color: $status-completed-text;
 }
 
 .gro-card-view .gro-crew-immigration-pending-icon {
@@ -687,8 +688,8 @@
 }
 
 .gro-card-view .gro-crew-immigration-page-btn--active {
-  border-color: #00368c;
-  background: #00368c;
+  border-color: $ffd-navy;
+  background: $ffd-navy;
   color: #ffffff;
 }
 
@@ -725,9 +726,9 @@
 }
 
 .gro-card-view .gro-crew-immigration-bulk-back:hover {
-  border-color: #93c5fd;
-  background: #eff6ff;
-  color: #2563eb;
+  border-color: rgba($status-info-text, 0.4);
+  background: $status-info-bg;
+  color: $status-info-text;
 }
 
 .gro-card-view .gro-crew-immigration-bulk-back-icon {
@@ -804,7 +805,7 @@
   border: 1px solid var(--border-primary);
   border-radius: 8px;
   background: var(--surface-primary);
-  color: #1f3c88;
+  color: $ffd-navy;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
@@ -814,8 +815,8 @@
   }
 
   &:hover:not(:disabled) {
-    background: #1f3c88;
-    border-color: #1f3c88;
+    background: $ffd-navy;
+    border-color: $ffd-navy;
     color: #ffffff;
   }
 
@@ -878,8 +879,8 @@
 
 .gro-card-view .gro-crew-immigration-bulk-input:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  border-color: $ffd-coral;
+  box-shadow: $shadow-focus;
 }
 
 .gro-card-view .gro-crew-immigration-bulk-empty {
@@ -1025,8 +1026,8 @@
   height: 38px;
   padding: 0 18px;
   border-radius: 10px;
-  border: 1px solid #00368c;
-  background: #00368c;
+  border: 1px solid $ffd-coral;
+  background: $ffd-coral;
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
@@ -1035,8 +1036,8 @@
 }
 
 .gro-card-view .gro-crew-immigration-bulk-submit:hover {
-  background: #002a6f;
-  border-color: #002a6f;
+  background: darken($ffd-coral, 8%);
+  border-color: darken($ffd-coral, 8%);
 }
 
 .gro-card-view .gro-crew-immigration-bulk-submit:disabled {
@@ -1095,7 +1096,7 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  color: #b91c1c;
+  color: $status-cancelled-text;
 }
 
 .gro-card-view .gro-pass-retry-btn {
@@ -1166,7 +1167,7 @@
   margin: 0;
   font-size: 12px;
   font-weight: 500;
-  color: #b91c1c;
+  color: $status-cancelled-text;
 }
 
 /* Dynamic stage bulk upload — icon trigger + modal (Crew Immigration / Vessel Inward Registration) */
@@ -1184,21 +1185,21 @@
   border-radius: 10px;
   border: 1px solid var(--border-primary);
   background: var(--surface-primary);
-  color: #00368c;
+  color: $ffd-navy;
   cursor: pointer;
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .gro-card-view .gro-stage-upload-icon-btn:hover {
-  background: #00368c;
-  border-color: #00368c;
+  background: $ffd-navy;
+  border-color: $ffd-navy;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 54, 140, 0.28);
+  box-shadow: 0 4px 14px rgba($ffd-navy, 0.28);
 }
 
 .gro-card-view .gro-stage-upload-icon-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.25);
+  box-shadow: 0 0 0 2px rgba($ffd-coral, 0.25);
 }
 
 .gro-card-view .gro-stage-upload-icon-btn svg {
@@ -1217,14 +1218,14 @@
   border-radius: 8px;
   border: 1px solid var(--border-primary);
   background: var(--surface-primary);
-  color: #00368c;
+  color: $ffd-navy;
   cursor: pointer;
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
 }
 
 .gro-card-view .gro-crew-change-row-upload-btn:hover {
-  background: #00368c;
-  border-color: #00368c;
+  background: $ffd-navy;
+  border-color: $ffd-navy;
   color: #ffffff;
 }
 
@@ -1279,9 +1280,9 @@
 }
 
 .gro-stage-upload-dropzone:hover:not(:disabled) {
-  border-color: #00368c;
+  border-color: $ffd-navy;
   background: var(--bg-secondary);
-  color: #00368c;
+  color: $ffd-navy;
 }
 
 .gro-stage-upload-dropzone:disabled {
@@ -1290,14 +1291,14 @@
 }
 
 .gro-stage-upload-dropzone--has-file {
-  border-color: #00368c;
+  border-color: $ffd-navy;
   background: var(--bg-secondary);
 }
 
 .gro-stage-upload-dropzone-icon {
   width: 40px;
   height: 40px;
-  color: #00368c;
+  color: $ffd-navy;
 }
 
 .gro-stage-upload-dropzone-text {
@@ -1317,7 +1318,7 @@
 }
 
 .gro-stage-upload-dropzone--has-file .gro-stage-upload-filename {
-  color: #00368c;
+  color: $ffd-navy;
   font-weight: 600;
 }
 
@@ -1379,7 +1380,7 @@
 
 .gro-stage-upload-file-item-remove:hover:not(:disabled) {
   background: var(--surface-primary);
-  color: #d92d20;
+  color: $status-danger;
 }
 
 .gro-stage-upload-file-item-remove:disabled {
@@ -1392,8 +1393,8 @@
 }
 
 .gro-card-view .gro-pass-upload-btn--popover-open {
-  border-color: #00368c;
-  color: #00368c;
+  border-color: $ffd-navy;
+  color: $ffd-navy;
 }
 
 .gro-card-view .gro-pass-table-footer {
@@ -1479,7 +1480,7 @@
   cursor: pointer;
   flex-shrink: 0;
   margin: 0;
-  accent-color: #00368c;
+  accent-color: $ffd-navy;
 }
 
 /* Pass requests: grouped by work order */
@@ -1574,7 +1575,7 @@
 }
 
 .gro-card-view .gro-inward-popover-field-error {
-  color: #dc2626;
+  color: $status-danger;
 }
 
 .gro-card-view .gro-inward-popover-select,
@@ -1600,14 +1601,14 @@
 .gro-card-view .gro-inward-popover-input:focus,
 .gro-card-view .gro-inward-popover-textarea:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+  border-color: $ffd-coral;
+  box-shadow: 0 0 0 2px rgba($ffd-coral, 0.12);
 }
 
 .gro-card-view .gro-inward-popover-field--error .gro-inward-popover-select,
 .gro-card-view .gro-inward-popover-field--error .gro-inward-popover-input,
 .gro-card-view .gro-inward-popover-field--error .gro-inward-popover-textarea {
-  border-color: #fca5a5;
+  border-color: rgba($status-danger, 0.4);
 }
 
 .gro-card-view .gro-document-list {
@@ -1647,8 +1648,8 @@
 }
 
 .gro-card-view .gro-document-row-status-pending {
-  background: #fffbeb !important;
-  border-color: #fde68a !important;
+  background: $status-pending-bg !important;
+  border-color: rgba($status-pending-text, 0.4) !important;
 }
 
 .gro-card-view .gro-document-row-status-verified {
@@ -1657,8 +1658,8 @@
 }
 
 .gro-card-view .gro-document-row-status-reupload {
-  background: #fff7ed !important;
-  border-color: #fed7aa !important;
+  background: $status-pending-bg !important;
+  border-color: rgba($status-pending-text, 0.4) !important;
 }
 
 .gro-card-view .gro-document-row-status-rejected {
@@ -1856,8 +1857,8 @@
 
 .gro-card-view .gro-inline-remark-input:focus {
   outline: none;
-  border-color: #94a3b8;
-  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.35);
+  border-color: $ffd-coral;
+  box-shadow: 0 0 0 1px rgba($ffd-coral, 0.35);
 }
 
 .gro-card-view .gro-inline-remark-btn-cancel {
@@ -1889,13 +1890,13 @@
   border-radius: 10px;
   cursor: pointer;
   text-transform: none;
-  background: #00368c;
+  background: $ffd-coral;
   box-shadow: none;
   transition: background 0.1s ease;
 }
 
 .gro-card-view .gro-inline-remark-btn-submit:hover:not(:disabled) {
-  background: #002a70;
+  background: darken($ffd-coral, 8%);
 }
 
 .gro-card-view .gro-document-actions {
@@ -1962,60 +1963,60 @@
 }
 
 .gro-card-view .gro-doc-action-btn--approved {
-  color: #047857;
-  background: #ecfdf5;
-  border-color: #6ee7b7;
+  color: $status-completed-text;
+  background: $status-completed-bg;
+  border-color: rgba($status-completed-text, 0.4);
 }
 
 .gro-card-view .gro-doc-action-btn--approved:not(.gro-doc-action-btn--readonly):not(:disabled):hover {
-  background: #d1fae5;
-  border-color: #34d399;
+  background: rgba($status-completed-text, 0.18);
+  border-color: rgba($status-completed-text, 0.6);
 }
 
 .gro-card-view .gro-doc-action-btn--approved.gro-doc-action-btn--readonly,
 .gro-card-view .gro-doc-action-btn--approved.gro-doc-action-btn--readonly:hover,
 .gro-card-view .gro-doc-action-btn--approved.gro-doc-action-btn--readonly:focus-visible {
-  color: #047857 !important;
-  background: #ecfdf5 !important;
-  border-color: #6ee7b7 !important;
+  color: $status-completed-text !important;
+  background: $status-completed-bg !important;
+  border-color: rgba($status-completed-text, 0.4) !important;
   cursor: default;
   pointer-events: none;
 }
 
 .gro-card-view .gro-doc-action-btn--reject {
-  color: #b91c1c;
+  color: $status-cancelled-text;
   background: var(--surface-primary);
   border-color: var(--border-primary);
 }
 
 .gro-card-view .gro-doc-action-btn--reject:not(.gro-doc-action-btn--readonly):not(:disabled):hover {
-  background: #fee2e2;
-  border-color: #fca5a5;
+  background: $status-cancelled-bg;
+  border-color: rgba($status-danger, 0.5);
 }
 
 .gro-card-view .gro-doc-action-btn--reject.gro-doc-action-btn--active {
-  border-color: #ef4444;
-  background: #fee2e2;
+  border-color: $status-danger;
+  background: $status-cancelled-bg;
 }
 
 .gro-card-view .gro-doc-action-btn--reupload {
-  color: #c2410c;
-  background: #fff7ed;
-  border-color: #fdba74;
+  color: $status-pending-text;
+  background: $status-pending-bg;
+  border-color: rgba($status-pending-text, 0.4);
 }
 
 .gro-card-view .gro-doc-action-btn--reupload.gro-doc-action-btn--readonly,
 .gro-card-view .gro-doc-action-btn--reupload.gro-doc-action-btn--readonly:hover,
 .gro-card-view .gro-doc-action-btn--reupload.gro-doc-action-btn--readonly:focus-visible {
-  color: #9a3412 !important;
-  background: #ffedd5 !important;
-  border-color: #fb923c !important;
+  color: darken($status-pending-text, 10%) !important;
+  background: $status-pending-bg !important;
+  border-color: rgba($status-pending-text, 0.55) !important;
   cursor: default;
   pointer-events: none;
 }
 
 .gro-card-view .gro-doc-action-btn--rejected {
-  color: #b91c1c;
+  color: $status-cancelled-text;
   background: var(--surface-primary);
   border-color: var(--border-primary);
 }
@@ -2024,16 +2025,16 @@
 .gro-card-view .gro-doc-action-btn--rejected.gro-doc-action-btn--readonly:hover,
 .gro-card-view .gro-doc-action-btn--rejected.gro-doc-action-btn--readonly:focus-visible {
   color: #ffffff !important;
-  background: #dc2626 !important;
-  border-color: #b91c1c !important;
+  background: $status-danger !important;
+  border-color: darken($status-danger, 8%) !important;
   cursor: default;
   pointer-events: none;
 }
 
 .gro-card-view .gro-doc-action-btn--download {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  color: $status-info-text;
+  background: $status-info-bg;
+  border-color: rgba($status-info-text, 0.35);
 }
 
 .gro-card-view .gro-doc-action-btn--download.gro-doc-action-btn--icon-only {
@@ -2044,8 +2045,8 @@
 }
 
 .gro-card-view .gro-doc-action-btn--download:not(:disabled):hover {
-  background: #e0f2fe;
-  border-color: #7dd3fc;
+  background: rgba($status-info-text, 0.16);
+  border-color: rgba($status-info-text, 0.5);
 }
 
 .gro-icon-btn:disabled,
@@ -2106,17 +2107,17 @@
   height: 36px;
   padding: 0;
   border-radius: 10px;
-  border: 1.5px solid #bfdbfe;
-  background: #eff6ff;
-  color: #1d4ed8;
+  border: 1.5px solid rgba($status-info-text, 0.35);
+  background: $status-info-bg;
+  color: $status-info-text;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .gro-inward-time-capture-btn:hover:not(:disabled) {
-  background: #bbdefb;
-  border-color: #64b5f6;
-  color: #0d47a1;
+  background: rgba($status-info-text, 0.2);
+  border-color: rgba($status-info-text, 0.6);
+  color: darken($status-info-text, 10%);
 }
 
 .gro-inward-time-capture-btn:disabled {
@@ -2125,7 +2126,7 @@
 }
 
 .gro-premium-upload-filename--uploaded {
-  color: #1d4ed8;
+  color: $status-info-text;
   text-decoration: none;
 }
 
@@ -2165,14 +2166,14 @@ body .gro-doc-action-modal .modal-dialog {
 }
 
 .gro-doc-confirm-approve-btn {
-  background: #047857 !important;
-  border-color: #047857 !important;
+  background: $status-success !important;
+  border-color: $status-success !important;
   color: #fff !important;
 }
 
 .gro-doc-confirm-approve-btn:hover:not(:disabled) {
-  background: #065f46 !important;
-  border-color: #065f46 !important;
+  background: darken($status-success, 8%) !important;
+  border-color: darken($status-success, 8%) !important;
 }
 
 .gro-doc-action-modal__details {
@@ -2202,7 +2203,7 @@ body .gro-doc-action-modal .modal-dialog {
 .gro-doc-action-modal__detail-value {
   font-size: 14px;
   font-weight: 600;
-  color: #00368c;
+  color: $ffd-navy;
 }
 
 .gro-doc-action-modal__textarea {
@@ -2219,19 +2220,19 @@ body .gro-doc-action-modal .modal-dialog {
 
 .gro-doc-action-modal__textarea:focus {
   outline: none;
-  border-color: #00368c;
-  box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.12);
+  border-color: $ffd-coral;
+  box-shadow: 0 0 0 2px rgba($ffd-coral, 0.12);
 }
 
 .gro-doc-confirm-reject-btn {
-  background: #ff3e3e !important;
-  border-color: #ff3e3e !important;
+  background: $status-danger !important;
+  border-color: $status-danger !important;
   color: #fff !important;
 }
 
 .gro-doc-confirm-reject-btn:hover:not(:disabled) {
-  background: #e63535 !important;
-  border-color: #e63535 !important;
+  background: darken($status-danger, 8%) !important;
+  border-color: darken($status-danger, 8%) !important;
 }
 
 body .gro-zawil-upload-modal,
@@ -2271,13 +2272,13 @@ body .gro-zawil-upload-modal .modal-dialog {
 }
 
 .gro-zawil-upload-modal__dropzone:hover {
-  border-color: #00368c;
+  border-color: $ffd-navy;
   background: var(--surface-primary);
 }
 
 .gro-zawil-upload-modal__dropzone-icon {
   font-size: 32px;
-  color: #00368c;
+  color: $ffd-navy;
 }
 
 .gro-zawil-upload-modal__dropzone-text {
@@ -2296,8 +2297,8 @@ body .gro-zawil-upload-modal .modal-dialog {
 }
 
 .gro-zawil-upload-modal__submit.btn-common {
-  background: #00368c !important;
-  border-color: #00368c !important;
+  background: $ffd-coral !important;
+  border-color: $ffd-coral !important;
   color: #fff !important;
   display: inline-flex;
   align-items: center;
@@ -2306,13 +2307,13 @@ body .gro-zawil-upload-modal .modal-dialog {
 }
 
 .gro-zawil-upload-modal__submit.btn-common:hover:not(:disabled) {
-  background: #002a6e !important;
-  border-color: #002a6e !important;
+  background: darken($ffd-coral, 8%) !important;
+  border-color: darken($ffd-coral, 8%) !important;
 }
 
 .gro-zawil-upload-modal__submit.btn-common:disabled {
-  background: #9fb2cf !important;
-  border-color: #9fb2cf !important;
+  background: $status-neutral !important;
+  border-color: $status-neutral !important;
   color: #fff !important;
   cursor: not-allowed;
 }
@@ -2464,12 +2465,12 @@ body .gro-zawil-upload-modal .modal-dialog {
 }
 
 .gro-supervisor-tab:hover:not(:disabled) {
-  background: #e0e7ff;
+  background: rgba($ffd-navy, 0.08);
   color: var(--text-primary);
 }
 
 .gro-supervisor-tab.active {
-  background: #e0e7ff;
+  background: rgba($ffd-navy, 0.08);
   color: var(--text-primary);
   font-weight: 600;
 }
@@ -2519,7 +2520,7 @@ body .gro-zawil-upload-modal .modal-dialog {
     width: 4px;
     height: 20px;
     border-radius: 3px;
-    background: #3e5ebd;
+    background: $ffd-teal;
     flex-shrink: 0;
   }
 }
@@ -2682,7 +2683,7 @@ body .gro-zawil-upload-modal .modal-dialog {
 /* Shared table controls — 46px height, 12px radius, single border (GRO Supervisor only) */
 $gro-supervisor-control-height: 46px;
 $gro-supervisor-control-radius: 12px;
-$gro-supervisor-control-border: #d0d5dd;
+$gro-supervisor-control-border: $ffd-border;
 
 .gro-supervisor-table-control {
   width: 100%;
@@ -2713,12 +2714,12 @@ $gro-supervisor-control-border: #d0d5dd;
 }
 
 .gro-supervisor-table-control--select .cf-multi-select-email-input:hover {
-  border-color: #98a2b3;
+  border-color: darken($ffd-border, 12%);
 }
 
 .gro-supervisor-table-control--select .cf-multi-select-email-input:focus-within {
-  border-color: #3e5ebd;
-  box-shadow: 0 0 0 3px rgba(62, 94, 189, 0.12);
+  border-color: $ffd-coral;
+  box-shadow: $shadow-focus;
   outline: none;
 }
 
@@ -2819,14 +2820,14 @@ $gro-supervisor-control-border: #d0d5dd;
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersInputBase-root:hover,
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-root:hover,
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiInputBase-root:hover {
-  border-color: #98a2b3 !important;
+  border-color: darken($ffd-border, 12%) !important;
 }
 
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiPickersInputBase-root.Mui-focused,
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-root.Mui-focused,
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiInputBase-root.Mui-focused {
-  border-color: #3e5ebd !important;
-  box-shadow: 0 0 0 3px rgba(62, 94, 189, 0.12) !important;
+  border-color: $ffd-coral !important;
+  box-shadow: $shadow-focus !important;
 }
 
 .gro-supervisor-table-control--datetime .cf-datetime-picker .MuiOutlinedInput-notchedOutline,
@@ -2883,27 +2884,27 @@ $gro-supervisor-control-border: #d0d5dd;
 }
 
 .gro-supervisor-task-status--info {
-  color: #1e40af;
-  background: #dbeafe;
-  border-color: #93c5fd;
+  color: $status-info-text;
+  background: $status-info-bg;
+  border-color: rgba($status-info-text, 0.4);
 }
 
 .gro-supervisor-task-status--warning {
-  color: #92400e;
-  background: #fef3c7;
-  border-color: #fcd34d;
+  color: $status-pending-text;
+  background: $status-pending-bg;
+  border-color: rgba($status-pending-text, 0.4);
 }
 
 .gro-supervisor-task-status--success {
-  color: #065f46;
-  background: #d1fae5;
-  border-color: #6ee7b7;
+  color: $status-completed-text;
+  background: $status-completed-bg;
+  border-color: rgba($status-completed-text, 0.4);
 }
 
 .gro-supervisor-task-status--danger {
-  color: #991b1b;
-  background: #fee2e2;
-  border-color: #fca5a5;
+  color: $status-cancelled-text;
+  background: $status-cancelled-bg;
+  border-color: rgba($status-danger, 0.4);
 }
 
 .gro-supervisor-task-empty {
@@ -2973,25 +2974,25 @@ $gro-supervisor-control-border: #d0d5dd;
 }
 
 .gro-supervisor-doc-status--warning {
-  color: #b45309;
-  background: #fffbeb;
-  border-color: #fde68a;
+  color: $status-pending-text;
+  background: $status-pending-bg;
+  border-color: rgba($status-pending-text, 0.4);
 }
 
 .gro-supervisor-doc-status--success {
-  color: #047857;
-  background: #ecfdf5;
-  border-color: #a7f3d0;
+  color: $status-completed-text;
+  background: $status-completed-bg;
+  border-color: rgba($status-completed-text, 0.4);
 }
 
 .gro-supervisor-doc-status--orange {
-  color: #c2410c;
-  background: #fff7ed;
-  border-color: #fed7aa;
+  color: $status-pending-text;
+  background: $status-pending-bg;
+  border-color: rgba($status-pending-text, 0.4);
 }
 
 .gro-supervisor-doc-status--danger {
-  color: #b91c1c;
+  color: $status-cancelled-text;
   background: var(--surface-primary);
   border-color: var(--border-primary);
 }
@@ -3098,7 +3099,7 @@ $gro-supervisor-control-border: #d0d5dd;
   font-family: "Manrope", sans-serif;
   font-size: 13px;
   font-weight: 500;
-  color: #dc2626;
+  color: $status-danger;
   flex-shrink: 0;
   transition: background 0.15s ease;
 }
@@ -3146,9 +3147,9 @@ $gro-supervisor-control-border: #d0d5dd;
 }
 
 .cardform-type-picker-row--selected {
-  background: #eff6ff;
-  border-color: #93c5fd;
-  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.12);
+  background: rgba($ffd-navy, 0.06);
+  border-color: $ffd-navy;
+  box-shadow: inset 0 0 0 1px rgba($ffd-navy, 0.15);
 }
 
 .cardform-type-picker-row-icon {

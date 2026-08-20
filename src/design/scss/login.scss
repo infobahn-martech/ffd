@@ -1,3 +1,5 @@
+@import "./partials/partials";
+
 /*** all Mobile Screen (iphone 6,7,8) ***/
 /*** all Mobile Screen (iphone 6,7,8) ***/
 /*** mobile Landscape Size ***/
@@ -15,7 +17,7 @@
   --text-primary: #1a273c;
   --text-muted: #98a2b3;
 
-  background: #0c234c url(../img/login-bg.svg) no-repeat top center/cover;
+  background: $ffd-navy url(../img/login-bg.svg) no-repeat top center/cover;
   height: 100vh;
   display: flex;
   align-items: center;
@@ -288,7 +290,7 @@
 .login-wrap .form-wrap .content-wrap .head-wrap .title {
   font-family: "Manrope", sans-serif;
   font-size: 35px;
-  color: #0c234c;
+  color: $ffd-navy;
   font-weight: 600;
   line-height: 1.2;
   margin: 0;
@@ -327,7 +329,7 @@
 
 .login-wrap .form-wrap .content-wrap .head-wrap .des {
   font-size: 18px;
-  color: #0c234c;
+  color: $ffd-navy;
   line-height: 1.4;
   font-weight: 300;
   font-family: "Manrope", sans-serif;
@@ -364,7 +366,7 @@
 
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .label {
   font-size: 18px;
-  color: #0c234c;
+  color: $ffd-navy;
   font-weight: 400;
   font-family: "Manrope", sans-serif;
   margin: 0 0 5px 0;
@@ -410,7 +412,7 @@
 }
 
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .password-toggle:hover {
-  color: #0c234c;
+  color: $ffd-navy;
 }
 
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .password-toggle:focus {
@@ -433,7 +435,7 @@
 
 .login-wrap .form-wrap .content-wrap .form-content-wrap .input-outer-wrap .input-wrap .txt {
   height: 60px;
-  border: 1px solid #a8b8d4;
+  border: 1px solid $ffd-border;
   border-radius: 30px;
   font-size: 18px;
   color: var(--text-primary);
@@ -491,7 +493,7 @@
   position: absolute;
   bottom: -18px;
   font-size: 12px;
-  color: #ff0000;
+  color: var(--color-danger);
 }
 
 .login-wrap .form-wrap .content-wrap .btn-wrap {
@@ -512,7 +514,7 @@
 }
 
 .login-wrap .form-wrap .content-wrap .btn-wrap .btn-red {
-  background: #bc2036;
+  background: $ffd-coral;
   font-size: 20px;
   color: #ffffff;
   font-family: "Manrope", sans-serif;
@@ -524,6 +526,17 @@
   outline: 0;
   box-shadow: none;
   border: 0;
+  transition: background-color 0.2s ease;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background: darken($ffd-coral, 8%);
+  }
+
+  &:disabled {
+    background: rgba($ffd-coral, 0.4);
+  }
 }
 
 @media (max-width: 1679px) {
@@ -564,7 +577,7 @@
 
 .login-wrap .form-wrap .content-wrap .forgot-wrap .link {
   font-size: 18px;
-  color: #0c234c;
+  color: $ffd-navy;
   text-decoration: none;
   font-family: "Manrope", sans-serif;
   font-weight: 400;
@@ -590,7 +603,7 @@
 
 .login-wrap .form-wrap .content-wrap .copy {
   font-size: 18px;
-  color: #0c234c;
+  color: $ffd-navy;
   line-height: 1.4;
   font-weight: 400;
   font-family: "Manrope", sans-serif;

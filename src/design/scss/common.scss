@@ -246,13 +246,20 @@ html {
   font-size: 16px;
 
   &.btn-primary {
-    background-color: #00368c;
-    border: 1px solid #00368c;
+    background-color: $ffd-coral;
+    border: 1px solid $ffd-coral;
 
     &:hover,
     &:focus,
     &:active {
-      background-color: #00368c;
+      background-color: darken($ffd-coral, 8%);
+      border-color: darken($ffd-coral, 8%);
+    }
+
+    &:disabled,
+    &.disabled {
+      background-color: rgba($ffd-coral, 0.4);
+      border-color: rgba($ffd-coral, 0.4);
     }
   }
 
@@ -261,26 +268,26 @@ html {
     color: var(--text-primary);
 
     &.btn-login {
-      color: #00368c;
-      border: 1px solid #00368c !important;
+      color: $ffd-navy;
+      border: 1px solid $ffd-navy !important;
     }
   }
 
   &.btn-secondary {
     border: 1px solid var(--border-primary) !important;
-    color: #00368c;
-    background-color: #DEF0F2;
+    color: $ffd-navy;
+    background-color: rgba($ffd-navy, 0.08);
   }
 }
 
 .dropdown-item.active,
 .dropdown-item:active {
-  background-color: #00368C;
+  background-color: $ffd-navy;
 }
 
 .table {
   .row_title {
-    color: #00368c;
+    color: $ffd-navy;
     font-weight: 500;
   }
 
@@ -342,7 +349,7 @@ html {
         height: 16px;
         border-radius: 16px;
         display: block;
-        background-color: #00368c;
+        background-color: $ffd-navy;
         transition: all ease-in-out 0.1s;
       }
     }
@@ -350,7 +357,7 @@ html {
 }
 
 .error-txt {
-  color: #f00;
+  color: var(--color-danger);
   font-size: 11.5px;
   line-height: 1;
 
@@ -394,7 +401,7 @@ html {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: rgba(234, 241, 251, 0.82);
+  background: rgba($ffd-navy, 0.08);
   border-bottom: 1px solid var(--border-primary);
   cursor: pointer;
   user-select: none;
@@ -403,7 +410,7 @@ html {
    border-radius:4px;
 
   &:hover {
-    background-color: rgba(234, 241, 251, 0.82);
+    background-color: rgba($ffd-navy, 0.08);
   }
 
   // Responsive adjustments for sidebar width
@@ -514,8 +521,8 @@ html {
 .kanban-board-spinner {
   width: 44px;
   height: 44px;
-  border: 4px solid rgba(0, 67, 160, 0.15);
-  border-top-color: #0043a0;
+  border: 4px solid rgba($ffd-navy, 0.15);
+  border-top-color: $ffd-navy;
   border-radius: 50%;
   animation: kanbanSpin 0.8s linear infinite;
 }
@@ -523,16 +530,16 @@ html {
 .kanban-board-loader-text {
   font-size: 14px;
   font-weight: 600;
-  color: #0043a0;
+  color: $ffd-navy;
 }
 
 .kanban-board-loader-overlay-dark .kanban-board-spinner {
-  border-color: rgba(147, 197, 253, 0.2);
-  border-top-color: #93c5fd;
+  border-color: rgba($ffd-teal, 0.2);
+  border-top-color: $ffd-teal;
 }
 
 .kanban-board-loader-overlay-dark .kanban-board-loader-text {
-  color: #93c5fd;
+  color: $ffd-teal;
 }
 
 /* Column Box */
@@ -583,7 +590,7 @@ html {
 
 /* Drag over glow */
 .card-list.drag-over {
-  background: #e2e6ff;
+  background: $ffd-teal-soft;
   border-radius: 10px;
 }
 
@@ -624,7 +631,7 @@ html {
   }
 
   .column-classic .card-list.drag-over {
-    background: #e2e6ff;
+    background: $ffd-teal-soft;
   }
 
   .kanban-card.kanban-card-classic {
@@ -665,18 +672,18 @@ html {
   }
 
   .card-mini-tag-port {
-    background: #e3f2fd;
-    color: #1565c0;
+    background: var(--color-info-bg);
+    color: var(--color-info);
   }
 
   .card-mini-tag-priority {
-    background: #fff3e0;
-    color: #e65100;
+    background: $status-pending-bg;
+    color: $status-pending-text;
   }
 
   .card-mini-tag-priority.low {
     background: var(--bg-secondary);
-    color: #2e7d32;
+    color: $status-completed-text;
   }
 
   .card-mini-tag-priority.medium {
@@ -897,7 +904,7 @@ html {
 }
 
 .kanban-dark-mode .card-list.drag-over {
-  background: rgba(59, 130, 246, 0.06);
+  background: rgba($ffd-teal, 0.12);
   border-radius: 12px;
 }
 
@@ -1166,9 +1173,9 @@ body.app-dark-mode {
     }
 
     .kanban-sidebar-workspaces-nav-item--active {
-      background: rgba(59, 130, 246, 0.12);
-      color: #93c5fd;
-      border-color: rgba(96, 165, 250, 0.35);
+      background: rgba($ffd-teal, 0.12);
+      color: var(--text-primary);
+      border-color: rgba($ffd-teal, 0.35);
       box-shadow: none;
     }
 
@@ -1177,8 +1184,8 @@ body.app-dark-mode {
       border-color: transparent;
 
       &:focus-within {
-        border-color: rgba(96, 165, 250, 0.35);
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+        border-color: rgba($ffd-teal, 0.35);
+        box-shadow: 0 0 0 2px rgba($ffd-teal, 0.15);
       }
     }
 
@@ -1217,17 +1224,17 @@ body.app-dark-mode {
 
     .kanban-sidebar-workspaces-new-db {
       background: #18181b;
-      border-color: rgba(96, 165, 250, 0.28);
-      color: #93c5fd;
+      border-color: rgba($ffd-teal, 0.28);
+      color: var(--text-primary);
 
       &:hover {
         background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(96, 165, 250, 0.4);
+        border-color: rgba($ffd-teal, 0.4);
       }
     }
 
     .kanban-sidebar-workspaces-row--active {
-      background: rgba(59, 130, 246, 0.12);
+      background: rgba($ffd-teal, 0.12);
     }
 
     .kanban-sidebar-workspaces-nav-item:hover:not(.kanban-sidebar-workspaces-nav-item--active) {
@@ -1245,9 +1252,9 @@ body.app-dark-mode {
     }
 
     &.active {
-      background: rgba(59, 130, 246, 0.12);
-      color: #60a5fa;
-      box-shadow: inset 3px 0 0 0 #60a5fa;
+      background: rgba($ffd-teal, 0.12);
+      color: $ffd-teal;
+      box-shadow: inset 3px 0 0 0 $ffd-teal;
     }
   }
 
@@ -1372,13 +1379,13 @@ body.app-dark-mode {
 
   .page-loader-content {
     text-align: center;
-    color: #00368c;
+    color: $ffd-navy;
 
     p {
       font-size: 16px;
       font-weight: 500;
       margin: 0;
-      color: #00368c;
+      color: $ffd-navy;
     }
   }
 }

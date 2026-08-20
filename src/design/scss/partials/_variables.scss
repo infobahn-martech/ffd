@@ -1,15 +1,35 @@
-// Brand colors
+// Brand colors — FFD design system
 //––––––––––––––––––––––––––––––––––––––––––––––––––
 $white: #fff;
-$header-bg: #1A273C;
-$slider-color-active: #F5F9FF;
-$slider-color: #6D7B9B;
-$mixed-dark: #6276A2;
-$light-blue: #2D6EEE;
 
-$colorPrimary: #00368C;
-$borderLight: #D1EBEE;
-$txtColor: #35475E;
+// FFD palette — single source of truth. Also exposed as CSS custom
+// properties (--ffd-*) in _theme.scss; prefer var(--ffd-*) in new/updated
+// component styles so values stay swappable without a rebuild.
+$ffd-navy: #0F2A3D;
+$ffd-navy-light: #16374C;
+$ffd-hover-dark: #1B4359;
+$ffd-coral: #D85A30;
+$ffd-coral-soft: #FBE9E3;
+$ffd-teal: #4EC9A1;
+$ffd-teal-soft: #E3F7F1;
+$ffd-background: #F5F4F1;
+$ffd-surface: #fff;
+$ffd-text-primary: #17232C;
+$ffd-text-secondary: #66727A;
+$ffd-border: #DDDCD7;
+
+// Legacy brand aliases — existing selectors reference these names across the
+// codebase, so they now resolve into the FFD palette instead of the old
+// royal-blue theme. Prefer the $ffd-* names above in new/updated code;
+// these remain so untouched files keep working during the phased rollout.
+$header-bg: $ffd-navy;
+$colorPrimary: $ffd-navy;
+$borderLight: $ffd-border;
+$txtColor: $ffd-text-secondary;
+$light-blue: $ffd-navy-light;
+$mixed-dark: $ffd-navy-light;
+$slider-color: $ffd-text-secondary;
+$slider-color-active: $ffd-teal-soft;
 
 // Font stack
 //––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -80,7 +100,7 @@ $border-color-subtle: $borderLight;
 $shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
 $shadow-md: 0 6px 14px rgba(15, 23, 42, 0.06);
 $shadow-lg: 0 10px 28px rgba(15, 23, 42, 0.08);
-$shadow-focus: 0 0 0 3px rgba(0, 54, 140, 0.2);
+$shadow-focus: 0 0 0 3px rgba(216, 90, 48, 0.25);
 
 // Card
 $card-bg: $white;
@@ -91,7 +111,7 @@ $card-padding: $space-5;
 
 // Table
 $table-header-bg: #F8F9FC;
-$table-row-hover-bg: rgba(0, 54, 140, 0.04);
+$table-row-hover-bg: rgba(15, 42, 61, 0.04);
 $table-border-color: $border-color-default;
 $table-cell-padding-y: $space-3;
 $table-cell-padding-x: $space-4;
@@ -112,3 +132,10 @@ $status-success: #28A745;
 $status-warning: #FFC107;
 $status-danger: #DC3545;
 $status-neutral: #6C757D;
+
+// Canonical "info" blue — distinct from the FFD navy brand color, for
+// in-progress/informational states that scattered literals (#1976D2,
+// #0263d1, #3498db, #2563eb/#3b82f6, etc.) should consolidate onto instead
+// of drifting into brand-navy territory.
+$status-info-bg: $status-in-progress-bg;
+$status-info-text: $status-in-progress-text;

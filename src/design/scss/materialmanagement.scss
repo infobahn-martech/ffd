@@ -1,3 +1,5 @@
+@import "partials/partials";
+
 /* ==========================================================
    MATERIAL MANAGEMENT STYLES
    ========================================================== */
@@ -32,13 +34,13 @@
 .material-list-title-bar {
   width: 4px;
   height: 18px;
-  background: var(--card-color, #2A00FF);
+  background: var(--card-color, $ffd-navy);
   border-radius: 2px;
   display: inline-block;
 }
 
 .material-add-btn {
-  background: #00368c !important;
+  background: $ffd-coral !important;
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -254,13 +256,13 @@
   }
 
   &.edit:hover {
-    background: #e0e7ff;
-    color: var(--card-color, #2a00ff);
+    background: rgba($ffd-navy, 0.1);
+    color: var(--card-color, $ffd-navy);
   }
 
   &.delete:hover {
-    background: #fee2e2;
-    color: #dc2626;
+    background: $status-cancelled-bg;
+    color: $status-danger;
   }
 }
 
@@ -271,7 +273,7 @@
 }
 
 .material-table-container .table.material-table thead {
-  background: #e2e6ff;
+  background: rgba($ffd-navy, 0.1);
 
   position: sticky;
   top: 0;
@@ -279,7 +281,7 @@
 }
 
 .material-table-container .table.material-table thead th {
-  background: #e2e6ff !important;
+  background: rgba($ffd-navy, 0.1) !important;
   color: var(--text-primary);
   font-weight: 600;
   font-size: 12px;
@@ -320,11 +322,11 @@
 }
 
 .material-table tbody tr:hover {
-  background: rgba(42, 0, 255, 0.03);
+  background: rgba($ffd-navy, 0.03);
 }
 
 .material-table tbody tr:hover td {
-  background: rgb(249 249 255);
+  background: rgba($ffd-navy, 0.03);
 }
 
 .material-table tbody tr:last-child td {
@@ -369,7 +371,7 @@
 }
 
 .material-table-container .table.material-table .note-thead th {
-  background: #e2e6ff !important;
+  background: rgba($ffd-navy, 0.1) !important;
 }
 
 /* ==========================================================
@@ -434,7 +436,7 @@ body .material-management-modal .modal-body {
   max-height: 70vh;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #aab4c3 #f1f5f9;
+  scrollbar-color: $ffd-navy-light $ffd-background;
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar {
@@ -447,12 +449,12 @@ body .material-management-modal .modal-body::-webkit-scrollbar-track {
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar-thumb {
-  background: #aab4c3;
+  background: $ffd-navy-light;
   border-radius: 999px;
 }
 
 body .material-management-modal .modal-body::-webkit-scrollbar-thumb:hover {
-  background: #8b96a8;
+  background: $ffd-navy;
 }
 
 body .material-management-modal .modal-footer {
@@ -484,30 +486,30 @@ body .material-management-modal {
   .btn.btn-primary,
   button.btn-primary,
   button[type="submit"] {
-    background-color: #00368c !important;
-    border-color: #00368c !important;
+    background-color: $ffd-coral !important;
+    border-color: $ffd-coral !important;
     color: #ffffff !important;
     font-weight: 600;
-    box-shadow: 0 2px 6px rgba(0, 54, 140, 0.25);
+    box-shadow: 0 2px 6px rgba($ffd-coral, 0.25);
     transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
 
     &:hover,
     &:focus {
-      background-color: #00368c !important;
-      border-color: #00368c !important;
+      background-color: darken($ffd-coral, 8%) !important;
+      border-color: darken($ffd-coral, 8%) !important;
       transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(0, 54, 140, 0.3);
+      box-shadow: 0 4px 10px rgba($ffd-coral, 0.3);
     }
 
     &:active {
-      background-color: #00368c !important;
-      border-color: #00368c !important;
+      background-color: darken($ffd-coral, 8%) !important;
+      border-color: darken($ffd-coral, 8%) !important;
       transform: translateY(0);
     }
 
     &:disabled {
-      background-color: #00368c !important;
-      border-color: #00368c !important;
+      background-color: $ffd-coral !important;
+      border-color: $ffd-coral !important;
       opacity: 0.5;
       box-shadow: none;
       transform: none;
@@ -544,7 +546,7 @@ body .material-management-modal {
 
   .cf-input:focus-within {
     border-color: var(--border-primary) !important;
-    box-shadow: 0 0 0 3px rgba(226, 230, 255, 0.3) !important;
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.3) !important;
   }
 
   /* Select dropdown hover */
@@ -554,7 +556,7 @@ body .material-management-modal {
 
   .cf-select:focus-within {
     border-color: var(--border-primary) !important;
-    box-shadow: 0 0 0 3px rgba(226, 230, 255, 0.3) !important;
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.3) !important;
   }
 
   /* Date and time inputs */
@@ -565,7 +567,7 @@ body .material-management-modal {
 
     &:focus-within {
       border-color: var(--border-primary) !important;
-      box-shadow: 0 0 0 3px rgba(226, 230, 255, 0.3) !important;
+      box-shadow: 0 0 0 3px rgba($ffd-navy, 0.3) !important;
     }
   }
 
@@ -579,15 +581,15 @@ body .material-management-modal {
 
     &:hover {
       border-color: var(--border-primary) !important;
-      background: rgba(226, 230, 255, 0.1) !important;
+      background: rgba($ffd-navy, 0.1) !important;
       transform: none !important;
       box-shadow: none !important;
     }
 
     &.dragging {
       border-color: var(--border-primary) !important;
-      background: rgba(226, 230, 255, 0.15) !important;
-      box-shadow: 0 0 0 4px rgba(226, 230, 255, 0.3) !important;
+      background: rgba($ffd-navy, 0.15) !important;
+      box-shadow: 0 0 0 4px rgba($ffd-navy, 0.3) !important;
       transform: none !important;
     }
   }
@@ -605,14 +607,14 @@ body .material-management-modal {
 
   /* File upload buttons */
   .add-more-files-btn {
-    background-color: #e2e6ff !important;
+    background-color: rgba($ffd-navy, 0.1) !important;
     border-color: var(--border-primary) !important;
     border-width: 1.5px !important;
     color: var(--text-primary) !important;
     font-weight: 500 !important;
 
     &:hover {
-      background-color: #e2e6ff !important;
+      background-color: rgba($ffd-navy, 0.1) !important;
       border-color: var(--border-primary) !important;
       color: var(--text-primary) !important;
       opacity: 0.9;
@@ -620,14 +622,14 @@ body .material-management-modal {
   }
 
   .btn-remove-files {
-    background-color: #e2e6ff !important;
+    background-color: rgba($ffd-navy, 0.1) !important;
     border-color: var(--border-primary) !important;
     border-width: 1.5px !important;
     color: var(--text-primary) !important;
     font-weight: 500 !important;
 
     &:hover {
-      background-color: #e2e6ff !important;
+      background-color: rgba($ffd-navy, 0.1) !important;
       border-color: var(--border-primary) !important;
       color: var(--text-primary) !important;
       opacity: 0.9;
@@ -638,23 +640,23 @@ body .material-management-modal {
     border-color: var(--border-primary) !important;
 
     &:hover {
-      background-color: rgba(226, 230, 255, 0.2) !important;
+      background-color: rgba($ffd-navy, 0.2) !important;
       border-color: var(--border-primary) !important;
     }
 
     &:hover svg path {
-      stroke: #e2e6ff !important;
+      stroke: $ffd-navy-light !important;
     }
   }
 
   /* Upload icon and text */
   .upload-icon-wrapper svg rect,
   .upload-icon-wrapper svg path {
-    stroke: #e2e6ff !important;
+    stroke: $ffd-navy-light !important;
   }
 
   .upload-link {
-    color: #e2e6ff !important;
+    color: $ffd-navy-light !important;
   }
 
   /* Upload text — smaller to match compact zone height */
@@ -732,7 +734,7 @@ body .material-management-modal {
     }
 
     &:focus {
-      border-color: #3e5cb6;
+      border-color: $ffd-navy;
     }
   }
 
@@ -802,7 +804,7 @@ body .material-management-modal {
   }
 
   &--danger {
-    color: #dc3545;
+    color: $status-danger;
   }
 
   img {
@@ -826,7 +828,7 @@ body .material-management-modal {
 
 .landing-edit-error-msg {
   font-size: 12px;
-  color: #dc3545;
+  color: $status-danger;
   display: block;
 }
 
@@ -932,7 +934,7 @@ body .material-management-modal {
 
 .landing-view-item-title {
   font-weight: 600;
-  color: #00368c;
+  color: $colorPrimary;
   margin-bottom: 12px;
   font-size: 14px;
 }
@@ -972,7 +974,7 @@ body .material-management-modal {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #e8edff;
+  background-color: rgba($ffd-navy, 0.08);
   border-radius: 4px;
   flex-shrink: 0;
 }
@@ -1008,7 +1010,7 @@ body .material-management-modal {
 
 .landing-doc-view-btn {
   padding: 5px 14px;
-  background-color: #00368c;
+  background-color: $colorPrimary;
   color: white;
   border-radius: 4px;
   font-size: 12px;
@@ -1018,7 +1020,7 @@ body .material-management-modal {
   flex-shrink: 0;
 
   &:hover {
-    background-color: #002d6b;
+    background-color: $ffd-hover-dark;
     color: white;
   }
 }
@@ -1033,7 +1035,7 @@ body .material-management-modal {
   background: var(--surface-primary);
   border-radius: 8px;
   font-size: 13px;
-  color: #00368c;
+  color: $colorPrimary;
 }
 
 .landing-convert-section {
@@ -1063,7 +1065,7 @@ body .material-management-modal {
 
 .landing-convert-add-btn {
   padding: 8px 16px;
-  background-color: #00368c;
+  background-color: $ffd-coral;
   color: white;
   border: none;
   border-radius: 6px;
@@ -1101,7 +1103,7 @@ body .material-management-modal {
 
 .landing-convert-remove-btn {
   padding: 4px 10px;
-  background-color: #dc3545;
+  background-color: $status-danger;
   color: white;
   border: none;
   border-radius: 4px;
@@ -1157,13 +1159,13 @@ body .material-management-modal {
 }
 
 .landing-convert-error {
-  color: #dc3545;
+  color: $status-danger;
   font-size: 12px;
   display: block;
 }
 
 .landing-convert-qty-max {
-  color: #6c757d;
+  color: $status-neutral;
   font-size: 12px;
   margin-top: 4px;
 }
@@ -1188,7 +1190,7 @@ body .material-management-modal {
 
 .landing-convert-submit-btn {
   padding: 10px 20px;
-  background-color: #00368c;
+  background-color: $ffd-coral;
   color: white;
   border: none;
   border-radius: 6px;
@@ -1218,7 +1220,7 @@ body .material-management-modal {
 }
 
 .landing-table {
-  --card-color: #e2e6ff;
+  --card-color: $ffd-navy-light;
   table-layout: fixed;
 
   thead {
@@ -1230,7 +1232,7 @@ body .material-management-modal {
 }
 
 .landing-icon-brand {
-  color: #00368c !important;
+  color: $colorPrimary !important;
 }
 
 .landing-table-actions-th {
@@ -1245,7 +1247,7 @@ body .material-management-modal {
 }
 
 .landing-table-proof-link {
-  color: #00368c;
+  color: $colorPrimary;
   cursor: pointer;
 }
 
@@ -1284,7 +1286,7 @@ body .material-management-modal {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00368c !important;
+  color: $colorPrimary !important;
   flex-shrink: 0;
 
   &:hover,
@@ -1352,7 +1354,7 @@ body .material-management-modal {
   transition: border-color 0.2s, box-shadow 0.2s;
 
   &:hover {
-    border-color: #00368c;
+    border-color: $colorPrimary;
     box-shadow: 0 2px 6px rgba(0, 54, 140, 0.1);
   }
 }
@@ -1415,7 +1417,7 @@ body .material-management-modal {
   display: block;
   margin-top: 2px;
   font-size: 12px;
-  color: #dc3545;
+  color: $status-danger;
 }
 
 .dispatch-section-header {
@@ -1445,7 +1447,7 @@ body .material-management-modal {
   background: none;
   border: none;
   cursor: pointer;
-  color: #00368c;
+  color: $colorPrimary;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1463,7 +1465,7 @@ body .material-management-modal {
 
 .dispatch-order-icon-btn--delete {
   &:hover {
-    background-color: #fee2e2;
+    background-color: $status-cancelled-bg;
   }
 }
 
@@ -1478,7 +1480,7 @@ body .material-management-modal {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background-color: #00368c;
+  background-color: $colorPrimary;
   color: white;
   border: none;
   border-radius: 6px;
@@ -1488,7 +1490,7 @@ body .material-management-modal {
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #002d6b;
+    background-color: $ffd-hover-dark;
   }
 }
 
@@ -1560,7 +1562,7 @@ body .material-management-modal {
 }
 
 .dispatch-note-table {
-  --card-color: #e2e6ff;
+  --card-color: $ffd-navy-light;
   table-layout: fixed;
 }
 
@@ -1581,7 +1583,7 @@ body .material-management-modal {
 }
 
 .dispatch-note-file-link {
-  color: #00368c;
+  color: $colorPrimary;
   cursor: pointer;
 }
 
@@ -1623,7 +1625,7 @@ body .material-management-modal {
   position: sticky;
   top: 0;
   z-index: 1;
-  background-color: #e2e6ff;
+  background-color: rgba($ffd-navy, 0.1);
 }
 
 .note-actions-th {
@@ -1648,7 +1650,7 @@ body .material-management-modal {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00368c;
+  color: $colorPrimary;
   transition: background-color 0.2s;
 
   &:hover {
@@ -1669,7 +1671,7 @@ body .material-management-modal {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00368c;
+  color: $colorPrimary;
   transition: background-color 0.2s;
 
   &:hover {
@@ -1721,7 +1723,7 @@ body .material-management-modal {
   }
 
   &--danger {
-    color: #dc3545;
+    color: $status-danger;
   }
 }
 
@@ -1834,7 +1836,7 @@ body .material-management-modal .upload-main-text {
     }
 
     &.pac-item-selected {
-      background-color: #00368c !important;
+      background-color: $colorPrimary !important;
       color: #ffffff !important;
     }
   }

@@ -128,7 +128,7 @@ function DocumentsModal({ show, onClose }) {
               data-tooltip-id={tooltipId}
               data-tooltip-content={props.row.cardId.toString()}
               onClick={() => {}}
-              style={{ color: '#2563eb', cursor: 'pointer' }}
+              style={{ color: 'var(--color-info)', cursor: 'pointer' }}
             >
               {props.row.cardId}
             </span>

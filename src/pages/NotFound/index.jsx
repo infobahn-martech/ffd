@@ -30,14 +30,14 @@ const NotFound = () => {
                 cx="100"
                 cy="100"
                 r="80"
-                stroke="#00368c"
+                stroke="var(--ffd-navy)"
                 strokeWidth="3"
                 strokeDasharray="8 8"
                 fill="none"
               />
               <path
                 d="M60 100L140 100M100 60L100 140"
-                stroke="#00368c"
+                stroke="var(--ffd-navy)"
                 strokeWidth="4"
                 strokeLinecap="round"
               />
@@ -45,7 +45,7 @@ const NotFound = () => {
                 cx="100"
                 cy="100"
                 r="40"
-                stroke="#00368c"
+                stroke="var(--ffd-navy)"
                 strokeWidth="2"
                 fill="none"
                 opacity="0.3"

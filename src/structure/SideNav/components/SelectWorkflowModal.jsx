@@ -12,28 +12,28 @@ function WorkflowCardIllustrationKanban({ uid = 'k' }) {
     <svg className="select-workflow-card-illustration" viewBox="0 0 160 120" aria-hidden>
       <defs>
         <linearGradient id={a} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#3b82f6" />
-          <stop offset="100%" stopColor="#2563eb" />
+          <stop offset="0%" stopColor="#16374C" />
+          <stop offset="100%" stopColor="#0F2A3D" />
         </linearGradient>
         <linearGradient id={b} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#fb923c" />
-          <stop offset="100%" stopColor="#ea580c" />
+          <stop offset="0%" stopColor="#E37350" />
+          <stop offset="100%" stopColor="#D85A30" />
         </linearGradient>
         <linearGradient id={c} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#22c55e" />
-          <stop offset="100%" stopColor="#16a34a" />
+          <stop offset="0%" stopColor="#6FD9B8" />
+          <stop offset="100%" stopColor="#4EC9A1" />
         </linearGradient>
       </defs>
-      <rect x="8" y="12" width="44" height="96" rx="8" fill="#fff" stroke="#e5e7eb" strokeWidth="1.5" />
+      <rect x="8" y="12" width="44" height="96" rx="8" fill="#fff" stroke="#DDDCD7" strokeWidth="1.5" />
       <rect x="12" y="16" width="36" height="10" rx="3" fill={`url(#${a})`} />
-      <rect x="14" y="32" width="32" height="8" rx="2" fill="#dbeafe" />
-      <rect x="14" y="44" width="32" height="8" rx="2" fill="#eff6ff" />
-      <rect x="58" y="12" width="44" height="96" rx="8" fill="#fff" stroke="#e5e7eb" strokeWidth="1.5" />
+      <rect x="14" y="32" width="32" height="8" rx="2" fill="rgba(15, 42, 61, 0.1)" />
+      <rect x="14" y="44" width="32" height="8" rx="2" fill="rgba(15, 42, 61, 0.05)" />
+      <rect x="58" y="12" width="44" height="96" rx="8" fill="#fff" stroke="#DDDCD7" strokeWidth="1.5" />
       <rect x="62" y="16" width="36" height="10" rx="3" fill={`url(#${b})`} />
-      <rect x="64" y="32" width="32" height="8" rx="2" fill="#ffedd5" />
-      <rect x="108" y="12" width="44" height="96" rx="8" fill="#fff" stroke="#e5e7eb" strokeWidth="1.5" />
+      <rect x="64" y="32" width="32" height="8" rx="2" fill="#FBE9E3" />
+      <rect x="108" y="12" width="44" height="96" rx="8" fill="#fff" stroke="#DDDCD7" strokeWidth="1.5" />
       <rect x="112" y="16" width="36" height="10" rx="3" fill={`url(#${c})`} />
-      <rect x="114" y="32" width="32" height="8" rx="2" fill="#dcfce7" />
+      <rect x="114" y="32" width="32" height="8" rx="2" fill="#E3F7F1" />
       <circle cx="24" cy="104" r="3" fill="#94a3b8" opacity="0.5" />
       <path d="M24 104 Q 50 80 90 95 T 140 88" fill="none" stroke="#cbd5e1" strokeWidth="1.2" strokeDasharray="3 4" />
     </svg>
@@ -43,16 +43,16 @@ function WorkflowCardIllustrationKanban({ uid = 'k' }) {
 function WorkflowCardIllustrationFlow({ uid = 'f' }) {
   return (
     <svg className="select-workflow-card-illustration" viewBox="0 0 160 120" aria-hidden>
-      <rect x="18" y="22" width="124" height="76" rx="12" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1.5" />
-      <rect x="28" y="34" width="36" height="14" rx="6" fill="#e0e7ff" />
-      <rect x="36" y="38" width="14" height="3" rx="1" fill="#4f46e5" opacity="0.85" />
-      <rect x="36" y="43" width="10" height="3" rx="1" fill="#4f46e5" opacity="0.85" />
-      <circle cx="52" cy="72" r="8" fill="#3b82f6" opacity="0.9" />
-      <circle cx="96" cy="58" r="8" fill="#22c55e" opacity="0.9" />
-      <circle cx="118" cy="82" r="6" fill="#a855f7" opacity="0.85" />
+      <rect x="18" y="22" width="124" height="76" rx="12" fill="#F5F4F1" stroke="#DDDCD7" strokeWidth="1.5" />
+      <rect x="28" y="34" width="36" height="14" rx="6" fill="rgba(15, 42, 61, 0.08)" />
+      <rect x="36" y="38" width="14" height="3" rx="1" fill="#0F2A3D" opacity="0.85" />
+      <rect x="36" y="43" width="10" height="3" rx="1" fill="#0F2A3D" opacity="0.85" />
+      <circle cx="52" cy="72" r="8" fill="#0F2A3D" opacity="0.9" />
+      <circle cx="96" cy="58" r="8" fill="#4EC9A1" opacity="0.9" />
+      <circle cx="118" cy="82" r="6" fill="#D85A30" opacity="0.85" />
       <path d="M60 72 Q78 52 88 58" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
       <path d="M104 58 Q110 68 112 76" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
-      <rect x="102" y="28" width="28" height="10" rx="4" fill="#fff" stroke="#e2e8f0" strokeWidth="1" />
+      <rect x="102" y="28" width="28" height="10" rx="4" fill="#fff" stroke="#DDDCD7" strokeWidth="1" />
     </svg>
   );
 }

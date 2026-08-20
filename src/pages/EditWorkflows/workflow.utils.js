@@ -11,12 +11,17 @@ export const AREA_ORDER = [
   'READY TO ARCHIVE AREA',
 ];
 
-/** Fixed area banner colors — never tied to the stage color picker. Keys match `area` strings. */
+/**
+ * Fixed area banner colors — never tied to the stage color picker. Keys match `area` strings.
+ * Mapped onto the FFD design tokens (see src/design/scss/partials/_variables.scss):
+ * REQUESTED = $status-info-text (new/incoming), IN PROGRESS = $ffd-teal (active/operational),
+ * DONE = $status-success (completed), READY TO ARCHIVE = $status-neutral (settled/inactive).
+ */
 export const WORKFLOW_AREA_HEADER_BACKGROUND = {
-  'REQUESTED AREA': '#1976d2',
-  'IN PROGRESS AREA': '#fb8c00',
-  'DONE AREA': '#43a047',
-  'READY TO ARCHIVE AREA': '#7b1fa2',
+  'REQUESTED AREA': '#1976D2',
+  'IN PROGRESS AREA': '#4EC9A1',
+  'DONE AREA': '#28A745',
+  'READY TO ARCHIVE AREA': '#6C757D',
 };
 
 /**
@@ -27,7 +32,7 @@ export function getWorkflowAreaHeaderStyles(area) {
   if (backgroundColor) {
     return { backgroundColor, color: '#ffffff' };
   }
-  return { backgroundColor: '#e5e7eb', color: '#374151' };
+  return { backgroundColor: '#F5F4F1', color: '#17232C' };
 }
 
 /** Stage swatch, color picker `initialHex`, and empty swimlane cell when no custom color is set. */

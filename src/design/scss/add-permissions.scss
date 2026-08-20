@@ -160,7 +160,7 @@
             }
 
             label {
-                background-color: #99B9BE;
+                background-color: $status-neutral;
             }
 
             label:after {
@@ -169,7 +169,7 @@
 
             input:checked {
                 &~label {
-                    background-color: #00368C;
+                    background-color: $colorPrimary;
                 }
             }
         }

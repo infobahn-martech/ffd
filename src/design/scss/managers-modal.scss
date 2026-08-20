@@ -16,13 +16,13 @@
   .modal-content {
     border: none;
     border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba($ffd-navy, 0.3);
     overflow: hidden;
     background: var(--surface-primary);
   }
 
   .modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--modal-overlay);
     backdrop-filter: blur(4px);
   }
 }
@@ -73,7 +73,7 @@
   }
 
   &:focus {
-    outline: 2px solid rgba(0, 54, 140, 0.3);
+    outline: 2px solid rgba($ffd-navy, 0.3);
     outline-offset: 2px;
   }
 }
@@ -125,8 +125,8 @@
 
   &:focus {
     outline: none;
-    border-color: #00368c;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
+    border-color: $colorPrimary;
+    box-shadow: $shadow-focus;
   }
 
   &::placeholder {
@@ -156,8 +156,8 @@
 
   &:focus {
     outline: none;
-    border-color: #00368c;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
+    border-color: $colorPrimary;
+    box-shadow: $shadow-focus;
   }
 }
 
@@ -249,7 +249,7 @@
     height: 0;
 
     &:checked + .managers-toggle-slider {
-      background-color: #00368c;
+      background-color: $colorPrimary;
 
       &:before {
         transform: translateX(20px);
@@ -265,7 +265,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #d1d5db;
+  background-color: $borderLight;
   transition: 0.3s;
   border-radius: 24px;
 

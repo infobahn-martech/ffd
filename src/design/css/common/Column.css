@@ -39,7 +39,7 @@
 }
 
 .column-header:hover {
-  background: #e0e5ff;
+  background: rgba(15, 42, 61, 0.06);
 }
 
 
@@ -51,7 +51,7 @@
   left: 0;
   width: 100%;
   height: 3px;
-  background-color: var(--column-color, #2a00ff);
+  background-color: var(--column-color, var(--ffd-navy));
   border-radius: 8px 8px 0 0;
 }
 
@@ -88,7 +88,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--column-color, #2a00ff);
+  background: var(--column-color, var(--ffd-navy));
   border-radius: 6px 0 0 6px;
   width: 28px;
   height: 36px;
@@ -161,5 +161,5 @@
 
 /* When a card is dragged over */
 .card-list.drag-over {
-  background: #eaf0ff;
+  background: var(--ffd-teal-soft);
 }

@@ -57,7 +57,7 @@
     }
 
     &.is-active {
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.26);
+        box-shadow: 0 0 0 3px rgba(15, 42, 61, 0.26);
     }
 
     &--secondary {
@@ -71,7 +71,7 @@
     margin-top: 12px;
     border: none;
     background: transparent;
-    color: #1d4ed8;
+    color: #0F2A3D;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -128,8 +128,8 @@
 
     &:focus {
         outline: none;
-        border-color: rgba(0, 54, 140, 0.35);
-        box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.1);
+        border-color: rgba(216, 90, 48, 0.35);
+        box-shadow: 0 0 0 2px rgba(216, 90, 48, 0.1);
     }
 }
 
@@ -163,7 +163,7 @@
     }
 
     &--primary {
-        background: #1d4ed8;
+        background: #D85A30;
         color: #fff;
     }
 }
@@ -173,7 +173,7 @@
     border-color: #3f3f46;
 
     .kanban-dashboard-color-picker-toggle {
-        color: #93c5fd;
+        color: #D85A30;
     }
 
     .kanban-dashboard-color-picker-hex-label {

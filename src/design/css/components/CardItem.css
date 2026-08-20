@@ -9,17 +9,17 @@
   background:
     radial-gradient(
       circle at 100% 0%,
-      rgba(59, 130, 246, 0.08),
+      rgba(15, 42, 61, 0.05),
       transparent 42%
     ),
     linear-gradient(
       145deg,
       #ffffff 0%,
-      #fbfdff 55%,
-      #f3f7ff 100%
+      #fefefc 55%,
+      #faf9f6 100%
     );
 
-  border: 1px solid rgba(0, 54, 140, 0.11);
+  border: 1px solid rgba(15, 42, 61, 0.11);
   border-radius: 14px;
 
   box-shadow:
@@ -46,7 +46,7 @@
 .kanban-card::before {
   content: "";
   position: absolute;
-  background-color: var(--card-color, #2A00FF);
+  background-color: var(--card-color, var(--ffd-navy));
   border-radius: 4px;
   left: 8px;
   right: 8px;
@@ -58,11 +58,11 @@
 .kanban-card:hover {
   transform: translateY(-5px) scale(1.012);
 
-  border-color: rgba(0, 54, 140, 0.25);
+  border-color: rgba(15, 42, 61, 0.25);
 
   box-shadow:
     0 8px 18px rgba(15, 23, 42, 0.08),
-    0 18px 38px rgba(0, 54, 140, 0.14);
+    0 18px 38px rgba(15, 42, 61, 0.14);
 }
 
 .kanban-card:hover::after {
@@ -77,8 +77,8 @@
 
 /* Invoice amount highlight (1st card only) */
 .kanban-card.card-highlight-invoice {
-  border: 2px solid #f59e0b;
-  background: linear-gradient(to bottom, #fffbeb 0%, #fff 30%);
+  border: 2px solid var(--color-warning);
+  background: linear-gradient(to bottom, rgba(255, 193, 7, 0.12) 0%, #fff 30%);
 }
 
 /* Blink animation for high-invoice cards */
@@ -87,12 +87,12 @@
   0%,
   100% {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    border-color: #f59e0b;
+    border-color: var(--color-warning);
   }
 
   50% {
-    box-shadow: 0 2px 20px rgba(245, 158, 11, 0.8), 0 0 0 6px rgba(245, 158, 11, 0.4);
-    border-color: #d97706;
+    box-shadow: 0 2px 20px rgba(255, 193, 7, 0.8), 0 0 0 6px rgba(255, 193, 7, 0.4);
+    border-color: #D9A406;
   }
 }
 
@@ -135,7 +135,7 @@
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  color: #dc2626;
+  color: var(--color-danger);
 }
 
 /* Header */
@@ -203,7 +203,7 @@
   width: 45px;
   height: 20px;
   border-radius: 999px;
-  background-color: var(--card-color, #2A00FF);
+  background-color: var(--card-color, var(--ffd-navy));
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -222,7 +222,7 @@
   height: 18px;
   border-radius: 50%;
   background: var(--surface-primary);
-  color: var(--card-color, #2A00FF);
+  color: var(--card-color, var(--ffd-navy));
   font-weight: 700;
   font-size: 10px;
   display: flex;
@@ -305,7 +305,7 @@
 }
 
 .card-meta.blue span {
-  color: #1a73e8;
+  color: var(--color-info);
 }
 
 .card-meta.purple span {
@@ -397,23 +397,24 @@
 }
 
 .detail-dot-red {
-  background-color: #E74C3C;
+  background-color: var(--color-danger);
 }
 
 .detail-dot-grey {
-  background-color: #95A5A6;
+  /* matches $status-neutral — no CSS var defined for the neutral tier */
+  background-color: #6C757D;
 }
 
 .detail-dot-green {
-  background-color: #27AE60;
+  background-color: var(--color-success);
 }
 
 .detail-dot-yellow {
-  background-color: #F39C12;
+  background-color: var(--color-warning);
 }
 
 .detail-dot-blue {
-  background-color: #3498DB;
+  background-color: var(--color-info);
 }
 
 
@@ -453,8 +454,8 @@
   }
 
   50% {
-    box-shadow: 0 2px 20px rgba(255, 0, 0, 0.8), 0 0 0 6px rgba(255, 0, 0, 0.4);
-    border-color: #ff0000;
+    box-shadow: 0 2px 20px rgba(220, 53, 69, 0.8), 0 0 0 6px rgba(220, 53, 69, 0.4);
+    border-color: var(--color-danger);
     /* border-width: 4px; */
   }
 }
@@ -564,7 +565,7 @@
 }
 
 .card-title-compact:hover {
-  color: var(--card-color, #2A00FF);
+  color: var(--card-color, var(--ffd-navy));
 }
 
 /* Compact Info Row - Progress, Board ID */
@@ -774,9 +775,9 @@
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
-  background: #e0f2fe;
-  color: #0369a1;
-  border: 1px solid #bae6fd;
+  background: var(--color-info-bg);
+  color: var(--color-info);
+  border: 1px solid rgba(25, 118, 210, 0.35);
 }
 
 .card-api-avatar-wrap {
@@ -825,7 +826,7 @@
 .card-api-task-name {
   font-size: 11px;
   font-weight: 600;
-  color: #1d4ed8;
+  color: var(--color-info);
   margin: 0 0 2px 0;
   line-height: 1.35;
   overflow: hidden;

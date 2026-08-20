@@ -6,6 +6,8 @@
    which is shared by other Husbandry sub-tabs.
    =========================================================== */
 
+@import "partials/partials";
+
 // Breathing room between each section heading and the fields below it.
 .material-edit-form .dispatch-edit-section-title {
   margin-bottom: 14px;
@@ -25,8 +27,8 @@
   transition: border-color 0.2s, box-shadow 0.2s;
 
   &:hover {
-    border-color: #00368c;
-    box-shadow: 0 2px 6px rgba(0, 54, 140, 0.1);
+    border-color: $ffd-navy;
+    box-shadow: 0 2px 6px rgba($ffd-navy, 0.1);
   }
 }
 

@@ -1,8 +1,10 @@
+@import "./partials/partials";
+
 .sedres-header {
   width: 100%;
   min-height: 74px;
   height: auto;
-  background: #00368c;
+  background: $ffd-navy;
   padding: 10px 20px;
   display: flex;
   align-items: center;
@@ -208,12 +210,12 @@
         }
 
         &.active {
-          color: #95c1ea;
+          color: var(--ffd-teal);
           font-weight: 600;
         }
 
         &:hover {
-          color: #0a53c6;
+          color: var(--text-inverse);
         }
       }
     }
@@ -323,7 +325,7 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #00368c;
+    background: $ffd-navy;
     border: 2px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
@@ -569,7 +571,7 @@
     position: absolute;
     top: -4px;
     right: -4px;
-    background: #ff4444;
+    background: var(--color-danger);
     color: #ffffff;
     border-radius: 10px;
     min-width: 18px;
@@ -606,13 +608,13 @@
 
   @keyframes premiumPulseRing {
     0% {
-      box-shadow: 0 0 0 0 rgba(0, 54, 140, 0.5);
+      box-shadow: 0 0 0 0 rgba($ffd-navy, 0.5);
     }
     70% {
-      box-shadow: 0 0 0 12px rgba(0, 54, 140, 0);
+      box-shadow: 0 0 0 12px rgba($ffd-navy, 0);
     }
     100% {
-      box-shadow: 0 0 0 0 rgba(0, 54, 140, 0);
+      box-shadow: 0 0 0 0 rgba($ffd-navy, 0);
     }
   }
 
@@ -630,7 +632,7 @@
     position: relative;
 
     &:hover {
-      background: rgba(0, 54, 140, 0.10);
+      background: rgba($ffd-coral, 0.10);
       color: var(--color-primary-accent);
       transform: translateY(-1px);
     }
@@ -663,7 +665,7 @@
 
     // Active state for settings icon (when selected)
     &.active {
-      background: #00368c;
+      background: $ffd-navy;
       color: #ffffff;
       box-shadow: none;
       animation: premiumPulseRing 1.6s cubic-bezier(0.4, 0, 0.2, 1) 3;

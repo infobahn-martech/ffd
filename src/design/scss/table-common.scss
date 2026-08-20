@@ -1,8 +1,5 @@
 @import "partials/partials";
 
-$table-bg-odd: #fff;
-$table-bg-even: #f8f9fc;
-$table-border-color: #dee2e6;
 $primary-font: "Manrope", sans-serif;
 
 /* Using unset */
@@ -28,7 +25,7 @@ body {
 .sub-title {
     padding-top: 10px;
     letter-spacing: 0.06px;
-    color: #225fbd;
+    color: $colorPrimary;
     font-size: 16px;
     line-height: 22px;
 
@@ -75,10 +72,10 @@ body {
         }
 
         .heading {
-            color: #00368c;
+            color: $colorPrimary;
             font: normal normal 600 22px/34px 'Manrope';
             letter-spacing: 0.1px;
-            color: #00368c;
+            color: $colorPrimary;
             min-width: 300px !important;
 
             @media($sm-1679) {
@@ -275,13 +272,13 @@ body {
 }
 
 .green-btn {
-    background: #00368C;
-    color: #fff;
+    background: $status-success;
+    color: $white;
 }
 
 .red-btn {
-    background: #ff3e3e;
-    color: #fff;
+    background: $status-danger;
+    color: $white;
 }
 
 .custom-container {
@@ -341,7 +338,7 @@ body {
         }
 
         &.contacted {
-            color: #2D8F98;
+            color: $ffd-teal;
         }
 
         .actions {
@@ -378,9 +375,9 @@ body {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                background-color: #00368c;
+                background-color: $colorPrimary;
                 margin-right: 5px;
-                color: #fff;
+                color: $white;
                 font-size: 12px;
             }
         }
@@ -392,7 +389,7 @@ body {
         }
 
         th {
-            background-color: #00368c !important;
+            background-color: $colorPrimary !important;
             border-bottom: none;
             font-weight: 600;
 
@@ -400,7 +397,7 @@ body {
             line-height: 20px;
 
             letter-spacing: 0.07px;
-            color: #ffffff;
+            color: $white;
 
             .tb-head {
                 // display: flex;
@@ -458,7 +455,7 @@ body {
 
     .result-txt {
         letter-spacing: 0.05px;
-        color: #225fbd;
+        color: $colorPrimary;
         font-size: 10px;
         line-height: 16px;
 
@@ -470,7 +467,7 @@ body {
 
         li {
             a {
-                color: #225fbd;
+                color: $colorPrimary;
                 font-size: 12px;
                 line-height: 18px;
 
@@ -479,8 +476,8 @@ body {
 
             &.active {
                 a {
-                    background: #00368C;
-                    color: #fff;
+                    background: $colorPrimary;
+                    color: $white;
                 }
 
             }
@@ -555,14 +552,14 @@ body {
 
 .import {
     .btn-common {
-        background: transparent linear-gradient(180deg, #EFF6F7 0%, #F8F9FC 100%) 0% 0% no-repeat padding-box;
+        background: transparent linear-gradient(180deg, $white 0%, $table-row-hover-bg 100%) 0% 0% no-repeat padding-box;
         border: 1px solid var(--border-primary);
     }
 }
 
 .export {
     .btn-common {
-        background: #D6F0F0 0% 0% no-repeat padding-box;
+        background: $ffd-teal-soft 0% 0% no-repeat padding-box;
         border: 1px solid var(--border-primary);
     }
 }
@@ -605,7 +602,7 @@ span.sort:hover {
 }
 
 .status-active {
-    color: #0a8f34 !important;
+    color: $status-success !important;
 }
 
 // Role description tooltip with line breaks - Target react-tooltip v5
@@ -639,11 +636,11 @@ div[role="tooltip"].role-description-tooltip {
 }
 
 .status-inactive {
-    color: #c91010 !important;
+    color: $status-danger !important;
 }
 
 .status-pending {
-    color: #b58b00 !important;
+    color: $status-pending-text !important;
 }
 
 /* Expandable table rows (e.g. Crew management) */
@@ -656,7 +653,7 @@ div[role="tooltip"].role-description-tooltip {
 
 .custom-table-expand-btn {
     text-decoration: none;
-    color: #00368c;
+    color: $colorPrimary;
     line-height: 1;
     min-width: 1.5rem;
 }
@@ -667,7 +664,7 @@ div[role="tooltip"].role-description-tooltip {
     height: 0;
     border-top: 5px solid transparent;
     border-bottom: 5px solid transparent;
-    border-left: 7px solid #00368c;
+    border-left: 7px solid $colorPrimary;
     transition: transform 0.15s ease;
 }
 

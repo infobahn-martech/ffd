@@ -23,15 +23,19 @@ import "../../design/scss/dashboard.scss";
 import "../../design/scss/pages/dashboard/dashboard-content.scss";
 
 // Presentation metadata keyed by the stable `key` BE returns — API never sends icons/colors.
+// Colors below are hardcoded hex mirroring the FFD design tokens (src/design/scss/partials/
+// _variables.scss / _theme.scss) — this file has no build-time access to Sass $vars, and the
+// codebase has no existing pattern for reading CSS custom properties from JS, so the canonical
+// values are duplicated here rather than introducing a new getComputedStyle-based approach.
 const STAT_META = {
-  total_vessels: { icon: <FiActivity />, color: "#00368c" },
-  active_crew: { icon: <FiUsers />, color: "#10b981" },
-  completed_jobs: { icon: <FiCheckCircle />, color: "#3b82f6" },
-  revenue: { icon: <FiDollarSign />, color: "#f59e0b" },
+  total_vessels: { icon: <FiActivity />, color: "#0F2A3D" }, // $ffd-navy — brand chrome
+  active_crew: { icon: <FiUsers />, color: "#4EC9A1" }, // $ffd-teal — active/operational highlight
+  completed_jobs: { icon: <FiCheckCircle />, color: "#28A745" }, // $status-success
+  revenue: { icon: <FiDollarSign />, color: "#4EC9A1" }, // $ffd-teal — stat highlight
 };
 
 const SERVICE_COLORS = {
-  transport: "#00368c",
+  transport: "#0F2A3D", // $ffd-navy (was the old brand blue reused as this category's color)
   medical: "#10b981",
   hotel: "#3b82f6",
   launch_hire: "#f59e0b",
@@ -39,11 +43,14 @@ const SERVICE_COLORS = {
   customs: "#ef4444",
 };
 
+// Mirrors the canonical $status-* SCSS tokens so job-status colors stay consistent
+// with status badges elsewhere in the app: completed -> success, in_progress -> info,
+// pending -> warning, on_hold -> danger.
 const JOB_STATUS_COLORS = {
-  completed: "#10b981",
-  in_progress: "#3b82f6",
-  pending: "#f59e0b",
-  on_hold: "#ef4444",
+  completed: "#28A745", // $status-success
+  in_progress: "#1976D2", // $status-info-text
+  pending: "#FFC107", // $status-warning
+  on_hold: "#DC3545", // $status-danger
 };
 
 const formatStatValue = (key, value) => {
@@ -155,18 +162,18 @@ const Dashboard = () => {
               <Line
                 type="monotone"
                 dataKey="arrivals"
-                stroke="#00368c"
+                stroke="#0F2A3D"
                 strokeWidth={3}
                 name="Arrivals"
-                dot={{ fill: "#00368c", r: 4 }}
+                dot={{ fill: "#0F2A3D", r: 4 }}
               />
               <Line
                 type="monotone"
                 dataKey="departures"
-                stroke="#10b981"
+                stroke="#4EC9A1"
                 strokeWidth={3}
                 name="Departures"
-                dot={{ fill: "#10b981", r: 4 }}
+                dot={{ fill: "#4EC9A1", r: 4 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -210,7 +217,7 @@ const Dashboard = () => {
                 labelLine={false}
                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                 outerRadius={100}
-                fill="#8884d8"
+                fill="#0F2A3D"
                 dataKey="value"
               >
                 {jobStatusData.map((entry, index) => (
@@ -238,7 +245,7 @@ const Dashboard = () => {
               <Tooltip
                 contentStyle={chartTooltipStyle}
               />
-              <Bar dataKey="requests" radius={[8, 8, 0, 0]} fill="#8b5cf6" />
+              <Bar dataKey="requests" radius={[8, 8, 0, 0]} fill="#4EC9A1" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -253,12 +260,12 @@ const Dashboard = () => {
             <AreaChart data={revenueData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00368c" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#00368c" stopOpacity={0.1} />
+                  <stop offset="5%" stopColor="#0F2A3D" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#0F2A3D" stopOpacity={0.1} />
                 </linearGradient>
                 <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
+                  <stop offset="5%" stopColor="#DC3545" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#DC3545" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
@@ -272,7 +279,7 @@ const Dashboard = () => {
               <Area
                 type="monotone"
                 dataKey="revenue"
-                stroke="#00368c"
+                stroke="#0F2A3D"
                 fillOpacity={1}
                 fill="url(#colorRevenue)"
                 name="Revenue"
@@ -280,7 +287,7 @@ const Dashboard = () => {
               <Area
                 type="monotone"
                 dataKey="expenses"
-                stroke="#ef4444"
+                stroke="#DC3545"
                 fillOpacity={1}
                 fill="url(#colorExpenses)"
                 name="Expenses"

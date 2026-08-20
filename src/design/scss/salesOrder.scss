@@ -1,3 +1,5 @@
+@import "partials/partials";
+
 /* ==========================================================
    SALES ORDER STYLES
    ========================================================== */
@@ -18,7 +20,7 @@
 
 .sales-order-content-wrapper {
   padding: 0 0 14px;
-  background: linear-gradient(180deg, #fbfcff 0%, #ffffff 220px);
+  background: linear-gradient(180deg, rgba($ffd-navy, 0.02) 0%, #ffffff 220px);
   border-radius: 12px;
 
   [data-theme="dark"] & {
@@ -36,7 +38,7 @@
   padding-bottom: 18px;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: #9ca8c3 #eef1f7;
+  scrollbar-color: $ffd-navy-light $ffd-background;
   animation: salesOrderFadeIn 0.25s ease-out;
 }
 
@@ -58,7 +60,7 @@
   align-items: center;
   gap: 12px;
   padding: 18px 22px 16px;
-  background: linear-gradient(180deg, #ffffff, #fbfcff);
+  background: linear-gradient(180deg, #ffffff, rgba($ffd-navy, 0.02));
   border-bottom: 1px solid var(--border-primary);
   position: sticky;
   top: 0;
@@ -79,7 +81,7 @@
 }
 
 .sales-order-content-wrapper::-webkit-scrollbar-thumb {
-  background: #9ca8c3;
+  background: $ffd-navy-light;
   border-radius: 10px;
   border: 2px solid var(--border-primary);
 }
@@ -107,13 +109,13 @@
 .sales-order-list-title-bar {
   width: 4px;
   height: 18px;
-  background: linear-gradient(180deg, #4c68d7, #2a00ff) !important;
+  background: linear-gradient(180deg, $ffd-navy-light, $ffd-navy) !important;
   border-radius: 2px;
   display: inline-block;
 }
 
 .sales-order-add-button {
-  background: linear-gradient(135deg, #2a00ff, #4c68d7) !important;
+  background: $ffd-coral !important;
   border: none;
   padding: 10px 20px;
   border-radius: 9px;
@@ -122,7 +124,7 @@
   color: #ffffff;
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-  box-shadow: 0 3px 10px rgba(42, 0, 255, 0.28);
+  box-shadow: 0 3px 10px rgba($ffd-coral, 0.28);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -132,13 +134,13 @@
 
 .sales-order-add-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(42, 0, 255, 0.36);
+  box-shadow: 0 6px 16px rgba($ffd-coral, 0.36);
   filter: brightness(1.05);
 }
 
 .sales-order-add-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(42, 0, 255, 0.3);
+  box-shadow: 0 2px 6px rgba($ffd-coral, 0.3);
 }
 
 /* Two-column layout: field details (left, scrollable) + table & accounting (right, wider) */
@@ -156,7 +158,7 @@
   flex-direction: column;
   background: linear-gradient(
     120deg,
-    rgba(42, 0, 255, 0.07),
+    rgba($ffd-navy, 0.07),
     #ffffff 30%,
     #ffffff 70%,
     rgba(139, 147, 255, 0.08)
@@ -212,11 +214,11 @@
 
 @keyframes salesOrderLeftPanelPulse {
   0%, 100% {
-    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05), 0 0 0 0 rgba(42, 0, 255, 0.08);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05), 0 0 0 0 rgba($ffd-navy, 0.08);
   }
 
   50% {
-    box-shadow: 0 2px 14px rgba(15, 23, 42, 0.07), 0 0 0 4px rgba(42, 0, 255, 0.04);
+    box-shadow: 0 2px 14px rgba(15, 23, 42, 0.07), 0 0 0 4px rgba($ffd-navy, 0.04);
   }
 }
 
@@ -288,8 +290,8 @@
 /* SO Header */
 .so-header-panel {
   position: relative;
-  background: linear-gradient(90deg, #2a00ff, #4c68d7, #8b93ff) top left / 100% 3px no-repeat,
-    #f6f7fb;
+  background: linear-gradient(90deg, $ffd-navy, $ffd-navy-light, lighten($ffd-navy-light, 20%)) top left / 100% 3px no-repeat,
+    rgba($ffd-navy, 0.03);
   border: 1px solid var(--border-primary);
   border-radius: 14px;
   padding: 20px 18px 16px;
@@ -301,7 +303,7 @@
   transition: box-shadow 0.2s ease;
 
   [data-theme="dark"] & {
-    background: linear-gradient(90deg, #2a00ff, #4c68d7, #8b93ff) top left / 100% 3px no-repeat,
+    background: linear-gradient(90deg, $ffd-navy, $ffd-navy-light, lighten($ffd-navy-light, 20%)) top left / 100% 3px no-repeat,
       var(--surface-primary);
   }
 }
@@ -338,7 +340,7 @@
 }
 
 .so-header-field:focus-within {
-  border-color: #8890ff;
+  border-color: $ffd-navy-light;
   box-shadow: 0 0 0 3px rgba(124, 134, 255, 0.16);
   transform: translateY(-1px);
 }
@@ -360,7 +362,7 @@
 }
 
 .so-required {
-  color: #e53935;
+  color: $status-danger;
   margin-left: 2px;
 }
 
@@ -469,16 +471,16 @@
 }
 
 .so-input-required {
-  color: #c0392b;
+  color: $status-cancelled-text;
 }
 
 .so-header-field:has(.so-input-required) {
-  border-color: #f4b3b2;
-  background: linear-gradient(135deg, #fff8f8, #ffffff);
+  border-color: rgba($status-danger, 0.4);
+  background: linear-gradient(135deg, rgba($status-danger, 0.04), #ffffff);
   animation: salesOrderRequiredPulse 2.4s ease-in-out infinite;
 
   [data-theme="dark"] & {
-    border-color: #7a3535;
+    border-color: darken($status-danger, 15%);
     background: linear-gradient(135deg, rgba(229, 57, 53, 0.14), var(--surface-primary));
   }
 }
@@ -556,14 +558,14 @@
 }
 
 .so-status-open {
-  background: #e6f7ee;
-  color: #1a8f4a;
+  background: $status-completed-bg;
+  color: $status-completed-text;
   border-color: var(--border-primary);
 }
 
 .so-status-closed {
-  background: #fdecea;
-  color: #c0392b;
+  background: $status-cancelled-bg;
+  color: $status-cancelled-text;
   border-color: var(--border-primary);
 }
 
@@ -631,7 +633,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 18px;
-  background: linear-gradient(135deg, rgba(76, 104, 215, 0.08), rgba(76, 104, 215, 0.03));
+  background: linear-gradient(135deg, rgba($ffd-navy-light, 0.08), rgba($ffd-navy-light, 0.03));
   border-bottom: 1px solid var(--border-primary);
   border-radius: 12px 12px 0 0;
 }
@@ -706,13 +708,13 @@
 
 .sales-order-add-form-input:focus {
   outline: none;
-  border-color: #b3baff;
+  border-color: rgba($ffd-navy, 0.35);
   box-shadow: 0 0 0 2px rgba(226, 230, 255, 0.6);
 }
 
 .sales-order-add-form-error {
   font-size: 12px;
-  color: #e53935;
+  color: $status-danger;
 }
 
 .sales-order-add-form-actions {
@@ -748,15 +750,15 @@
 }
 
 .sales-order-add-form-save {
-  background: linear-gradient(135deg, #2a00ff, #4c68d7);
+  background: $ffd-coral;
   color: #ffffff;
-  box-shadow: 0 3px 10px rgba(42, 0, 255, 0.28);
+  box-shadow: 0 3px 10px rgba($ffd-coral, 0.28);
 }
 
 .sales-order-add-form-save:hover {
   transform: translateY(-1px);
   filter: brightness(1.05);
-  box-shadow: 0 6px 16px rgba(42, 0, 255, 0.36);
+  box-shadow: 0 6px 16px rgba($ffd-coral, 0.36);
 }
 
 .sales-order-add-form-save:active {
@@ -782,7 +784,7 @@
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: #9ca8c3 #eef1f7;
+  scrollbar-color: $ffd-navy-light $ffd-background;
 }
 
 .cardform-panel .sales-order-table-container::-webkit-scrollbar,
@@ -799,20 +801,20 @@
 
 .cardform-panel .sales-order-table-container::-webkit-scrollbar-thumb,
 .sales-order-table-container::-webkit-scrollbar-thumb {
-  background: #9ca8c3 !important;
+  background: $ffd-navy-light !important;
   border: 2px solid var(--border-primary);
   border-radius: 8px;
 }
 
 .cardform-panel .sales-order-table-container::-webkit-scrollbar-thumb:hover,
 .sales-order-table-container::-webkit-scrollbar-thumb:hover {
-  background: #8b98b3 !important;
+  background: $ffd-navy !important;
 }
 
 .cardform-panel .sales-order-table-container,
 .sales-order-table-container {
   scrollbar-width: thin;
-  scrollbar-color: #9ca8c3 #eef1f7;
+  scrollbar-color: $ffd-navy-light $ffd-background;
 }
 
 /* Pagination */
@@ -824,7 +826,7 @@
   gap: 12px;
   margin: 12px 14px 4px;
   padding: 12px 18px;
-  background: linear-gradient(180deg, #fbfcff 0%, #ffffff 100%);
+  background: linear-gradient(180deg, rgba($ffd-navy, 0.02) 0%, #ffffff 100%);
   border: 1px solid var(--border-primary);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
@@ -887,9 +889,9 @@
 }
 
 .so-pagination-btn:hover:not(:disabled):not(.is-active) {
-  background: #eef2ff;
+  background: rgba($ffd-navy, 0.06);
   border-color: var(--border-primary);
-  color: #1e3a6d;
+  color: $colorPrimary;
   transform: translateY(-1px);
 }
 
@@ -899,7 +901,7 @@
 
 .so-pagination-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.18);
+  box-shadow: 0 0 0 3px rgba($ffd-navy, 0.18);
 }
 
 .so-pagination-btn:disabled {
@@ -910,14 +912,14 @@
 }
 
 .so-pagination-page.is-active {
-  background: linear-gradient(135deg, #00368c, #1a56db);
-  border-color: #00368c;
+  background: linear-gradient(135deg, $colorPrimary, $ffd-navy-light);
+  border-color: $colorPrimary;
   color: #ffffff;
-  box-shadow: 0 3px 10px rgba(0, 54, 140, 0.32);
+  box-shadow: 0 3px 10px rgba($ffd-navy, 0.32);
 }
 
 .so-pagination-nav {
-  color: #00368c;
+  color: $colorPrimary;
 }
 
 .so-pagination-ellipsis {
@@ -945,8 +947,8 @@
   position: sticky;
   top: 0;
   z-index: 5;
-  background: linear-gradient(180deg, #eef1ff, #e2e7ff) !important;
-  color: #2c3a6e;
+  background: linear-gradient(180deg, rgba($ffd-navy, 0.05), rgba($ffd-navy, 0.08)) !important;
+  color: $colorPrimary;
   font-weight: 700;
   font-size: 12px;
   letter-spacing: 0.3px;
@@ -1007,7 +1009,7 @@
 
 .sales-order-table-container .sales-order-table .sales-order-type-po-select:focus {
   outline: none;
-  border-color: #9da8ff;
+  border-color: $ffd-navy-light;
   box-shadow: 0 0 0 3px rgba(157, 168, 255, 0.22);
 }
 
@@ -1038,10 +1040,10 @@
   font-size: 12px;
   font-weight: 600;
   line-height: 1.2;
-  border: 1px solid #b3baff;
+  border: 1px solid rgba($ffd-navy, 0.35);
   border-radius: 999px;
   background: var(--surface-primary);
-  color: #2A00FF;
+  color: $ffd-navy;
   cursor: pointer;
   font-family: "Manrope", sans-serif;
   white-space: nowrap;
@@ -1049,8 +1051,8 @@
 }
 
 .sales-order-supplier-select-btn:hover:not(:disabled) {
-  background: #e2e6ff;
-  box-shadow: 0 2px 6px rgba(42, 0, 255, 0.15);
+  background: rgba($ffd-navy, 0.1);
+  box-shadow: 0 2px 6px rgba($ffd-navy, 0.15);
 }
 
 .sales-order-supplier-select-btn:active:not(:disabled) {
@@ -1070,20 +1072,20 @@
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background: linear-gradient(135deg, #eef2ff, #e6ecff);
+  background: linear-gradient(135deg, rgba($ffd-navy, 0.06), rgba($ffd-navy, 0.08));
   border: 1px solid var(--border-primary);
   border-radius: 16px;
   font-size: 12px;
   font-weight: 600;
-  color: #3730a3;
+  color: $colorPrimary;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(42, 0, 255, 0.06);
+  box-shadow: 0 1px 2px rgba($ffd-navy, 0.06);
 }
 
 .so-docs-chip-icon {
   font-size: 14px;
   flex-shrink: 0;
-  color: #4f46e5;
+  color: $colorPrimary;
 }
 
 .so-docs-chip-count {
@@ -1096,10 +1098,10 @@
   font-size: 12px;
   font-weight: 600;
   line-height: 1.2;
-  border: 1px solid #b3baff;
+  border: 1px solid rgba($ffd-navy, 0.35);
   border-radius: 6px;
   background: var(--surface-primary);
-  color: #2A00FF;
+  color: $ffd-navy;
   cursor: pointer;
   font-family: "Manrope", sans-serif;
   white-space: nowrap;
@@ -1108,7 +1110,7 @@
 
 .so-docs-action-btn:hover {
   background: var(--surface-primary);
-  box-shadow: 0 1px 4px rgba(42, 0, 255, 0.15);
+  box-shadow: 0 1px 4px rgba($ffd-navy, 0.15);
 }
 
 .so-docs-add-btn {
@@ -1130,9 +1132,9 @@
 }
 
 .so-docs-add-btn:hover {
-  border-color: #b3baff;
-  background: var(--surface-primary);
-  color: #2A00FF;
+  border-color: $ffd-coral;
+  background: $ffd-coral-soft;
+  color: $ffd-coral;
 }
 
 .so-docs-add-icon {
@@ -1151,8 +1153,8 @@
   justify-content: center;
   width: 22px;
   height: 22px;
-  color: #16a34a;
-  background: #e6f7ee;
+  color: $status-completed-text;
+  background: $status-completed-bg;
   border: 1px solid var(--border-primary);
   border-radius: 50%;
   font-size: 13px;
@@ -1177,7 +1179,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(180deg, #ffffff, #f7f9ff);
+  background: linear-gradient(180deg, #ffffff, rgba($ffd-navy, 0.02));
   box-shadow: 0 -6px 16px rgba(15, 23, 42, 0.08);
   padding: 12px 20px;
   display: flex;
@@ -1244,7 +1246,7 @@
 
 .so-bulk-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.18);
+  box-shadow: 0 0 0 3px rgba($ffd-navy, 0.18);
 }
 
 .so-bulk-btn:disabled {
@@ -1261,29 +1263,29 @@
 
 /* Generate PO — soft navy outline */
 .so-bulk-btn-generate-po {
-  background: #eef2ff;
-  color: #1e3a6d;
+  background: rgba($ffd-navy, 0.06);
+  color: $colorPrimary;
   border-color: var(--border-primary);
 }
 
 .so-bulk-btn-generate-po:hover:not(:disabled) {
-  background: #e2e9ff;
-  border-color: #93a8e0;
-  box-shadow: 0 2px 6px rgba(30, 54, 109, 0.12);
+  background: rgba($ffd-navy, 0.12);
+  border-color: $ffd-navy-light;
+  box-shadow: 0 2px 6px rgba($colorPrimary, 0.12);
 }
 
 /* Generate Work Order — primary solid */
 .so-bulk-btn-generate-wo {
-  background: linear-gradient(135deg, #00368c, #1a56db);
+  background: $ffd-coral;
   color: #ffffff;
-  border-color: #00368c;
-  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.2);
+  border-color: $ffd-coral;
+  box-shadow: 0 2px 8px rgba($ffd-coral, 0.2);
 }
 
 .so-bulk-btn-generate-wo:hover:not(:disabled) {
-  background: linear-gradient(135deg, #002b6e, #164bc4);
-  border-color: #002b6e;
-  box-shadow: 0 5px 14px rgba(0, 54, 140, 0.36);
+  background: darken($ffd-coral, 8%);
+  border-color: darken($ffd-coral, 8%);
+  box-shadow: 0 5px 14px rgba($ffd-coral, 0.36);
 }
 
 .sales-order-table-cell-total {
@@ -1293,7 +1295,7 @@
   align-items: center;
   padding: 3px 10px;
   border-radius: 6px;
-  background: linear-gradient(135deg, rgba(42, 0, 255, 0.06), rgba(76, 104, 215, 0.03));
+  background: linear-gradient(135deg, rgba($ffd-navy, 0.06), rgba($ffd-navy-light, 0.03));
 }
 
 .sales-order-table tbody tr {
@@ -1387,11 +1389,11 @@
 
 .sales-order-accordion-header-row {
   background: var(--surface-primary);
-  border-bottom: 2px solid var(--card-color, #2A00FF);
+  border-bottom: 2px solid var(--card-color, $ffd-navy);
 }
 
 .sales-order-accordion-header-row td {
-  border-bottom: 2px solid var(--card-color, #2A00FF) !important;
+  border-bottom: 2px solid var(--card-color, $ffd-navy) !important;
 }
 
 .operation-wrapper,
@@ -1507,11 +1509,11 @@
   padding: 3px 12px;
   font-size: 12px;
   font-weight: 700;
-  color: #2A00FF;
+  color: $ffd-navy;
 }
 
 .so-accounting-discount {
-  color: #c0392b;
+  color: $status-cancelled-text;
 }
 
 .so-accounting-discount-input {
@@ -1529,7 +1531,7 @@
 .so-accounting-grand {
   padding: 14px 20px;
   margin: 4px -20px -1px;
-  background: linear-gradient(135deg, rgba(42, 0, 255, 0.08), rgba(76, 104, 215, 0.03));
+  background: linear-gradient(135deg, rgba($ffd-navy, 0.08), rgba($ffd-navy-light, 0.03));
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
 }
@@ -1542,7 +1544,9 @@
 .so-accounting-grand-value {
   font-size: 19px !important;
   font-weight: 800 !important;
-  background: linear-gradient(135deg, #2a00ff, #1a56db);
+  // Grand total is the key stat highlight on this panel, so it gets the
+  // teal accent rather than plain chrome navy.
+  background: linear-gradient(135deg, $ffd-navy, $ffd-teal);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent !important;
@@ -1643,7 +1647,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 24px 32px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0) 55%), var(--card-color, #2A00FF);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0) 55%), var(--card-color, $ffd-navy);
 }
 
 .so-wo-modal-title {
@@ -1723,7 +1727,7 @@
 
   &:focus {
     outline: none;
-    border-color: var(--card-color, #2A00FF);
+    border-color: var(--card-color, $ffd-navy);
     box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
   }
 }
@@ -1807,26 +1811,26 @@
 }
 
 .so-wo-btn-share {
-  background: #e7f9ee;
-  color: #128c3e;
+  background: $status-completed-bg;
+  color: $status-completed-text;
   border: 1px solid var(--border-primary);
 
   &:hover:not(:disabled) {
-    background: #d4f5e0;
+    background: rgba($status-success, 0.2);
   }
 }
 
 .so-wo-btn-generate {
-  background: #00368c;
+  background: $colorPrimary;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 54, 140, 0.32);
+  box-shadow: 0 4px 14px rgba($ffd-navy, 0.32);
 
   &:hover:not(:disabled) {
-    background: #002a6e;
+    background: $ffd-hover-dark;
   }
 
   &:disabled {
-    background: #7d97bf;
+    background: rgba($ffd-navy, 0.45);
     box-shadow: none;
     opacity: 1;
   }
@@ -1852,7 +1856,7 @@
 /* ============================
    Generate PO Modal
    ============================ */
-$so-po-blue: #1a56db;
+$so-po-blue: $colorPrimary;
 
 .so-po-modal-backdrop {
   position: fixed;
@@ -1978,30 +1982,30 @@ $so-po-blue: #1a56db;
 
 .so-po-toolbar-btn-active {
   color: $so-po-blue;
-  background: #eef3ff;
+  background: rgba($ffd-navy, 0.05);
   border-color: var(--border-primary);
 
   &:hover:not(:disabled) {
-    background: #e3ecff;
-    border-color: #b7cdfa;
+    background: rgba($ffd-navy, 0.08);
+    border-color: rgba($ffd-navy, 0.35);
   }
 }
 
 .so-po-toolbar-btn-submit {
   color: #ffffff;
-  background: #00368c;
-  border-color: #00368c;
-  box-shadow: 0 4px 14px rgba(0, 54, 140, 0.32);
+  background: $colorPrimary;
+  border-color: $colorPrimary;
+  box-shadow: 0 4px 14px rgba($ffd-navy, 0.32);
 
   &:hover:not(:disabled) {
-    background: #002a6e;
-    border-color: #002a6e;
-    box-shadow: 0 4px 14px rgba(0, 54, 140, 0.4);
+    background: $ffd-hover-dark;
+    border-color: $ffd-hover-dark;
+    box-shadow: 0 4px 14px rgba($ffd-navy, 0.4);
   }
 
   &:disabled {
-    background: #7d97bf;
-    border-color: #7d97bf;
+    background: rgba($ffd-navy, 0.45);
+    border-color: rgba($ffd-navy, 0.45);
     box-shadow: none;
     opacity: 1;
   }
@@ -2056,9 +2060,9 @@ $so-po-blue: #1a56db;
   padding: 14px 16px;
   font-size: 12.5px;
   line-height: 1.55;
-  color: #8a6d1a;
-  background: #fffbeb;
-  border: 1px solid #fde9b8;
+  color: $status-pending-text;
+  background: $status-pending-bg;
+  border: 1px solid rgba($status-pending-text, 0.3);
   border-radius: 10px;
 }
 
@@ -2224,8 +2228,8 @@ $so-po-blue: #1a56db;
 
   &:focus {
     outline: none;
-    border-color: #b3baff;
-    box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+    border-color: rgba($ffd-navy, 0.35);
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.1);
   }
 
   &:disabled {
@@ -2449,7 +2453,7 @@ $so-po-blue: #1a56db;
   border-radius: 8px;
   background: var(--surface-primary);
   border: 1px solid var(--border-primary);
-  color: #991b1b;
+  color: $status-cancelled-text;
   font-size: 13px;
 }
 
@@ -2489,16 +2493,16 @@ $so-po-blue: #1a56db;
 }
 
 .so-po-btn-generate {
-  background: #00368c;
+  background: $colorPrimary;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 54, 140, 0.32);
+  box-shadow: 0 4px 14px rgba($ffd-navy, 0.32);
 
   &:hover:not(:disabled) {
-    background: #002a6e;
+    background: $ffd-hover-dark;
   }
 
   &:disabled {
-    background: #7d97bf;
+    background: rgba($ffd-navy, 0.45);
     box-shadow: none;
     opacity: 1;
   }

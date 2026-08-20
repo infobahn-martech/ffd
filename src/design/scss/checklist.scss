@@ -59,7 +59,7 @@
   width: 4px;
   height: 20px;
   border-radius: 4px;
-  background: #262832;
+  background: $colorPrimary;
 }
 
 .checklist-header-right {
@@ -92,13 +92,13 @@
 
 .checklist-header-type-select .cf-multiselect-input:hover {
   border-color: var(--border-primary);
-  box-shadow: 0 0 0 3px rgba(102, 116, 200, 0.1);
+  box-shadow: 0 0 0 3px rgba($ffd-navy-light, 0.1);
 }
 
 .checklist-header-type-select[aria-expanded="true"] .cf-multiselect-input,
 .checklist-header-type-select .cf-multiselect-input:focus-within {
-  border-color: #6674c8;
-  box-shadow: 0 0 0 3px rgba(102, 116, 200, 0.14);
+  border-color: $ffd-navy-light;
+  box-shadow: 0 0 0 3px rgba($ffd-navy-light, 0.14);
 }
 
 .checklist-header-type-select .cf-multiselect-placeholder {
@@ -107,23 +107,23 @@
 }
 
 .checklist-header-type-select .cf-multiselect-tag {
-  background: #eef0ff;
+  background: rgba($ffd-navy, 0.06);
   border: 1px solid var(--border-primary);
-  color: #3f4f8f;
+  color: $colorPrimary;
 }
 
 .checklist-header-type-select .cf-multiselect-tag:hover {
-  background: #e2e6ff;
-  border-color: #6674c8;
+  background: rgba($ffd-navy, 0.1);
+  border-color: $ffd-navy-light;
 }
 
 .checklist-header-type-select .cf-multiselect-tag-remove {
-  color: #5b68a5;
+  color: $ffd-navy-light;
 }
 
 .checklist-header-type-select .cf-multiselect-tag-remove:hover {
-  background: rgba(63, 79, 143, 0.14);
-  color: #3f4f8f;
+  background: rgba($ffd-navy, 0.14);
+  color: $colorPrimary;
 }
 
 .checklist-header-type-select .cf-multiselect-arrow {
@@ -136,17 +136,17 @@
 }
 
 .checklist-header-type-select .cf-multiselect-option:hover {
-  background: #eef0ff;
+  background: rgba($ffd-navy, 0.06);
 }
 
 .checklist-header-type-select .cf-multiselect-option.selected {
-  background: #e2e6ff;
-  color: #3f4f8f;
+  background: rgba($ffd-navy, 0.1);
+  color: $colorPrimary;
   font-weight: 600;
 }
 
 .checklist-header-type-select .cf-multiselect-option.selected:hover {
-  background: #c9d0f4;
+  background: rgba($ffd-navy, 0.16);
 }
 
 .checklist-form--compact {
@@ -198,12 +198,12 @@
 }
 
 .cl-loading-ring-track {
-  stroke: #eef0ff;
+  stroke: rgba($ffd-navy, 0.06);
   stroke-width: 4;
 }
 
 .cl-loading-ring-arc {
-  stroke: #6674c8;
+  stroke: $ffd-navy-light;
   stroke-width: 4;
   stroke-linecap: round;
   stroke-dasharray: 126;
@@ -221,7 +221,7 @@
 
 .cl-loading-check path {
   fill: none;
-  stroke: #6674c8;
+  stroke: $ffd-navy-light;
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -259,7 +259,7 @@
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.2px;
-  color: #6674c8;
+  color: $ffd-navy-light;
 }
 
 .cl-loading-dots span {
@@ -299,7 +299,7 @@
   height: 64px;
   border-radius: 12px;
   border: 1px solid var(--border-primary);
-  background: linear-gradient(90deg, #f8fafc 0%, #eef0ff 50%, #f8fafc 100%);
+  background: linear-gradient(90deg, #f8fafc 0%, rgba($ffd-navy, 0.06) 50%, #f8fafc 100%);
   background-size: 200% 100%;
   opacity: 0;
   animation: cl-skel-fade-in 0.4s ease forwards, cl-skel-shimmer 1.4s ease-in-out infinite;
@@ -351,7 +351,7 @@
 
 .cl-empty--prerequisite {
   border-color: var(--border-primary);
-  background: #eef0ff;
+  background: rgba($ffd-navy, 0.06);
 }
 
 .cl-empty-ico {
@@ -391,7 +391,7 @@
 }
 
 // .checklist-section:hover {
-//   border-color: #00368c;
+//   border-color: $colorPrimary;
 //   box-shadow: 0 2px 8px rgba(0, 54, 140, 0.15);
 // }
 
@@ -470,10 +470,10 @@
 
 .checklist-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4caf50 0%, #66bb6a 100%);
+  background: linear-gradient(90deg, $status-success 0%, lighten($status-success, 8%) 100%);
   border-radius: 10px;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 1px 3px rgba($status-success, 0.3);
 }
 
 .checklist-accordion-icon {
@@ -518,7 +518,7 @@
 
 .checklist-select-all-btn:hover {
   background: rgba(0, 54, 140, 0.1);
-  border-color: #00368c;
+  border-color: $colorPrimary;
   box-shadow: 0 2px 6px rgba(0, 54, 140, 0.15);
   transform: translateY(-1px);
 }
@@ -640,11 +640,11 @@
 }
 
 .checklist-table-row.checked {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(76, 175, 80, 0.02) 100%);
+  background: linear-gradient(135deg, rgba($status-success, 0.05) 0%, rgba($status-success, 0.02) 100%);
 }
 
 .checklist-table-row:hover.checked {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.07) 0%, rgba(76, 175, 80, 0.03) 100%);
+  background: linear-gradient(135deg, rgba($status-success, 0.07) 0%, rgba($status-success, 0.03) 100%);
 }
 
 .checklist-table-row:last-child {
@@ -723,7 +723,7 @@
 }
 
 .checklist-table-row.checked .checklist-item-text--table {
-  color: #166534;
+  color: darken($status-success, 12%);
 }
 
 .checklist-table-label {
@@ -804,14 +804,14 @@
 }
 
 .checklist-table-upload-zone.dragging {
-  border-color: var(--card-color, #2a00ff);
-  background: rgba(42, 0, 255, 0.04);
-  box-shadow: 0 0 0 1px rgba(42, 0, 255, 0.12);
+  border-color: var(--card-color, $ffd-navy);
+  background: rgba($ffd-navy, 0.04);
+  box-shadow: 0 0 0 1px rgba($ffd-navy, 0.12);
 }
 
 .checklist-table-upload-zone.has-file {
   border-style: solid;
-  border-color: #86efac;
+  border-color: lighten($status-success, 20%);
   background: var(--surface-primary);
   cursor: default;
   height: 56px;
@@ -1144,23 +1144,23 @@
 
 .checklist-item-label:hover {
   background: rgba(0, 54, 140, 0.05);
-  border-color: #00368c;
+  border-color: $colorPrimary;
   box-shadow: 0 4px 12px rgba(0, 54, 140, 0.15);
   transform: translateY(-1px);
 }
 
 .checklist-item-label:hover::before {
-  background: #00368c;
+  background: $colorPrimary;
 }
 
 .checklist-item.checked .checklist-item-label {
-  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
-  border-color: #4caf50;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
+  background: linear-gradient(135deg, rgba($status-success, 0.12) 0%, rgba($status-success, 0.06) 100%);
+  border-color: $status-success;
+  box-shadow: 0 2px 8px rgba($status-success, 0.15);
 }
 
 .checklist-item.checked .checklist-item-label::before {
-  background: #4caf50;
+  background: $status-success;
 }
 
 .checklist-checkbox-wrapper {
@@ -1196,8 +1196,8 @@
 }
 
 .checklist-checkbox:checked+.checklist-checkbox-custom {
-  background: #12b981;
-  border-color: #12b981;
+  background: $status-success;
+  border-color: $status-success;
   transform: scale(1.05);
 }
 
@@ -1206,18 +1206,18 @@
 }
 
 .checklist-checkbox:focus+.checklist-checkbox-custom {
-  outline: 2px solid #12b981;
+  outline: 2px solid $status-success;
   outline-offset: 2px;
 }
 
 .checklist-item-label:hover .checklist-checkbox-custom {
-  border-color: #00368c;
+  border-color: $colorPrimary;
 }
 
 .checklist-item.checked .checklist-checkbox-custom {
-  background: #4caf50;
-  border-color: #4caf50;
-  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+  background: $status-success;
+  border-color: $status-success;
+  box-shadow: 0 2px 6px rgba($status-success, 0.3);
 }
 
 .checklist-item.checked .checklist-checkbox-custom .checkmark {
@@ -1245,7 +1245,7 @@
 }
 
 .checklist-item.checked .checklist-item-text {
-  color: #1b5e20;
+  color: darken($status-success, 12%);
   font-weight: 600;
   text-decoration: none;
 }
@@ -1253,8 +1253,8 @@
 .checklist-item-status {
   font-size: 11px;
   font-weight: 600;
-  color: #4caf50;
-  background: rgba(76, 175, 80, 0.1);
+  color: $status-success;
+  background: rgba($status-success, 0.1);
   padding: 4px 10px;
   border-radius: 12px;
   text-transform: uppercase;
@@ -1302,7 +1302,7 @@
 }
 
 .cf-multiselect-input:hover {
-  border-color: #00368c;
+  border-color: $colorPrimary;
   box-shadow: 0 2px 6px rgba(0, 54, 140, 0.15);
 }
 
@@ -1360,7 +1360,7 @@
 
 .cf-multiselect-tag:hover {
   background: rgba(0, 54, 140, 0.1);
-  border-color: #00368c;
+  border-color: $colorPrimary;
 }
 
 .cf-multiselect-tag-text {
@@ -1471,7 +1471,7 @@
 }
 
 .cf-multiselect-search input:focus {
-  border-color: #7c5cff;
+  border-color: $colorPrimary;
 }
 
 .cf-multiselect-empty {
@@ -1632,8 +1632,8 @@
 
 .checklist-sample-pdf:hover {
   transform: scale(1.1) translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 20, 60, 0.25);
-  border-color: #DC143C;
+  box-shadow: 0 4px 12px rgba($status-danger, 0.25);
+  border-color: $status-danger;
 }
 
 .checklist-sample-pdf:active {
@@ -1723,13 +1723,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(42, 0, 255, 0.03) 0%, rgba(42, 0, 255, 0.01) 100%);
+  background: linear-gradient(135deg, rgba($ffd-navy, 0.03) 0%, rgba($ffd-navy, 0.01) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .checklist-file-upload-label:hover {
-  border-color: #00368c;
+  border-color: $colorPrimary;
   background: rgba(0, 54, 140, 0.05);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 54, 140, 0.15);
@@ -1745,9 +1745,9 @@
 }
 
 .checklist-file-upload-label:hover .checklist-file-upload-button {
-  background: #00368c;
+  background: $colorPrimary;
   color: #ffffff;
-  border-color: #00368c;
+  border-color: $colorPrimary;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 54, 140, 0.25);
 }
@@ -1787,11 +1787,11 @@
   align-items: center;
   padding: 10px 16px;
   background: var(--surface-primary);
-  border: 2px dashed var(--card-color, #2A00FF);
+  border: 2px dashed var(--card-color, $ffd-navy);
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  color: var(--card-color, #2A00FF);
+  color: var(--card-color, $ffd-navy);
   font-weight: 500;
   transition: all 0.2s ease;
   min-width: 150px;
@@ -1800,7 +1800,7 @@
 
 .checklist-file-label:hover {
   background: rgba(0, 54, 140, 0.1);
-  border-color: #00368c;
+  border-color: $colorPrimary;
   opacity: 0.8;
 }
 
@@ -1826,13 +1826,13 @@
   justify-content: center;
   padding: 12px 24px;
   background: var(--surface-primary);
-  border: 2px solid var(--card-color, #2A00FF);
+  border: 2px solid var(--card-color, $ffd-navy);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--card-color, #2A00FF);
+  color: var(--card-color, $ffd-navy);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(42, 0, 255, 0.1);
+  box-shadow: 0 2px 4px rgba($ffd-navy, 0.1);
 }
 
 .checklist-file-upload-hint {
@@ -1866,7 +1866,7 @@
 }
 
 .checklist-file-preview-container:hover {
-  border-color: #00368c;
+  border-color: $colorPrimary;
   box-shadow: 0 4px 12px rgba(0, 54, 140, 0.15);
 }
 
@@ -1882,7 +1882,7 @@
   position: relative;
   padding: 24px 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: linear-gradient(135deg, rgba(42, 0, 255, 0.02) 0%, rgba(42, 0, 255, 0.01) 100%);
+  background: linear-gradient(135deg, rgba($ffd-navy, 0.02) 0%, rgba($ffd-navy, 0.01) 100%);
 }
 
 .checklist-file-preview-clickable:hover {
@@ -1931,8 +1931,8 @@
 }
 
 .checklist-file-preview-download:hover {
-  background: #00368c;
-  border-color: #00368c;
+  background: $colorPrimary;
+  border-color: $colorPrimary;
   color: #ffffff;
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 54, 140, 0.3);
@@ -1971,8 +1971,8 @@
 }
 
 .checklist-file-preview-close:hover {
-  background: #ff4444;
-  border-color: #ff4444;
+  background: $status-danger;
+  border-color: $status-danger;
   color: #ffffff;
   transform: scale(1.1) rotate(90deg);
   box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
@@ -1999,7 +1999,7 @@
   width: 80px;
   height: 100px;
   background: var(--surface-primary);
-  border: 1.5px solid #DC143C;
+  border: 1.5px solid $status-danger;
   border-radius: 4px;
   position: relative;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -2015,7 +2015,7 @@
   height: 0;
   border-style: solid;
   border-width: 0 28px 28px 0;
-  border-color: transparent #DC143C transparent transparent;
+  border-color: transparent $status-danger transparent transparent;
   z-index: 2;
 }
 
@@ -2145,7 +2145,7 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #2A00FF;
+  accent-color: $ffd-navy;
 }
 
 .checklist-checkbox-label span {
@@ -2179,21 +2179,21 @@
 }
 
 .checklist-btn-primary {
-  background: #6674c8;
+  background: $ffd-coral;
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(63, 79, 143, 0.3);
+  box-shadow: 0 2px 6px rgba($ffd-coral, 0.3);
 }
 
 .checklist-btn-primary:hover {
-  background: #3f4f8f;
+  background: darken($ffd-coral, 8%);
   opacity: 1;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(63, 79, 143, 0.35);
+  box-shadow: 0 6px 16px rgba($ffd-coral, 0.35);
 }
 
 .checklist-btn-primary:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(63, 79, 143, 0.3);
+  box-shadow: 0 2px 6px rgba($ffd-coral, 0.3);
 }
 
 .checklist-btn-secondary {
@@ -2242,11 +2242,11 @@
 }
 
 .checklist-item-file-icon {
-  color: var(--card-color, #2A00FF);
+  color: var(--card-color, $ffd-navy);
 }
 
 .checklist-item-remarks-icon {
-  color: #4caf50;
+  color: $status-success;
 }
 
 .checklist-item:hover .checklist-item-file-icon,
@@ -2256,7 +2256,7 @@
 
 .checklist-item-detail-btn {
   padding: 6px 14px;
-  background: var(--card-color, #2A00FF);
+  background: var(--card-color, $ffd-navy);
   color: #ffffff;
   border: none;
   border-radius: 6px;
@@ -2268,7 +2268,7 @@
 }
 
 .checklist-item-detail-btn:hover {
-  background: #00368c;
+  background: $colorPrimary;
   opacity: 0.85;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 54, 140, 0.3);
@@ -2292,8 +2292,8 @@
 .checklist-section-status-text {
   font-size: 12px;
   font-weight: 700;
-  color: #4caf50;
-  background: rgba(76, 175, 80, 0.1);
+  color: $status-success;
+  background: rgba($status-success, 0.1);
   padding: 6px 14px;
   border-radius: 8px;
   text-transform: uppercase;
@@ -2319,8 +2319,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: rgba(42, 0, 255, 0.05);
-  border: 2px solid rgba(42, 0, 255, 0.1);
+  background: rgba($ffd-navy, 0.05);
+  border: 2px solid rgba($ffd-navy, 0.1);
   border-left: 4px solid rgb(77 85 188);
   border-radius: 6px;
   cursor: pointer;
@@ -2641,8 +2641,8 @@
   font-size: 10px;
   font-weight: 600;
   line-height: 1.25;
-  color: #3f4f8f;
-  background: #e2e6ff;
+  color: $colorPrimary;
+  background: rgba($ffd-navy, 0.1);
   border: 1px solid var(--border-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -2808,9 +2808,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:hover {
   border-color: var(--border-primary);
-  background: #e2e6ff;
-  color: #3f4f8f;
-  box-shadow: 0 2px 10px rgba(63, 79, 143, 0.12);
+  background: rgba($ffd-navy, 0.1);
+  color: $colorPrimary;
+  box-shadow: 0 2px 10px rgba($ffd-navy, 0.12);
 }
 
 .cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:hover .cl-meta-icon.cl-meta-icon--svg {
@@ -2822,18 +2822,18 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:focus-visible {
-  outline: 3px solid rgba(102, 116, 200, 0.24);
+  outline: 3px solid rgba($ffd-navy-light, 0.24);
   outline-offset: 2px;
 }
 
 .cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:focus-within {
-  outline: 3px solid rgba(102, 116, 200, 0.24);
+  outline: 3px solid rgba($ffd-navy-light, 0.24);
   outline-offset: 2px;
 }
 
 .cl-datepicker-wrapper:focus-within .cl-item-meta-chip.cl-item-meta-chip--expiry.cl-item-meta-chip--clickable,
 .cl-mui-datepicker-wrapper:focus-within .cl-item-meta-chip.cl-item-meta-chip--expiry.cl-item-meta-chip--clickable {
-  outline: 3px solid rgba(102, 116, 200, 0.24);
+  outline: 3px solid rgba($ffd-navy-light, 0.24);
   outline-offset: 2px;
 }
 
@@ -2956,7 +2956,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   border: 1px solid var(--border-primary);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 14px 36px rgba(0, 35, 104, 0.18);
+  box-shadow: 0 14px 36px rgba($ffd-navy, 0.18);
   font-family: inherit;
   font-size: 12px;
 }
@@ -2973,7 +2973,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-datepicker-calendar .react-datepicker__current-month {
-  color: #0f285a;
+  color: $colorPrimary;
   font-size: 13px;
   font-weight: 700;
   padding-bottom: 4px;
@@ -2997,7 +2997,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-datepicker-calendar .react-datepicker__day {
-  color: #1c3159;
+  color: $colorPrimary;
   border-radius: 7px;
   width: 2rem;
   line-height: 2rem;
@@ -3006,25 +3006,25 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-datepicker-calendar .react-datepicker__day:hover {
-  background-color: #e9f0ff !important;
-  color: #002a7a !important;
+  background-color: rgba($ffd-navy, 0.08) !important;
+  color: $colorPrimary !important;
 }
 
 .cl-datepicker-calendar .react-datepicker__day--keyboard-selected {
-  background-color: #d9e6ff;
-  color: #00368c;
+  background-color: rgba($ffd-navy, 0.14);
+  color: $colorPrimary;
 }
 
 .cl-datepicker-calendar .react-datepicker__day--selected,
 .cl-datepicker-calendar .react-datepicker__day--in-selecting-range,
 .cl-datepicker-calendar .react-datepicker__day--in-range {
-  background: linear-gradient(180deg, #2d72ff 0%, #1558e8 100%) !important;
+  background: linear-gradient(180deg, $ffd-navy-light 0%, $ffd-navy 100%) !important;
   color: #ffffff !important;
   font-weight: 700;
 }
 
 .cl-datepicker-calendar .react-datepicker__day--today {
-  box-shadow: inset 0 0 0 1px #6d98ff;
+  box-shadow: inset 0 0 0 1px $ffd-teal;
   font-weight: 700;
 }
 
@@ -3033,7 +3033,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-datepicker-calendar .react-datepicker__navigation-icon::before {
-  border-color: #325baf;
+  border-color: $colorPrimary;
   border-width: 2px 2px 0 0;
 }
 
@@ -3087,13 +3087,13 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .cl-item-meta-preview-btn:hover {
   border-color: var(--border-primary);
-  background: #e2e6ff;
-  color: #3f4f8f;
-  box-shadow: 0 2px 8px rgba(63, 79, 143, 0.12);
+  background: rgba($ffd-navy, 0.1);
+  color: $colorPrimary;
+  box-shadow: 0 2px 8px rgba($ffd-navy, 0.12);
 }
 
 .cl-item-meta-preview-btn:focus-visible {
-  outline: 3px solid rgba(102, 116, 200, 0.2);
+  outline: 3px solid rgba($ffd-navy-light, 0.2);
   outline-offset: 2px;
 }
 
@@ -3135,7 +3135,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   border-radius: 8px;
   border: 1px solid var(--border-primary);
   background: var(--surface-primary);
-  color: #5b57c7;
+  color: $colorPrimary;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3149,20 +3149,20 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .cl-upload-btn:hover {
   background: var(--surface-primary);
-  border-color: #b7b2f2;
+  border-color: rgba($ffd-navy, 0.35);
 }
 
 .cl-upload-btn--premium {
-  background: linear-gradient(135deg, #ffffff 0%, #f4f6ff 55%, #eef2ff 100%);
-  border: 1px solid rgba(91, 87, 199, 0.42);
-  box-shadow: 0 2px 10px rgba(42, 0, 255, 0.07), 0 1px 2px rgba(15, 23, 42, 0.04);
-  color: #4338ca;
+  background: linear-gradient(135deg, #ffffff 0%, rgba($ffd-navy, 0.04) 55%, rgba($ffd-navy, 0.06) 100%);
+  border: 1px solid rgba($ffd-navy, 0.42);
+  box-shadow: 0 2px 10px rgba($ffd-navy, 0.07), 0 1px 2px rgba(15, 23, 42, 0.04);
+  color: $colorPrimary;
 }
 
 .cl-upload-btn--premium:hover {
-  background: linear-gradient(135deg, #fafbff 0%, #ebeefe 100%);
-  border-color: rgba(67, 56, 202, 0.55);
-  box-shadow: 0 4px 14px rgba(42, 0, 255, 0.11);
+  background: linear-gradient(135deg, rgba($ffd-navy, 0.02) 0%, rgba($ffd-navy, 0.05) 100%);
+  border-color: rgba($ffd-navy, 0.55);
+  box-shadow: 0 4px 14px rgba($ffd-navy, 0.11);
 }
 
 .cl-upload-col--multi {
@@ -3226,9 +3226,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   min-height: 24px;
   padding: 0 8px;
   border-radius: 6px;
-  border: 1px solid rgba(91, 87, 199, 0.38);
-  background: linear-gradient(180deg, #ffffff 0%, #f4f6ff 100%);
-  color: #4338ca;
+  border: 1px solid rgba($ffd-navy, 0.38);
+  background: linear-gradient(180deg, #ffffff 0%, rgba($ffd-navy, 0.04) 100%);
+  color: $colorPrimary;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3238,7 +3238,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   line-height: 1;
   letter-spacing: 0.02em;
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(42, 0, 255, 0.06);
+  box-shadow: 0 1px 4px rgba($ffd-navy, 0.06);
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease,
@@ -3246,9 +3246,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-upload-btn:hover {
-  border-color: rgba(67, 56, 202, 0.55);
-  background: linear-gradient(180deg, #fafbff 0%, #eceefe 100%);
-  box-shadow: 0 2px 8px rgba(42, 0, 255, 0.1);
+  border-color: rgba($ffd-navy, 0.55);
+  background: linear-gradient(180deg, rgba($ffd-navy, 0.02) 0%, rgba($ffd-navy, 0.05) 100%);
+  box-shadow: 0 2px 8px rgba($ffd-navy, 0.1);
 }
 
 .checklist-file-chip-row {
@@ -3342,7 +3342,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-file-chip__btn--remove:hover:not(:disabled) {
-  color: #dc2626;
+  color: $status-danger;
   background: var(--surface-primary);
 }
 
@@ -3351,9 +3351,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   height: 22px;
   padding: 0 7px;
   border-radius: 6px;
-  border: 1px dashed rgba(63, 79, 143, 0.4);
-  background: rgba(102, 116, 200, 0.08);
-  color: #3f4f8f;
+  border: 1px dashed rgba($ffd-navy, 0.4);
+  background: rgba($ffd-navy, 0.08);
+  color: $colorPrimary;
   font-size: 10px;
   font-weight: 700;
   cursor: pointer;
@@ -3364,12 +3364,12 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-more-files-chip:hover {
-  background: rgba(102, 116, 200, 0.14);
-  border-color: rgba(63, 79, 143, 0.6);
+  background: rgba($ffd-navy-light, 0.14);
+  border-color: rgba($ffd-navy, 0.6);
 }
 
 .checklist-more-files-chip[aria-expanded="true"] {
-  background: rgba(102, 116, 200, 0.18);
+  background: rgba($ffd-navy-light, 0.18);
   border-style: solid;
 }
 
@@ -3517,7 +3517,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-upload-file-chip__action--remove:hover:not(:disabled) {
-  color: #dc2626;
+  color: $status-danger;
   background: var(--surface-primary);
 }
 
@@ -3630,7 +3630,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-upload-remove-btn:hover {
-  color: #ef4444;
+  color: $status-danger;
   border-color: var(--border-primary);
   background: var(--surface-primary);
 }
@@ -3658,17 +3658,17 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 .cl-file-icon-btn--local {
   font-size: 16px;
   line-height: 1;
-  color: #b91c1c;
+  color: darken($status-danger, 8%);
 }
 
 .cl-file-icon-btn--upload {
-  color: var(--card-color, #2a00ff);
-  background: rgba(42, 0, 255, 0.04);
-  border-color: rgba(42, 0, 255, 0.25);
+  color: var(--card-color, $ffd-navy);
+  background: rgba($ffd-navy, 0.04);
+  border-color: rgba($ffd-navy, 0.25);
 }
 
 .cl-file-icon-btn--upload.dragging {
-  box-shadow: 0 0 0 2px rgba(42, 0, 255, 0.12);
+  box-shadow: 0 0 0 2px rgba($ffd-navy, 0.12);
 }
 
 .cl-upload-dropzone {
@@ -3695,8 +3695,8 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-upload-dropzone.dragging {
-  border-color: var(--card-color, #2a00ff);
-  box-shadow: 0 0 0 2px rgba(42, 0, 255, 0.12);
+  border-color: var(--card-color, $ffd-navy);
+  box-shadow: 0 0 0 2px rgba($ffd-navy, 0.12);
   background: var(--surface-primary);
 }
 
@@ -3710,7 +3710,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-upload-dropzone__link {
-  color: #0f3f8f;
+  color: $colorPrimary;
   text-decoration: underline;
   font-weight: 600;
 }
@@ -3801,13 +3801,13 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-file-ico--pdf {
-  color: #b91c1c;
-  background: #fee2e2;
+  color: darken($status-danger, 8%);
+  background: $status-cancelled-bg;
 }
 
 .cl-file-ico--word {
-  color: #1d4ed8;
-  background: #dbeafe;
+  color: $status-info-text;
+  background: $status-info-bg;
 }
 
 .cl-upload-zone {
@@ -3846,13 +3846,13 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   padding: 6px 14px;
   border-radius: 6px;
   border: none;
-  background: #00368c;
+  background: $ffd-coral;
   color: #ffffff;
   font-weight: 600;
 }
 
 .checklist-items-builder-header .btn:hover {
-  background: #002d6f;
+  background: darken($ffd-coral, 8%);
 }
 
 .checklist-items-table-scroll {
@@ -3887,9 +3887,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   height: 32px;
   min-width: 32px;
   border-radius: 50%;
-  border: 1px solid #00368c;
+  border: 1px solid $colorPrimary;
   background: var(--surface-primary);
-  color: #00368c;
+  color: $colorPrimary;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3898,7 +3898,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-inline-add-btn:hover {
-  background: #00368c;
+  background: $colorPrimary;
   color: #ffffff;
 }
 
@@ -4167,7 +4167,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   border-radius: 999px;
   background: var(--surface-primary);
   border: 1px solid var(--border-primary);
-  color: #00368c;
+  color: $colorPrimary;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4287,12 +4287,12 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   margin: 0;
   border: 1px solid var(--border-primary);
   background: var(--surface-primary);
-  color: #0f3f8f;
+  color: $colorPrimary;
 }
 
 .checklist-file-action-btn--label:hover {
   background: var(--surface-primary);
-  border-color: #93c5fd;
+  border-color: $ffd-navy-light;
 }
 
 .checklist-upload-btn {
@@ -4307,7 +4307,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   border: 1px solid var(--border-primary);
   border-radius: 8px;
   background: var(--surface-primary);
-  color: #0f3f8f;
+  color: $colorPrimary;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -4346,7 +4346,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   border: 1px solid var(--border-primary);
   border-radius: 8px;
   background: var(--surface-primary);
-  color: #dc2626;
+  color: $status-danger;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4363,10 +4363,10 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   height: 38px;
   min-width: 38px;
   padding: 0;
-  border: 1px solid #dc3545;
+  border: 1px solid $status-danger;
   border-radius: 8px;
   background: var(--surface-primary);
-  color: #dc3545;
+  color: $status-danger;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4380,9 +4380,9 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-remove-icon-btn:hover:not(:disabled) {
-  background: #dc3545;
+  background: $status-danger;
   color: #ffffff;
-  border-color: #dc3545;
+  border-color: $status-danger;
 }
 
 .checklist-remove-icon-btn:focus-visible {
@@ -4419,7 +4419,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   overflow-x: hidden;
   padding-bottom: 24px;
   scrollbar-width: thin;
-  scrollbar-color: #00358a #e6eef8;
+  scrollbar-color: $ffd-navy $ffd-background;
 
   [data-theme="dark"] & {
     scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
@@ -4431,7 +4431,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   }
 
   &::-webkit-scrollbar-track {
-    background: #e6eef8;
+    background: $ffd-background;
     border-radius: 10px;
 
     [data-theme="dark"] & {
@@ -4440,7 +4440,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #00358a;
+    background: $ffd-navy;
     border-radius: 10px;
 
     [data-theme="dark"] & {
@@ -4509,7 +4509,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .checklist-modal-xl-wide .checklist-items-table-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #00358a #e6eef8;
+  scrollbar-color: $ffd-navy $ffd-background;
 
   [data-theme="dark"] & {
     scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
@@ -4521,7 +4521,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   }
 
   &::-webkit-scrollbar-track {
-    background: #e6eef8;
+    background: $ffd-background;
     border-radius: 10px;
 
     [data-theme="dark"] & {
@@ -4530,7 +4530,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #00358a;
+    background: $ffd-navy;
     border-radius: 10px;
 
     [data-theme="dark"] & {
@@ -4790,7 +4790,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   color: rgb(0 0 0);
   text-transform: uppercase;
   text-decoration: none;
-  background: #e2e6ff;
+  background: rgba($ffd-navy, 0.1);
   border-bottom: 1px solid var(--border-primary);
   letter-spacing: 0.04em;
 
@@ -4908,12 +4908,12 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-excel-table .checklist-table-row.checked td {
-  background: #ecfdf5;
-  border-color: #a7f3d0;
+  background: rgba($status-success, 0.1);
+  border-color: rgba($status-success, 0.35);
 }
 
 .cl-excel-table .checklist-table-row.checked:hover td {
-  background: #dff9ee;
+  background: rgba($status-success, 0.16);
 }
 
 .cl-excel-table tbody tr:last-child td {
@@ -4921,7 +4921,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-excel-section-header-row td {
-  background: #e2e6ff !important;
+  background: rgba($ffd-navy, 0.1) !important;
   padding: 8px 12px;
   vertical-align: middle;
 
@@ -4931,7 +4931,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-excel-section-header-row--sub td {
-  background: #eef0ff !important;
+  background: rgba($ffd-navy, 0.06) !important;
 
   [data-theme="dark"] & {
     background: var(--surface-secondary) !important;
@@ -4955,7 +4955,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   margin-left: 10px;
   font-size: 10px;
   font-weight: 600;
-  color: #5b68a5;
+  color: $ffd-navy-light;
   text-decoration: none;
   text-transform: none;
 }
@@ -4977,7 +4977,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   box-shadow: none;
   font-size: 10px;
   font-weight: 600;
-  color: #3f4f8f;
+  color: $colorPrimary;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
@@ -4987,12 +4987,12 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   height: 17px;
   margin: 0;
   flex-shrink: 0;
-  accent-color: #6674c8;
+  accent-color: $ffd-navy-light;
 }
 
 .cl-excel-select-all-btn:hover {
-  background: #eef0ff;
-  border-color: #6674c8;
+  background: rgba($ffd-navy, 0.06);
+  border-color: $ffd-navy-light;
 
   [data-theme="dark"] & {
     background: var(--surface-hover);
@@ -5001,7 +5001,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .cl-excel-select-all-btn .checklist-select-all-label {
   font-size: 10px;
-  color: #3f4f8f;
+  color: $colorPrimary;
   text-transform: uppercase;
 }
 
@@ -5100,8 +5100,8 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-upload-icon-btn:hover {
-  color: #3f4f8f;
-  background: rgba(102, 116, 200, 0.1);
+  color: $colorPrimary;
+  background: rgba($ffd-navy-light, 0.1);
   transform: scale(1.12);
 }
 
@@ -5110,7 +5110,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-upload-icon-btn:focus-visible {
-  outline: 2px solid rgba(102, 116, 200, 0.35);
+  outline: 2px solid rgba($ffd-navy-light, 0.35);
   outline-offset: 2px;
 }
 
@@ -5172,7 +5172,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   padding: 1px;
   border: none;
   background: transparent;
-  color: #5b68a5;
+  color: $ffd-navy-light;
   cursor: pointer;
 }
 
@@ -5229,8 +5229,8 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
   padding: 2px 8px;
   font-size: 10px;
   font-weight: 600;
-  color: #3f4f8f;
-  background: #e2e6ff;
+  color: $colorPrimary;
+  background: rgba($ffd-navy, 0.1);
   border: 1px solid var(--border-primary);
   text-transform: uppercase;
 }
@@ -5253,8 +5253,8 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .cl-excel-table .checklist-upload-btn:hover {
-  background: #e2e6ff;
-  border-color: #6674c8;
+  background: rgba($ffd-navy, 0.1);
+  border-color: $ffd-navy-light;
 }
 
 .cl-excel-table .checklist-file-chip {
@@ -5313,8 +5313,8 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .cl-excel-table .cf-textarea.checklist-table-textarea textarea:focus,
 .cl-excel-table .cf-textarea.cl-remarks-ta textarea:focus {
-  border: 1px solid #6674c8;
-  box-shadow: 0 0 0 3px rgba(102, 116, 200, 0.12);
+  border: 1px solid $ffd-navy-light;
+  box-shadow: 0 0 0 3px rgba($ffd-navy-light, 0.12);
   outline: none;
 }
 
@@ -5331,7 +5331,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 
 .cl-excel-table .cl-item-meta-chip--expiry.cl-item-meta-chip--clickable:hover {
   box-shadow: none;
-  background: #e2e6ff;
+  background: rgba($ffd-navy, 0.1);
   border-color: var(--border-primary);
 }
 

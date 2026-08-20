@@ -37,12 +37,12 @@ const Analytics = () => {
   };
 
   const columnDistribution = [
-    { name: 'Ready to Finalize', value: 18, color: '#E2106C' },
-    { name: 'In Progress', value: 36, color: '#7915BC' },
-    { name: 'Al Gihaz awaiting', value: 18, color: '#3E5EBD' },
-    { name: 'Finalized', value: 18, color: '#41B24A' },
-    { name: 'Awaiting acknowledgment', value: 18, color: '#775649' },
-    { name: 'Dispatched', value: 18, color: '#ED8E37' },
+    { name: 'Ready to Finalize', value: 18, color: '#2a78d6' },
+    { name: 'In Progress', value: 36, color: '#eb6834' },
+    { name: 'Al Gihaz awaiting', value: 18, color: '#1baf7a' },
+    { name: 'Finalized', value: 18, color: '#eda100' },
+    { name: 'Awaiting acknowledgment', value: 18, color: '#e87ba4' },
+    { name: 'Dispatched', value: 18, color: '#008300' },
   ];
 
   const weeklyData = [
@@ -83,7 +83,7 @@ const Analytics = () => {
       change: '+12%',
       isPositive: true,
       icon: FiBarChart2,
-      color: '#0075FF'
+      color: '#0F2A3D'
     },
     {
       id: 2,
@@ -92,7 +92,7 @@ const Analytics = () => {
       change: `+${completionRate}%`,
       isPositive: true,
       icon: FiBarChart2,
-      color: '#00C853'
+      color: '#28A745'
     },
     {
       id: 3,
@@ -101,7 +101,7 @@ const Analytics = () => {
       change: `+${inProgressRate}%`,
       isPositive: true,
       icon: FiBarChart2,
-      color: '#FF6B00'
+      color: '#4EC9A1'
     },
     {
       id: 4,
@@ -110,7 +110,7 @@ const Analytics = () => {
       change: '-8%',
       isPositive: false,
       icon: FiBarChart2,
-      color: '#E91E63'
+      color: '#DC3545'
     },
   ];
 
@@ -206,9 +206,9 @@ const Analytics = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="completed" fill="#00C853" name="Completed" />
-                <Bar dataKey="created" fill="#0075FF" name="Created" />
-                <Bar dataKey="moved" fill="#FF6B00" name="Moved" />
+                <Bar dataKey="completed" fill="#1baf7a" name="Completed" />
+                <Bar dataKey="created" fill="#2a78d6" name="Created" />
+                <Bar dataKey="moved" fill="#eb6834" name="Moved" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -226,19 +226,19 @@ const Analytics = () => {
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
-                <Line 
+                <Line
                   yAxisId="left"
-                  type="monotone" 
-                  dataKey="avgTime" 
-                  stroke="#0075FF" 
+                  type="monotone"
+                  dataKey="avgTime"
+                  stroke="#2a78d6"
                   name="Avg Time (days)"
                   strokeWidth={2}
                 />
-                <Line 
+                <Line
                   yAxisId="right"
-                  type="monotone" 
-                  dataKey="completion" 
-                  stroke="#00C853" 
+                  type="monotone"
+                  dataKey="completion"
+                  stroke="#1baf7a"
                   name="Completion %"
                   strokeWidth={2}
                 />
@@ -252,16 +252,16 @@ const Analytics = () => {
               <AreaChart data={statusTrend}>
                 <defs>
                   <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00C853" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#00C853" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#1baf7a" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#1baf7a" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorInProgress" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#FF6B00" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#FF6B00" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#2a78d6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#2a78d6" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#E91E63" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#E91E63" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#eda100" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#eda100" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -269,27 +269,27 @@ const Analytics = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Area 
-                  type="monotone" 
-                  dataKey="completed" 
-                  stackId="1" 
-                  stroke="#00C853" 
+                <Area
+                  type="monotone"
+                  dataKey="completed"
+                  stackId="1"
+                  stroke="#1baf7a"
                   fill="url(#colorCompleted)"
                   name="Completed"
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="inProgress" 
-                  stackId="1" 
-                  stroke="#FF6B00" 
+                <Area
+                  type="monotone"
+                  dataKey="inProgress"
+                  stackId="1"
+                  stroke="#2a78d6"
                   fill="url(#colorInProgress)"
                   name="In Progress"
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="pending" 
-                  stackId="1" 
-                  stroke="#E91E63" 
+                <Area
+                  type="monotone"
+                  dataKey="pending"
+                  stackId="1"
+                  stroke="#eda100"
                   fill="url(#colorPending)"
                   name="Pending"
                 />

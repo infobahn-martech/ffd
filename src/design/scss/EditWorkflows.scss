@@ -30,15 +30,15 @@
 }
 
 .workflows-btn-save {
-  background: #00368c;
+  background: $ffd-coral;
   color: #ffffff;
-  box-shadow: 0 3px 6px rgba(0, 54, 140, 0.25);
+  box-shadow: 0 3px 6px rgba($ffd-coral, 0.25);
   flex: 1;
 
   &:hover:not(:disabled) {
-    background: #002d73;
+    background: darken($ffd-coral, 8%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 54, 140, 0.35);
+    box-shadow: 0 6px 12px rgba($ffd-coral, 0.35);
   }
 }
 
@@ -75,14 +75,14 @@
 }
 
 .workflows-btn-create {
-  background: #00368c;
+  background: $ffd-coral;
   color: #ffffff;
-  box-shadow: 0 3px 6px rgba(0, 54, 140, 0.25);
+  box-shadow: 0 3px 6px rgba($ffd-coral, 0.25);
 
   &:hover {
-    background: #002d73;
+    background: darken($ffd-coral, 8%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 54, 140, 0.35);
+    box-shadow: 0 6px 12px rgba($ffd-coral, 0.35);
   }
 
   &--toolbar {
@@ -206,7 +206,7 @@
   transition: color 0.2s ease;
 
   &:hover {
-    color: #3b82f6;
+    color: $ffd-navy;
   }
 
   svg {
@@ -228,8 +228,8 @@
 
   &:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: $ffd-coral;
+    box-shadow: $shadow-focus;
   }
 }
 
@@ -251,7 +251,7 @@
   &--empty-workflow {
     padding-top: 20px;
     background-color: var(--surface-primary);
-    background-image: radial-gradient(circle at 1px 1px, rgba(0, 54, 140, 0.06) 1px, transparent 0);
+    background-image: radial-gradient(circle at 1px 1px, rgba($ffd-navy, 0.06) 1px, transparent 0);
     background-size: 20px 20px;
   }
 
@@ -297,8 +297,8 @@
     width: 64px;
     height: 64px;
     border-radius: 12px;
-    background: rgba(0, 54, 140, 0.06);
-    color: #00368c;
+    background: rgba($ffd-navy, 0.06);
+    color: $ffd-navy;
     opacity: 1;
   }
 
@@ -588,7 +588,7 @@
   font: normal normal 600 18px/1.4 $font-primary;
   color: $txtColor;
   background: var(--surface-primary);
-  border: 2px solid #3b82f6;
+  border: 2px solid $ffd-coral;
   border-radius: 6px;
   padding: 4px 12px;
   outline: none;
@@ -596,8 +596,8 @@
   transition: all 0.2s ease;
 
   &:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: $ffd-coral;
+    box-shadow: $shadow-focus;
   }
 }
 
@@ -618,7 +618,7 @@
 
   &:hover {
     background: var(--bg-secondary);
-    color: #3b82f6;
+    color: $ffd-navy;
   }
 
   svg {
@@ -668,7 +668,7 @@ div[role="tooltip"][id^="workflow-info-"] {
 .workflow-action-link {
   background: none;
   border: none;
-  color: #3b82f6;
+  color: $ffd-navy;
   font: normal normal 400 14px/1.4 $font-primary;
   cursor: pointer;
   padding: 0;
@@ -676,7 +676,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   transition: color 0.2s ease;
 
   &:hover {
-    color: #2563eb;
+    color: darken($ffd-navy, 8%);
   }
 
   &:disabled {
@@ -686,10 +686,10 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 
   &.workflow-action-link-delete {
-    color: #ef4444;
+    color: $status-danger;
 
     &:hover {
-      color: #dc2626;
+      color: darken($status-danger, 8%);
     }
   }
 }
@@ -885,7 +885,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   justify-content: center;
   pointer-events: none;
   z-index: 5;
-  border: 1px solid #59d38c;
+  border: 1px solid $status-success;
   background: var(--surface-primary);
   border-radius: 0;
   box-sizing: border-box;
@@ -901,7 +901,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   top: 0;
   bottom: 0;
   width: 22px;
-  border-right: 1px solid #59d38c;
+  border-right: 1px solid $status-success;
 }
 
 .workflow-stage-box .workflow-insertion-rail-right {
@@ -909,7 +909,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   top: 0;
   bottom: 0;
   width: 22px;
-  border-left: 1px solid #59d38c;
+  border-left: 1px solid $status-success;
 }
 
 .workflow-stage-box .workflow-insertion-rail-bottom {
@@ -917,7 +917,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   right: 0;
   bottom: 0;
   height: 22px;
-  border-top: 1px solid #59d38c;
+  border-top: 1px solid $status-success;
 }
 
 .workflow-stage-box .workflow-insertion-rail-bottom.bottom-add-grid.disabled {
@@ -1036,7 +1036,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   transition: border-color 0.15s ease;
 
   &:hover {
-    border-color: #42af49;
+    border-color: $status-success;
     border-width: 2px;
     padding: 7px 11px; // compensate for 2px border so layout doesn't shift
   }
@@ -1051,7 +1051,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(66, 175, 73, 0.2);
+  background: rgba($status-success, 0.2);
   border: none;
   cursor: pointer;
   padding: 0;
@@ -1061,11 +1061,11 @@ div[role="tooltip"][id^="workflow-info-"] {
 
   svg {
     flex-shrink: 0;
-    stroke: #42af49;
+    stroke: $status-success;
   }
 
   &:hover {
-    background: rgba(66, 175, 73, 0.35);
+    background: rgba($status-success, 0.35);
   }
 }
 
@@ -1094,7 +1094,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   font: normal normal 600 13px/1.35 $font-primary;
   color: $txtColor;
   background: var(--surface-primary);
-  border: 2px solid #3b82f6;
+  border: 2px solid $ffd-coral;
   border-radius: 4px;
   padding: 4px 8px;
   outline: none;
@@ -1103,8 +1103,8 @@ div[role="tooltip"][id^="workflow-info-"] {
   transition: all 0.2s ease;
 
   &:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+    border-color: $ffd-coral;
+    box-shadow: 0 0 0 2px rgba($ffd-coral, 0.15);
   }
 }
 
@@ -1146,7 +1146,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 
   &.workflow-swimlane-icon-btn-delete:hover {
-    color: #ef4444;
+    color: $status-danger;
   }
 
   svg {
@@ -1247,8 +1247,8 @@ div[role="tooltip"][id^="workflow-info-"] {
 
   &:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    border-color: $ffd-coral;
+    box-shadow: 0 0 0 2px rgba($ffd-coral, 0.1);
   }
 
   &::-webkit-inner-spin-button,
@@ -1461,7 +1461,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   text-align: center;
   width: 100%;
   padding: 4px 8px;
-  border: 1px solid #3b82f6;
+  border: 1px solid $ffd-coral;
   border-radius: 4px;
   box-sizing: border-box;
   background: var(--surface-primary);
@@ -1469,8 +1469,8 @@ div[role="tooltip"][id^="workflow-info-"] {
 
   &:focus {
     outline: none;
-    border-color: #00368c;
-    box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.1);
+    border-color: $ffd-coral;
+    box-shadow: 0 0 0 2px rgba($ffd-coral, 0.1);
   }
 }
 
@@ -1544,8 +1544,8 @@ div[role="tooltip"][id^="workflow-info-"] {
 
   &:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    border-color: $ffd-coral;
+    box-shadow: 0 0 0 2px rgba($ffd-coral, 0.1);
   }
 
   &::-webkit-inner-spin-button,
@@ -1595,7 +1595,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 
   &.stage-action-icon-delete:hover {
-    color: #ef4444;
+    color: $status-danger;
   }
 }
 
@@ -1636,23 +1636,23 @@ div[role="tooltip"][id^="workflow-info-"] {
 .workflow-add-placeholder-btn {
   width: 40px;
   height: 40px;
-  border: 2px solid #10b981;
+  border: 2px solid $ffd-coral;
   border-radius: 50%;
   background: var(--surface-primary);
-  color: #10b981;
+  color: $ffd-coral;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
   padding: 0;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 2px 8px rgba($ffd-coral, 0.2);
 
   &:hover {
-    background: #10b981;
+    background: $ffd-coral;
     color: #ffffff;
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 4px 12px rgba($ffd-coral, 0.4);
   }
 
   svg {
@@ -1680,7 +1680,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   transition: background 0.2s ease;
 
   &:hover {
-    background: rgba(16, 185, 129, 0.08);
+    background: rgba($ffd-coral, 0.08);
     transform: none;
     box-shadow: none;
   }
@@ -1694,7 +1694,7 @@ div[role="tooltip"][id^="workflow-info-"] {
   }
 
   &:hover svg {
-    stroke: #10b981;
+    stroke: $ffd-coral;
   }
 }
 

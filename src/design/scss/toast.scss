@@ -1,9 +1,11 @@
+@import "partials/partials";
+
 .toast {
     position: fixed;
     top: 40px;
     right: 30px;
     opacity: 1 !important;
-    color: #fff;
+    color: $white;
     z-index: 99999999;
     border: 0;
 
@@ -15,10 +17,10 @@
         margin-bottom: 0;
     }
     &.success_msg {
-        background: #44b85e !important;
+        background: $status-success !important;
     }
     &.error_msg {
-        background-color: #f44336 !important;
+        background-color: $status-danger !important;
     }
     .btn-close {
         border: 0;
@@ -43,7 +45,7 @@
         background: var(--surface-primary);
         border: 1px solid var(--border-primary);
         border-radius: 16px;
-        box-shadow: 0 16px 40px rgba(12, 35, 76, 0.14), 0 2px 8px rgba(12, 35, 76, 0.06);
+        box-shadow: 0 16px 40px rgba($ffd-navy, 0.14), 0 2px 8px rgba($ffd-navy, 0.06);
         padding: 16px 16px 16px 20px;
         margin-bottom: 14px;
         overflow: hidden;
@@ -55,7 +57,7 @@
             left: 0;
             bottom: 0;
             width: 4px;
-            background: #a8b8d4;
+            background: $status-neutral;
         }
 
         .Toastify__toast-body {
@@ -87,35 +89,35 @@
         }
 
         &.error::before {
-            background-color: #ff3926;
+            background-color: $status-danger;
         }
 
         &.success::before {
-            background-color: #3ebe64;
+            background-color: $status-success;
         }
 
         &.warn::before {
-            background-color: #ef934d;
+            background-color: $status-warning;
         }
 
         &.info::before {
-            background-color: #0263d1;
+            background-color: $status-info-text;
         }
 
         &.error .Toastify__progress-bar {
-            background-color: #ff3926 !important;
+            background-color: $status-danger !important;
         }
 
         &.success .Toastify__progress-bar {
-            background-color: #3ebe64 !important;
+            background-color: $status-success !important;
         }
 
         &.warn .Toastify__progress-bar {
-            background-color: #ef934d !important;
+            background-color: $status-warning !important;
         }
 
         &.info .Toastify__progress-bar {
-            background-color: #0263d1 !important;
+            background-color: $status-info-text !important;
         }
 
         .Toastify__progress-track {

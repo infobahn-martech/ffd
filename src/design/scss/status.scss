@@ -1,10 +1,11 @@
 /* status.scss */
+@import "partials/partials";
 
 .status-color-dot {
     width: 18px;
     height: 18px;
     border-radius: 999px;
-    border: 1px solid rgb(215, 211, 211);
+    border: 1px solid $borderLight;
     display: inline-block;
     background-color: var(--status-color, #000000) !important;
 }

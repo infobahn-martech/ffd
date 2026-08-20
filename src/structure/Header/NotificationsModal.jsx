@@ -26,7 +26,7 @@ function NotificationsModal({ show, onClose }) {
       isRead: false,
       status: 'arrived',
       highlightedText: 'arrived',
-      highlightedColor: '#65BD50',
+      highlightedColor: 'var(--color-success)',
       hasSuccessBackground: true
     },
     {
@@ -39,7 +39,7 @@ function NotificationsModal({ show, onClose }) {
       isRead: false,
       status: 'appointment',
       highlightedText: 'December 20, 2024 at 10:00 AM',
-      highlightedColor: '#0263D1'
+      highlightedColor: 'var(--color-info)'
     },
     {
       id: 3,
@@ -51,7 +51,7 @@ function NotificationsModal({ show, onClose }) {
       isRead: false,
       status: 'payment',
       highlightedText: 'successfully',
-      highlightedColor: '#65BD50',
+      highlightedColor: 'var(--color-success)',
       hasSuccessBackground: true
     },
     {
@@ -64,7 +64,7 @@ function NotificationsModal({ show, onClose }) {
       isRead: false,
       status: 'cleared',
       highlightedText: 'cleared',
-      highlightedColor: '#65BD50'
+      highlightedColor: 'var(--color-success)'
     },
     {
       id: 5,
@@ -76,7 +76,7 @@ function NotificationsModal({ show, onClose }) {
       isRead: false,
       status: 'crew',
       highlightedText: 'confirmed',
-      highlightedColor: '#65BD50'
+      highlightedColor: 'var(--color-success)'
     },
     {
       id: 6,
@@ -88,7 +88,7 @@ function NotificationsModal({ show, onClose }) {
       isRead: false,
       status: 'inspection',
       highlightedText: 'December 19, 2024 at 2:00 PM',
-      highlightedColor: '#EF934D'
+      highlightedColor: 'var(--color-warning)'
     },
     {
       id: 7,
@@ -100,7 +100,7 @@ function NotificationsModal({ show, onClose }) {
       isRead: false,
       status: 'transport',
       highlightedText: 'approved',
-      highlightedColor: '#65BD50'
+      highlightedColor: 'var(--color-success)'
     },
     {
       id: 8,
@@ -112,7 +112,7 @@ function NotificationsModal({ show, onClose }) {
       isRead: false,
       status: 'departure',
       highlightedText: 'December 18, 2024 at 6:00 PM',
-      highlightedColor: '#EF934D'
+      highlightedColor: 'var(--color-warning)'
     },
     {
       id: 9,
@@ -124,7 +124,7 @@ function NotificationsModal({ show, onClose }) {
       isRead: false,
       status: 'invoice',
       highlightedText: 'INV-2024-1289',
-      highlightedColor: '#0263D1'
+      highlightedColor: 'var(--color-info)'
     },
     {
       id: 10,
@@ -136,7 +136,7 @@ function NotificationsModal({ show, onClose }) {
       isRead: false,
       status: 'port',
       highlightedText: 'Operational',
-      highlightedColor: '#65BD50'
+      highlightedColor: 'var(--color-success)'
     }
   ];
 

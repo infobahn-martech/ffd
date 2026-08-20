@@ -34,7 +34,7 @@ const LogoutConfirmationModal = ({
               <FiLogOut
                 size={60}
                 style={{
-                  color: '#00368c',
+                  color: 'var(--ffd-navy)',
                 }}
               />
             </div>

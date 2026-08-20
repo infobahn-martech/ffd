@@ -6,7 +6,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: var(--modal-overlay);
   z-index: 998;
   animation: fadeIn 0.2s ease;
 }
@@ -28,7 +28,7 @@
   width: 400px;
   height: 100vh;
   background: var(--surface-primary);
-  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.1);
+  box-shadow: -2px 0 12px rgba($ffd-navy, 0.1);
   z-index: 999;
   display: flex;
   flex-direction: column;
@@ -109,8 +109,8 @@
 
   &:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: $colorPrimary;
+    box-shadow: $shadow-focus;
   }
 
   &::placeholder {
@@ -136,7 +136,7 @@
   padding: 0;
 
   &:hover {
-    color: #00368c;
+    color: $colorPrimary;
   }
 }
 
@@ -192,7 +192,7 @@
   border-radius: 4px;
 
   &:hover {
-    color: #00368c;
+    color: $colorPrimary;
     background: var(--bg-secondary);
   }
 }
@@ -207,7 +207,7 @@
   border: 1px solid var(--border-primary);
   border-radius: 8px;
   background: var(--surface-primary);
-  color: #00368c;
+  color: $colorPrimary;
   font: normal normal 500 14px/1.4 $font-primary;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -218,7 +218,7 @@
 
   &:hover {
     background: var(--surface-primary);
-    border-color: #00368c;
+    border-color: $colorPrimary;
   }
 
   svg {
@@ -229,7 +229,7 @@
 // Scrollbar styling
 .board-filter-panel {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  scrollbar-color: rgba($ffd-navy, 0.2) transparent;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -240,11 +240,11 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba($ffd-navy, 0.2);
     border-radius: 4px;
   }
 
   &::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba($ffd-navy, 0.3);
   }
 }

@@ -114,7 +114,7 @@
 }
 
 .cardform-title-input.is-invalid {
-  box-shadow: 0 0 0 2px #dc3545;
+  box-shadow: 0 0 0 2px var(--color-danger);
 }
 
 .cardform-title-input--view {
@@ -269,7 +269,7 @@
 }
 
 .color-swatch.selected {
-  border-color: #333;
+  border-color: var(--ffd-navy);
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
@@ -278,7 +278,7 @@
 }
 
 .color-swatch.white-swatch.selected {
-  border-color: #333;
+  border-color: var(--ffd-navy);
 }
 
 .color-checkmark {
@@ -433,13 +433,13 @@
 }
 
 .cardform-tabs .tab:not(.active):not(.disabled):hover {
-  background: rgba(109, 94, 245, 0.08);
-  color: #4f46e5;
+  background: rgba(15, 42, 61, 0.06);
+  color: var(--ffd-navy);
 }
 
 .cardform-tabs .tab.active {
   background: var(--surface-primary);
-  color: #4f46e5;
+  color: var(--ffd-navy);
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 
@@ -534,7 +534,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(to right, #f2f1ff 0%, #ffffff 65%);
+  background: linear-gradient(to right, rgba(15, 42, 61, 0.05) 0%, #ffffff 65%);
   border-bottom: 1px solid var(--border-primary);
 }
 
@@ -549,7 +549,7 @@
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(180deg, #6d5ef5 0%, #4f46e5 100%);
+  background: linear-gradient(180deg, var(--ffd-navy-light) 0%, var(--ffd-navy) 100%);
 }
 
 /* FIX 1 — remove blue BG from icons */
@@ -560,7 +560,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: rgba(109, 94, 245, 0.12) !important;
+  background: rgba(15, 42, 61, 0.12) !important;
 }
 
 .cf-section-icon img {
@@ -605,7 +605,7 @@
 .form-group-title {
   font-size: 13px;
   font-weight: 600;
-  color: #2A00FF;
+  color: var(--ffd-navy);
   margin: 0 0 16px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -618,7 +618,7 @@
   content: "";
   width: 3px;
   height: 16px;
-  background: #2A00FF;
+  background: var(--ffd-navy);
   border-radius: 2px;
 }
 
@@ -703,10 +703,10 @@
 }
 
 .appointment-ai-toggle.active {
-  border-color: #4f46e5;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border-color: var(--ffd-teal);
+  background: var(--ffd-teal);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 4px 12px rgba(78, 201, 161, 0.35);
 }
 
 .appointment-ai-toggle-dot {
@@ -792,26 +792,26 @@
   border: 1px solid var(--border-primary);
   border-radius: 8px;
   background: var(--surface-primary);
-  color: #3e5cb6;
+  color: var(--ffd-navy);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .appointment-email-file-action-btn--download {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  color: var(--color-info);
+  background: var(--color-info-bg);
+  border-color: rgba(25, 118, 210, 0.35);
 }
 
 .appointment-email-file-action-btn:not(:disabled):hover {
-  border-color: #3e5cb6;
-  background: #eef2ff;
-  box-shadow: 0 2px 6px rgba(62, 94, 189, 0.12);
+  border-color: var(--ffd-navy);
+  background: rgba(15, 42, 61, 0.06);
+  box-shadow: 0 2px 6px rgba(15, 42, 61, 0.12);
 }
 
 .appointment-email-file-action-btn--download:not(:disabled):hover {
-  background: #e0f2fe;
-  border-color: #7dd3fc;
+  background: rgba(25, 118, 210, 0.16);
+  border-color: rgba(25, 118, 210, 0.5);
 }
 
 .appointment-email-file-action-btn:disabled {
@@ -844,10 +844,10 @@
 }
 
 .appointment-extraction-mode-btn.active {
-  border-color: #4f46e5;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border-color: var(--ffd-teal);
+  background: var(--ffd-teal);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 4px 12px rgba(78, 201, 161, 0.35);
 }
 
 .cf-input {
@@ -869,8 +869,8 @@
 
 .cf-input:focus-within {
   background: var(--surface-primary);
-  border-color: #6d5ef5;
-  box-shadow: 0 0 0 3px rgba(109, 94, 245, 0.16);
+  border-color: var(--ffd-coral);
+  box-shadow: 0 0 0 3px rgba(216, 90, 48, 0.16);
 }
 
 .cf-input input,
@@ -1016,8 +1016,8 @@
 
 .cf-owner-select:focus {
   outline: none;
-  border-color: #3e5ebd;
-  box-shadow: 0 0 0 3px rgba(42, 0, 255, 0.1);
+  border-color: var(--ffd-coral);
+  box-shadow: 0 0 0 3px rgba(216, 90, 48, 0.1);
 }
 
 /* Vessel Name row */
@@ -1033,7 +1033,7 @@
   border-radius: 8px;
   border: 1.5px solid var(--border-primary);
   background: var(--surface-primary);
-  color: #3e5cb6;
+  color: var(--ffd-navy);
   font-size: 20px;
   font-weight: 600;
   display: flex;
@@ -1047,7 +1047,7 @@
 }
 
 .cf-add-vessel-btn:hover {
-  border-color: #3e5cb6;
+  border-color: var(--ffd-navy);
   background: var(--surface-primary);
   transform: scale(1.05);
 }
@@ -1078,8 +1078,8 @@
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  border: 1.5px solid #2e7d32;
-  background: #2e7d32;
+  border: 1.5px solid var(--color-success);
+  background: var(--color-success);
   color: #ffffff;
   font-size: 16px;
   font-weight: 600;
@@ -1094,8 +1094,8 @@
 }
 
 .cf-save-vessel-btn:hover:not(:disabled) {
-  background: #1b5e20;
-  border-color: #1b5e20;
+  background: #239A3E;
+  border-color: #239A3E;
   transform: scale(1.05);
 }
 
@@ -1201,7 +1201,7 @@
   right: 0;
   top: 0;
   height: 3px;
-  background: linear-gradient(90deg, #6d5ef5 0%, #4f46e5 50%, #22c55e 100%);
+  background: linear-gradient(90deg, var(--ffd-navy) 0%, var(--ffd-teal) 100%);
   z-index: 3;
   pointer-events: none;
 }
@@ -1433,7 +1433,7 @@
   right: 0;
   top: 0;
   height: 3px;
-  background: linear-gradient(90deg, #6d5ef5 0%, #4f46e5 50%, #22c55e 100%);
+  background: linear-gradient(90deg, var(--ffd-navy) 0%, var(--ffd-teal) 100%);
   z-index: 3;
   pointer-events: none;
 }
@@ -1519,7 +1519,7 @@
   font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
-  background: linear-gradient(90deg, #4f46e5, #6d5ef5);
+  background: linear-gradient(90deg, var(--ffd-navy), var(--ffd-navy-light));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1537,7 +1537,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #22c55e;
+  background: var(--ffd-teal);
 }
 
 .email-preview-topbar-action {
@@ -1626,15 +1626,15 @@
 }
 
 .email-preview-inline-input:focus {
-  border-color: #6d5ef5;
+  border-color: var(--ffd-coral);
   background: var(--surface-primary);
-  box-shadow: 0 0 0 3px rgba(109, 94, 245, 0.14);
+  box-shadow: 0 0 0 3px rgba(216, 90, 48, 0.14);
 }
 
 .email-preview-bcc-link {
   border: none;
   background: transparent;
-  color: #2563eb;
+  color: var(--color-info);
   font-size: 12px;
   cursor: pointer;
   margin-left: 10px;
@@ -1811,7 +1811,7 @@
 
 /* Button styling */
 .cf-link-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--ffd-navy);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -1820,12 +1820,13 @@
   color: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 2px 4px rgba(15, 42, 61, 0.25);
 }
 
 .cf-link-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  background: var(--ffd-hover-dark);
+  box-shadow: 0 4px 8px rgba(15, 42, 61, 0.3);
 }
 
 .cf-link-btn:active {
@@ -1885,7 +1886,7 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  border: 2px solid #8bc48a;
+  border: 2px solid rgba(40, 167, 69, 0.4);
   /* light green */
   display: flex;
   align-items: center;
@@ -1902,17 +1903,17 @@
 }
 
 .cardform-steps-wrapper .step-item.completed .step-circle {
-  background: #2e7d32;
+  background: var(--color-success);
   /* dark green */
   color: white;
-  border-color: #2e7d32;
+  border-color: var(--color-success);
 }
 
 .cardform-steps-wrapper .step-item.active .step-circle {
-  background: #2e7d32;
+  background: var(--color-success);
   /* dark green */
   color: white;
-  border-color: #2e7d32;
+  border-color: var(--color-success);
 }
 
 .cardform-steps-wrapper .step-line {
@@ -1920,7 +1921,7 @@
   left: calc(50% + 15px);
   width: calc(100% - 15px);
   height: 3px;
-  background: #8bc48a;
+  background: rgba(40, 167, 69, 0.4);
   /* light green */
   z-index: 0;
   top: 50%;
@@ -1953,7 +1954,7 @@
 
 /* Dark green line for completed segments (when both current and next step are completed) */
 .cardform-steps-wrapper .step-line.completed-line {
-  background: #2e7d32;
+  background: var(--color-success);
   /* dark green */
 }
 
@@ -2334,9 +2335,9 @@
   height: 44px;
   background: var(--surface-primary);
   border-radius: 10px;
-  color: #3e5cb6;
+  color: var(--ffd-navy);
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(62, 94, 189, 0.12);
+  box-shadow: 0 1px 3px rgba(15, 42, 61, 0.12);
 }
 
 .mwp-file-preview-info {
@@ -2465,12 +2466,12 @@
 }
 
 .driver-crew-status-btn.status-done {
-  background: #2e7d32;
+  background: var(--color-success);
   color: #fff !important;
 }
 
 .driver-crew-status-btn.status-pending {
-  background: #c62828;
+  background: var(--color-danger);
   color: #fff !important;
 }
 
@@ -2486,13 +2487,14 @@
 }
 
 .driver-crew-status-badge.status-green-border {
-  border: 2px solid #2e7d32;
-  color: #2e7d32;
+  border: 2px solid var(--color-success);
+  color: var(--color-success);
 }
 
 .driver-crew-status-badge.status-orange-border {
-  border: 2px solid #ed6c02;
-  color: #ed6c02;
+  /* matches $status-pending-text — no CSS var defined for the pending/orange tier */
+  border: 2px solid #F57C00;
+  color: #F57C00;
 }
 
 /* GRO card view: 4 sections + documents + inward clearance */
@@ -2699,14 +2701,14 @@
   border: none;
   border-radius: 999px;
   cursor: pointer;
-  background: linear-gradient(135deg, #4f6fdc 0%, #5b7ae8 45%, #64748b 100%);
-  box-shadow: 0 4px 14px rgba(79, 111, 220, 0.35);
+  background: var(--ffd-coral);
+  box-shadow: 0 4px 14px rgba(216, 90, 48, 0.35);
   transition: filter 0.15s ease, box-shadow 0.15s ease;
 }
 
 .gro-inward-popover-btn-submit:hover {
   filter: brightness(1.05);
-  box-shadow: 0 6px 18px rgba(79, 111, 220, 0.4);
+  box-shadow: 0 6px 18px rgba(216, 90, 48, 0.4);
 }
 
 .gro-section-title {
@@ -2721,7 +2723,7 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
-  background: #e2e6ff;
+  background: var(--ffd-coral-soft);
   border: 1px solid var(--border-primary);
   border-radius: 8px;
   cursor: pointer;
@@ -2768,13 +2770,13 @@
 .gro-document-row.gro-document-row-rejected {
   background: var(--surface-primary) !important;
   border-color: var(--border-primary) !important;
-  box-shadow: inset 4px 0 0 #ef4444;
+  box-shadow: inset 4px 0 0 var(--color-danger);
 }
 
 .gro-document-row.gro-document-row-approved {
   background: var(--surface-primary) !important;
   border-color: var(--border-primary) !important;
-  box-shadow: inset 4px 0 0 #22c55e;
+  box-shadow: inset 4px 0 0 var(--color-success);
 }
 
 .gro-document-preview {
@@ -2876,8 +2878,8 @@
 
 .gro-inline-remark-input:focus {
   outline: none;
-  border-color: #3e5cb6;
-  box-shadow: 0 0 0 3px rgba(62, 92, 182, 0.18);
+  border-color: var(--ffd-coral);
+  box-shadow: 0 0 0 3px rgba(216, 90, 48, 0.18);
 }
 
 .gro-inline-remark-actions {
@@ -2911,9 +2913,9 @@
 
 .gro-inline-remark-btn-submit {
   color: #ffffff;
-  background: linear-gradient(135deg, #4f6fdc 0%, #64748b 100%);
+  background: var(--ffd-coral);
   border-color: transparent;
-  box-shadow: 0 2px 8px rgba(79, 111, 220, 0.25);
+  box-shadow: 0 2px 8px rgba(216, 90, 48, 0.25);
 }
 
 .gro-inline-remark-btn-submit:hover {
@@ -2948,44 +2950,44 @@
 }
 
 .gro-icon-btn.cross {
-  color: #c62828;
-  background: #ffebee;
+  color: var(--color-danger);
+  background: rgba(220, 53, 69, 0.1);
   border-color: var(--border-primary);
 }
 
 .gro-icon-btn.cross:hover,
 .gro-icon-btn.cross.active {
-  background: #ffcdd2;
-  border-color: #ef9a9a;
-  color: #b71c1c;
+  background: rgba(220, 53, 69, 0.2);
+  border-color: rgba(220, 53, 69, 0.5);
+  color: #C22F3D;
 }
 
 .gro-icon-btn.tick {
-  color: #2e7d32;
+  color: var(--color-success);
   background: var(--bg-secondary);
   border-color: var(--border-primary);
 }
 
 .gro-icon-btn.tick:hover {
-  background: #dcedc8;
-  border-color: #aed581;
+  background: rgba(40, 167, 69, 0.15);
+  border-color: rgba(40, 167, 69, 0.45);
 }
 
 .gro-icon-btn.tick.selected {
-  background: #c8e6c9;
-  border-color: #66bb6a;
-  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2), 0 2px 6px rgba(34, 197, 94, 0.2);
+  background: rgba(40, 167, 69, 0.2);
+  border-color: rgba(40, 167, 69, 0.55);
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2), 0 2px 6px rgba(40, 167, 69, 0.2);
 }
 
 .gro-icon-btn.download {
-  color: #1565c0;
-  background: #e3f2fd;
-  border-color: #bbdefb;
+  color: var(--color-info);
+  background: var(--color-info-bg);
+  border-color: rgba(25, 118, 210, 0.35);
 }
 
 .gro-icon-btn.download:hover {
-  background: #bbdefb;
-  border-color: #64b5f6;
+  background: rgba(25, 118, 210, 0.2);
+  border-color: rgba(25, 118, 210, 0.5);
   color: #0d47a1;
 }
 
@@ -3012,8 +3014,8 @@
 
 .gro-require-remark:focus {
   outline: none;
-  border-color: #2A00FF;
-  box-shadow: 0 0 0 2px rgba(42, 0, 255, 0.15);
+  border-color: var(--ffd-coral);
+  box-shadow: 0 0 0 2px rgba(216, 90, 48, 0.15);
 }
 
 .gro-require-actions {
@@ -3043,7 +3045,7 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  background: #e2e6ff;
+  background: var(--ffd-coral-soft);
   border: none;
   border-radius: 8px;
   cursor: pointer;

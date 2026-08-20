@@ -84,7 +84,7 @@
   }
 
   &:focus {
-    outline: 2px solid rgba(0, 54, 140, 0.3);
+    outline: 2px solid rgba($ffd-navy, 0.3);
     outline-offset: 2px;
   }
 }
@@ -142,22 +142,22 @@
   }
   
   &:focus {
-    border-color: #00368c;
-    box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.08);
+    border-color: $ffd-navy;
+    box-shadow: 0 0 0 2px rgba($ffd-navy, 0.08);
   }
 }
 
 .br-picker-cancel-btn {
   background: transparent;
   border: none;
-  color: #0056b3;
+  color: $status-info-text;
   font: normal normal 500 13px/1.5 $font-primary;
   cursor: pointer;
   padding: 0;
-  
+
   &:hover {
     text-decoration: underline;
-    color: #00368c;
+    color: $ffd-navy;
   }
 }
 
@@ -211,8 +211,8 @@
   width: 100%;
   
   &:hover {
-    border-color: #00368c;
-    box-shadow: 0 4px 12px rgba(0, 54, 140, 0.08);
+    border-color: $ffd-navy;
+    box-shadow: 0 4px 12px rgba($ffd-navy, 0.08);
     transform: translateY(-1px);
   }
   
@@ -246,12 +246,12 @@
   background: transparent;
   padding: 0;
   font: normal normal 500 14px/1.5 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
   cursor: pointer;
   transition: color 0.2s ease;
 
   &:hover {
-    color: #002a6e;
+    color: $ffd-hover-dark;
     text-decoration: underline;
   }
 }
@@ -290,8 +290,8 @@
   }
 
   &:focus {
-    border-color: #00368c;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    border-color: $ffd-navy;
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
   }
 
   &::placeholder {
@@ -342,8 +342,8 @@
   color: inherit;
 
   &:hover {
-    border-color: #00368c;
-    box-shadow: 0 4px 14px rgba(0, 54, 140, 0.12);
+    border-color: $ffd-navy;
+    box-shadow: 0 4px 14px rgba($ffd-navy, 0.12);
     transform: translateY(-2px);
   }
 
@@ -352,7 +352,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid rgba(0, 54, 140, 0.4);
+    outline: 2px solid rgba($ffd-navy, 0.4);
     outline-offset: 2px;
   }
 
@@ -428,7 +428,7 @@
 .br-add-new-rule-btn {
   background: none;
   border: none;
-  color: #2563eb;
+  color: $status-info-text;
   font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
@@ -457,8 +457,8 @@
     flex: 1;
 
     .br-table-filter-btn {
-      background-color: #2563eb;
-      border-color: #2563eb;
+      background-color: $status-info-text;
+      border-color: $status-info-text;
       font-size: 0.85rem;
       padding: 6px 14px;
       border-radius: 6px;
@@ -505,7 +505,7 @@
     border-bottom: 1px solid var(--border-primary);
 
     &:last-child { border-bottom: none; }
-    &:hover { background: #f9fafb; }
+    &:hover { background: var(--hover-bg); }
 
     td {
       padding: 10px 14px;
@@ -535,13 +535,13 @@
     background-position: left center;
 
     &:checked {
-      background-color: #00368c !important;
-      border-color: #00368c !important;
+      background-color: $ffd-teal !important;
+      border-color: $ffd-teal !important;
       background-position: right center;
     }
 
     &:focus {
-      box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.15) !important;
+      box-shadow: 0 0 0 2px rgba(78, 201, 161, 0.15) !important;
     }
   }
 }
@@ -552,7 +552,7 @@
 }
 
 .br-table-rule-name {
-  color: #1d4ed8;
+  color: $status-info-text;
   text-decoration: underline;
   cursor: pointer;
   font-weight: 500;
@@ -564,7 +564,7 @@
   border: none;
   margin: 0;
   padding: 0;
-  color: #1d4ed8;
+  color: $status-info-text;
   text-decoration: underline;
   cursor: pointer;
   font-weight: 500;
@@ -604,11 +604,11 @@
 }
 
 .br-table-deleted-user {
-  color: #ef4444;
+  color: $status-danger;
 }
 
 .br-table-board-link {
-  color: #1d4ed8;
+  color: $status-info-text;
   text-decoration: underline;
   cursor: pointer;
 }
@@ -619,7 +619,7 @@
   border: none;
   margin: 0;
   padding: 0;
-  color: #1d4ed8;
+  color: $status-info-text;
   text-decoration: underline;
   cursor: pointer;
   font-size: inherit;
@@ -636,7 +636,7 @@
   cursor: pointer;
   line-height: 1;
 
-  &:hover { color: #111827; }
+  &:hover { color: $ffd-navy; }
 }
 
 .br-table-state {
@@ -677,8 +677,8 @@
       padding: 2px 6px;
       cursor: pointer;
 
-      &:hover { color: #2563eb; }
-      &:disabled { color: #d1d5db; cursor: default; }
+      &:hover { color: $status-info-text; }
+      &:disabled { color: $ffd-border; cursor: default; }
     }
   }
 }
@@ -790,7 +790,7 @@ body .modal.business-rule-form-modal.show {
   }
 
   &:focus-visible {
-    outline: 2px solid rgba(0, 54, 140, 0.35);
+    outline: 2px solid rgba($ffd-navy, 0.35);
     outline-offset: 2px;
   }
 }
@@ -838,8 +838,8 @@ body .modal.business-rule-form-modal.show {
   border-bottom: 2px solid transparent;
 
   &.active {
-    color: #1d4ed8;
-    border-bottom-color: #1d4ed8;
+    color: $status-info-text;
+    border-bottom-color: $status-info-text;
   }
 }
 
@@ -932,7 +932,7 @@ body .modal.business-rule-form-modal.show {
   border: 1px solid var(--border-primary);
   border-radius: 20px;
   background: var(--surface-primary);
-  color: #1d4ed8;
+  color: $status-info-text;
   font-size: 0.875rem;
   font-weight: 500;
   padding: 8px 16px;
@@ -1036,7 +1036,7 @@ body .modal.business-rule-form-modal.show {
   border: 1px solid var(--border-primary);
   border-radius: 20px;
   background: var(--surface-primary);
-  color: #1d4ed8;
+  color: $status-info-text;
   font-size: 0.875rem;
   font-weight: 500;
   padding: 8px 16px;
@@ -1160,7 +1160,7 @@ body .modal.business-rule-form-modal.show {
   width: fit-content;
   text-decoration: underline;
   text-decoration-style: dashed;
-  text-decoration-color: #9ca3af;
+  text-decoration-color: var(--text-muted);
   text-underline-offset: 3px;
 }
 
@@ -1184,8 +1184,8 @@ body .modal.business-rule-form-modal.show {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
-    border-color: #00368c;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    border-color: $ffd-navy;
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
   }
 
   &::placeholder {
@@ -1215,7 +1215,7 @@ body .modal.business-rule-form-modal.show {
   gap: 6px;
   padding: 4px 8px;
   border-radius: 999px;
-  background: #dbeafe;
+  background: $ffd-coral-soft;
   color: $txtColor;
   font: normal normal 500 13px/1.4 $font-primary;
 
@@ -1254,7 +1254,7 @@ body .modal.business-rule-form-modal.show {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #00368c, #2563eb);
+  background: linear-gradient(135deg, $ffd-navy, $ffd-navy-light);
   color: #ffffff;
   font: normal normal 600 11px/28px $font-primary;
   text-align: center;
@@ -1302,7 +1302,7 @@ body .modal.business-rule-form-modal.show {
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
   }
 }
 
@@ -1390,7 +1390,7 @@ body .modal.business-rule-form-modal.show {
   min-width: 0;
 
   &--selected {
-    color: #00368c;
+    color: $ffd-navy;
     font-weight: 600;
   }
 }
@@ -1422,7 +1422,7 @@ body .modal.business-rule-form-modal.show {
   position: fixed;
   padding: 10px 12px;
   border-radius: 6px;
-  background: #111827;
+  background: $ffd-navy;
   color: #ffffff;
   font: normal normal 400 12px/1.5 $font-primary;
   white-space: nowrap;
@@ -1517,7 +1517,7 @@ body .modal.business-rule-form-modal.show {
   }
 
   input:checked + .business-rule-form-toggle-track {
-    background: #00368c;
+    background: $ffd-navy;
 
     &::after {
       transform: translateX(18px);
@@ -1525,7 +1525,7 @@ body .modal.business-rule-form-modal.show {
   }
 
   input:focus-visible + .business-rule-form-toggle-track {
-    outline: 2px solid rgba(0, 54, 140, 0.35);
+    outline: 2px solid rgba($ffd-navy, 0.35);
     outline-offset: 2px;
   }
 }
@@ -1534,7 +1534,7 @@ body .modal.business-rule-form-modal.show {
   width: 42px;
   height: 24px;
   border-radius: 999px;
-  background: #d1d5db;
+  background: $ffd-border;
   position: relative;
   flex-shrink: 0;
   transition: background 0.2s ease;
@@ -1575,7 +1575,7 @@ body .modal.business-rule-form-modal.show {
   position: relative;
   display: inline-block;
   font: normal normal 700 12px/1.2 $font-primary;
-  color: #e8833a;
+  color: $ffd-coral;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin: 0 0 16px;
@@ -1706,7 +1706,7 @@ body .modal.business-rule-form-modal.show {
   background: transparent;
   gap: 4px;
   font: normal normal 600 14px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
 
   &:hover {
     background: transparent;
@@ -1736,7 +1736,7 @@ body .modal.business-rule-form-modal.show {
   transition: border-color 0.2s ease;
 
   &:hover {
-    border-color: #00368c;
+    border-color: $ffd-navy;
   }
 }
 
@@ -1790,12 +1790,12 @@ body .modal.business-rule-form-modal.show {
   border-radius: 999px;
   background: var(--surface-primary);
   font: normal normal 500 14px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
   cursor: pointer;
   transition: border-color 0.2s ease;
 
   &:hover {
-    border-color: #00368c;
+    border-color: $ffd-navy;
   }
 }
 
@@ -1832,7 +1832,7 @@ body .modal.business-rule-form-modal.show {
 // but this one isn't inside that operator-group wrapper, so it needs its own rule.
 .br-advanced-schedule-label {
   font: normal normal 500 14px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
 }
 
 .business-rule-form-when-deadline-input-row {
@@ -1852,7 +1852,7 @@ body .modal.business-rule-form-modal.show {
 
   &:focus {
     outline: none;
-    border-color: #00368c;
+    border-color: $ffd-navy;
   }
 }
 
@@ -1887,7 +1887,7 @@ body .modal.business-rule-form-modal.show {
 // part of the same blue link as the operator, e.g. "Color is", not plain gray text.
 .business-rule-form-condition-operator-group .business-rule-form-condition-label {
   font: normal normal 500 14px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
 }
 
 // The label doubles as a button that reopens the Card property match modal to swap
@@ -1919,7 +1919,7 @@ body .modal.business-rule-form-modal.show {
   transition: border-color 0.2s ease, background 0.2s ease;
 
   &:hover {
-    border-color: #00368c;
+    border-color: $ffd-navy;
     background: var(--surface-primary);
   }
 }
@@ -1933,12 +1933,12 @@ body .modal.business-rule-form-modal.show {
   background: transparent;
   padding: 0;
   font: normal normal 500 13px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
   cursor: pointer;
   transition: color 0.2s ease;
 
   &:hover {
-    color: #002a6e;
+    color: $ffd-hover-dark;
     text-decoration: underline;
   }
 }
@@ -1984,8 +1984,8 @@ body .modal.business-rule-form-modal.show {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
-    border-color: #2f80ed;
-    box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.12);
+    border-color: $status-info-text;
+    box-shadow: 0 0 0 3px rgba($status-info-text, 0.12);
   }
 }
 
@@ -2009,12 +2009,12 @@ body .modal.business-rule-form-modal.show {
   padding: 6px 20px;
   font: normal normal 600 13px/1.4 $font-primary;
   color: #ffffff;
-  background: #00368c;
+  background: $ffd-coral;
   cursor: pointer;
   transition: background 0.2s ease;
 
   &:hover {
-    background: #002a6e;
+    background: darken($ffd-coral, 8%);
   }
 }
 
@@ -2041,8 +2041,8 @@ body .modal.business-rule-form-modal.show {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
-    border-color: #2f80ed;
-    box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.12);
+    border-color: $status-info-text;
+    box-shadow: 0 0 0 3px rgba($status-info-text, 0.12);
   }
 }
 
@@ -2086,7 +2086,7 @@ body .modal.business-rule-form-modal.show {
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
   }
 }
 
@@ -2106,7 +2106,7 @@ body .modal.business-rule-form-modal.show {
 .br-nonworking-section-title {
   padding: 8px 10px 4px;
   font: normal normal 700 12px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
 }
 
 .br-nonworking-toggle-row {
@@ -2141,7 +2141,7 @@ body .modal.business-rule-form-modal.show {
     height: 0;
 
     &:checked + .br-toggle-slider {
-      background-color: #00368c;
+      background-color: $ffd-navy;
 
       &:before {
         transform: translateX(16px);
@@ -2156,7 +2156,7 @@ body .modal.business-rule-form-modal.show {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #d1d5db;
+  background-color: $ffd-border;
   transition: 0.3s;
   border-radius: 20px;
 
@@ -2216,7 +2216,7 @@ body .modal.business-rule-form-modal.show {
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
   }
 }
 
@@ -2289,12 +2289,12 @@ body .modal.business-rule-form-modal.show {
   background: transparent;
   padding: 0;
   font: normal normal 500 13px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
   text-align: left;
   cursor: pointer;
 
   &:hover {
-    color: #002a6e;
+    color: $ffd-hover-dark;
     text-decoration: underline;
   }
 }
@@ -2368,13 +2368,13 @@ body .modal.business-rule-form-modal.show {
   cursor: pointer;
 
   &:hover {
-    color: #00368c;
+    color: $ffd-navy;
   }
 }
 
 .br-create-action-link {
   font: normal normal 500 13px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
 }
 
 .br-create-action-link--btn {
@@ -2385,7 +2385,7 @@ body .modal.business-rule-form-modal.show {
   cursor: pointer;
 
   &:hover {
-    color: #002a6e;
+    color: $ffd-hover-dark;
     text-decoration: underline;
   }
 }
@@ -2403,9 +2403,9 @@ body .modal.business-rule-form-modal.show {
   gap: 4px;
   padding: 2px 10px;
   border-radius: 999px;
-  background: #eef2ff;
+  background: $status-info-bg;
   font: normal normal 500 12px/1.4 $font-primary;
-  color: #3730a3;
+  color: $status-info-text;
   text-decoration: none;
 
   svg {
@@ -2514,7 +2514,7 @@ body .modal.business-rule-form-modal.show {
 .br-create-template-section-label {
   padding: 6px 12px 2px;
   font: normal normal 600 13px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
 }
 
 .br-link-card {
@@ -2542,11 +2542,11 @@ body .modal.business-rule-form-modal.show {
   background: transparent;
   padding: 0;
   font: normal normal 600 14px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
   cursor: pointer;
 
   &:hover {
-    color: #002a6e;
+    color: $ffd-hover-dark;
     text-decoration: underline;
   }
 }
@@ -2556,7 +2556,7 @@ body .modal.business-rule-form-modal.show {
 // styled the same rather than a button with a pointer cursor it doesn't back up.
 .br-sticker-action-label {
   font: normal normal 600 14px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
 }
 
 .br-link-operator-wrap {
@@ -2575,7 +2575,7 @@ body .modal.business-rule-form-modal.show {
   cursor: pointer;
 
   &:hover {
-    color: #00368c;
+    color: $ffd-navy;
     text-decoration: underline;
   }
 }
@@ -2630,8 +2630,8 @@ body .modal.business-rule-form-modal.show {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
-    border-color: #00368c;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    border-color: $ffd-navy;
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
   }
 
   &::placeholder {
@@ -2661,7 +2661,7 @@ body .modal.business-rule-form-modal.show {
   input[type='checkbox'] {
     width: 16px;
     height: 16px;
-    accent-color: #00368c;
+    accent-color: $ffd-navy;
     cursor: pointer;
   }
 }
@@ -2823,8 +2823,8 @@ body .modal.card-property-match-modal.show {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus {
-    border-color: #00368c;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    border-color: $ffd-navy;
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
   }
 
   &::placeholder {
@@ -2855,15 +2855,15 @@ body .modal.card-property-match-modal.show {
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
 
   &:hover {
-    border-color: #9fb2c2;
+    border-color: rgba($ffd-navy, 0.35);
     color: var(--text-primary);
   }
 
   &.br-property-pill--selected {
     background: var(--surface-primary);
-    border-color: #00368c;
+    border-color: $ffd-navy;
     color: var(--text-primary);
-    box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.08);
+    box-shadow: 0 0 0 2px rgba($ffd-navy, 0.08);
   }
 
   &.br-property-pill--disabled,
@@ -2938,7 +2938,7 @@ body .modal.card-property-match-modal.show {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #1f2937;
+  background: $ffd-navy;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -2991,8 +2991,8 @@ body .modal.card-property-match-modal.show {
   flex-shrink: 0;
 
   &:hover {
-    border-color: #ef4444;
-    color: #ef4444;
+    border-color: $status-danger;
+    color: $status-danger;
   }
 }
 
@@ -3028,8 +3028,8 @@ body .modal.card-property-match-modal.show {
 
   &:focus {
     outline: none;
-    border-color: #00368c;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    border-color: $ffd-navy;
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
   }
 
   .business-rule-form-select-icon {
@@ -3060,7 +3060,7 @@ body .modal.card-property-match-modal.show {
   gap: 6px;
   padding: 3px 12px 3px 3px;
   border-radius: 999px;
-  background: #e8f0fe;
+  background: rgba($ffd-navy, 0.1);
   font: normal normal 500 13px/1.4 $font-primary;
   color: $txtColor;
 }
@@ -3072,7 +3072,7 @@ body .modal.card-property-match-modal.show {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #00368c, #2563eb);
+  background: linear-gradient(135deg, $ffd-navy, $ffd-navy-light);
   color: #ffffff;
   font: normal normal 600 10px/1 $font-primary;
   flex-shrink: 0;
@@ -3102,7 +3102,7 @@ body .modal.card-property-match-modal.show {
   transition: border-color 0.2s ease;
 
   &:focus-within {
-    border-color: #00368c;
+    border-color: $ffd-navy;
   }
 }
 
@@ -3120,9 +3120,9 @@ body .modal.card-property-match-modal.show {
   gap: 6px;
   padding: 4px 8px 4px 12px;
   border-radius: 999px;
-  background: #e8f0fe;
+  background: rgba($ffd-navy, 0.1);
   font: normal normal 500 13px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
   flex-shrink: 0;
 }
 
@@ -3135,13 +3135,13 @@ body .modal.card-property-match-modal.show {
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: #00368c;
+  color: $ffd-navy;
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
 
   &:hover {
-    background: rgba(0, 54, 140, 0.1);
+    background: rgba($ffd-navy, 0.1);
   }
 }
 
@@ -3220,12 +3220,12 @@ body .modal.card-property-match-modal.show {
 }
 
 .share-with-cancel-btn {
-  border: 1px solid #00368c;
+  border: 1px solid $ffd-navy;
   border-radius: 999px;
   padding: 10px 32px;
   min-width: 100px;
   font: normal normal 600 14px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
   background: var(--surface-primary);
   cursor: pointer;
   transition: background 0.2s ease;
@@ -3251,12 +3251,12 @@ body .modal.card-property-match-modal.show {
   min-width: 100px;
   font: normal normal 600 14px/1.4 $font-primary;
   color: #ffffff;
-  background: #00368c;
+  background: $ffd-coral;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
 
   &:hover:not(:disabled) {
-    background: #002a6e;
+    background: darken($ffd-coral, 8%);
   }
 
   &:active:not(:disabled) {
@@ -3312,7 +3312,7 @@ body .modal.card-property-match-modal.show {
 
   &.br-cron-seg-btn--active {
     background: var(--surface-primary);
-    color: #00368c;
+    color: $ffd-navy;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.14);
   }
 }
@@ -3341,7 +3341,7 @@ body .modal.card-property-match-modal.show {
 .br-cron-radio-input {
   width: 16px;
   height: 16px;
-  accent-color: #00368c;
+  accent-color: $ffd-navy;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -3357,7 +3357,7 @@ body .modal.card-property-match-modal.show {
 
   &:focus {
     outline: none;
-    border-color: #00368c;
+    border-color: $ffd-navy;
   }
 }
 
@@ -3372,7 +3372,7 @@ body .modal.card-property-match-modal.show {
 
   &:focus {
     outline: none;
-    border-color: #00368c;
+    border-color: $ffd-navy;
   }
 }
 
@@ -3397,13 +3397,13 @@ body .modal.card-property-match-modal.show {
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
   &:hover {
-    border-color: #00368c;
+    border-color: $ffd-navy;
     color: var(--text-primary);
   }
 
   &.br-cron-weekday-btn--active {
-    background: #00368c;
-    border-color: #00368c;
+    background: $ffd-navy;
+    border-color: $ffd-navy;
     color: #ffffff;
   }
 }
@@ -3450,7 +3450,7 @@ body .modal.card-property-match-modal.show {
 
   &:focus {
     outline: none;
-    border-color: #00368c;
+    border-color: $ffd-navy;
   }
 }
 
@@ -3512,7 +3512,7 @@ body .modal.card-property-match-modal.show {
   background: transparent;
   padding: 0;
   font: normal normal 600 14px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
   cursor: pointer;
 
   &:hover {
@@ -3537,8 +3537,8 @@ body .modal.card-property-match-modal.show {
   outline: none;
 
   &:focus {
-    border-color: #00368c;
-    box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.08);
+    border-color: $ffd-navy;
+    box-shadow: 0 0 0 2px rgba($ffd-navy, 0.08);
   }
 }
 
@@ -3554,7 +3554,7 @@ body .modal.card-property-match-modal.show {
   background: transparent;
   padding: 2px 0;
   font: normal normal 500 14px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
   cursor: pointer;
 
   &:hover {
@@ -3598,7 +3598,7 @@ body .modal.card-property-match-modal.show {
   align-items: center;
   flex-shrink: 0;
 
-  &:hover { color: #ef4444; }
+  &:hover { color: $status-danger; }
 }
 
 .business-rule-form-save-btn {
@@ -3608,17 +3608,27 @@ body .modal.card-property-match-modal.show {
   min-width: 120px;
   font: normal normal 600 14px/1.4 $font-primary;
   color: #ffffff;
-  background: #00368c;
+  background: $ffd-coral;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.15s ease;
   flex-shrink: 0;
 
   &:hover {
-    background: #002a6e;
+    background: darken($ffd-coral, 8%);
   }
 
   &:active {
     transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: $shadow-focus;
   }
 
   @media ($sm-767) {
@@ -3805,8 +3815,8 @@ $br-card-preview-accent: #1F9D6E;
   outline: none;
 
   &:focus {
-    border-color: #00368c;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    border-color: $ffd-navy;
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
   }
 
   &::placeholder {
@@ -3866,7 +3876,7 @@ $br-card-preview-accent: #1F9D6E;
   height: 22px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: #111827;
+  background: $ffd-navy;
   color: #ffffff;
 }
 
@@ -3900,7 +3910,7 @@ $br-card-preview-accent: #1F9D6E;
   transition: background 0.15s ease, color 0.15s ease;
 
   &:hover {
-    background: rgba(0, 54, 140, 0.08);
+    background: rgba($ffd-navy, 0.08);
     color: $colorPrimary;
   }
 }
@@ -3992,7 +4002,7 @@ $br-card-preview-accent: #1F9D6E;
   margin-top: -20px;
 
   &:hover {
-    border-color: #9fb2c2;
+    border-color: rgba($ffd-navy, 0.35);
   }
 }
 
@@ -4047,7 +4057,7 @@ $br-card-preview-accent: #1F9D6E;
   flex-shrink: 0;
 
   &:hover {
-    color: #ef4444;
+    color: $status-danger;
   }
 }
 
@@ -4069,7 +4079,7 @@ $br-card-preview-accent: #1F9D6E;
   height: 22px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: #cbd5e1;
+  background: $status-neutral;
   color: #ffffff;
   font: normal normal 600 11px/1 $font-primary;
 }
@@ -4185,7 +4195,7 @@ $br-card-preview-accent: #1F9D6E;
 // Done: neutral gray fill + checkmark, not the stage's own color.
 .br-card-preview-step--done .br-card-preview-step-dot {
   border-color: var(--border-primary);
-  background: #cbd5e1;
+  background: $status-neutral;
 }
 
 .br-card-preview-save-btn {
@@ -4220,7 +4230,7 @@ $br-card-preview-accent: #1F9D6E;
   transition: border-color 0.2s ease;
 
   &:hover {
-    border-color: #00368c;
+    border-color: $ffd-navy;
   }
 }
 
@@ -4292,7 +4302,7 @@ $br-card-preview-accent: #1F9D6E;
   color: $txtColor;
 
   svg {
-    color: #00368c;
+    color: $ffd-navy;
     flex-shrink: 0;
     width: 20px;
     height: 20px;
@@ -4322,12 +4332,12 @@ $br-card-preview-accent: #1F9D6E;
   transition: background 0.15s ease, border-color 0.15s ease;
 
   &:hover {
-    background: #e0e7ff;
+    background: $status-info-bg;
   }
 
   &--selected {
-    border-color: #00368c;
-    background: #e0e7ff;
+    border-color: $ffd-navy;
+    background: $status-info-bg;
   }
 }
 
@@ -4342,7 +4352,7 @@ $br-card-preview-accent: #1F9D6E;
   border-radius: 999px;
   background: var(--surface-primary);
   font: normal normal 600 13px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
 }
 
 .br-board-condition-wrap {
@@ -4441,7 +4451,7 @@ $br-card-preview-accent: #1F9D6E;
   justify-content: center;
   padding: 8px 12px;
   border-radius: 6px;
-  background: #6b7280;
+  background: $ffd-navy-light;
   color: #ffffff;
   font: normal normal 700 12px/1.3 $font-primary;
   letter-spacing: 0.3px;
@@ -4467,14 +4477,14 @@ $br-card-preview-accent: #1F9D6E;
   transition: background 0.15s ease, border-color 0.15s ease;
 
   &:hover {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
+    background: $status-info-text;
+    border-color: $status-info-text;
   }
 
   &--col-active,
   &--row-active {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
+    background: $status-info-text;
+    border-color: $status-info-text;
   }
 }
 
@@ -4542,7 +4552,7 @@ $br-card-preview-accent: #1F9D6E;
   cursor: pointer;
 
   &:hover {
-    color: #00368c;
+    color: $ffd-navy;
   }
 }
 
@@ -4600,12 +4610,12 @@ $br-card-preview-accent: #1F9D6E;
 
     &:focus {
       outline: none;
-      border-color: #9ca3af;
+      border-color: rgba($ffd-navy, 0.35);
     }
   }
 
   &--invalid {
-    border-color: #d92d20;
+    border-color: $status-danger;
   }
 
   &--editable:empty::before {
@@ -4618,7 +4628,7 @@ $br-card-preview-accent: #1F9D6E;
 .notification-field-error {
   margin: 4px 0 0;
   font: normal normal 400 12px/1.4 $font-primary;
-  color: #d92d20;
+  color: $status-danger;
 }
 
 .notification-subject-text {
@@ -4643,18 +4653,18 @@ $br-card-preview-accent: #1F9D6E;
   vertical-align: middle;
   padding: 2px 10px;
   border-radius: 999px;
-  background: #d3f2e0;
+  background: $ffd-teal-soft;
   font: normal normal 500 13px/1.4 $font-primary;
-  color: #0f7a4a;
+  color: $ffd-teal;
 
   &.notification-user-pill--field {
-    background: #f6dcec;
-    color: #a3286b;
+    background: $ffd-coral-soft;
+    color: $ffd-coral;
   }
 
   &.notification-user-pill--email {
-    background: #dbe7fb;
-    color: #1849a9;
+    background: $status-info-bg;
+    color: $status-info-text;
   }
 }
 
@@ -4711,14 +4721,14 @@ $br-card-preview-accent: #1F9D6E;
       }
 
       &.ql-active {
-        background: #e8eefd;
+        background: $status-info-bg;
 
         .ql-stroke {
-          stroke: #2563eb;
+          stroke: $status-info-text;
         }
 
         .ql-fill {
-          fill: #2563eb;
+          fill: $status-info-text;
         }
       }
     }
@@ -4906,7 +4916,7 @@ $br-card-preview-accent: #1F9D6E;
 
     &:focus {
       outline: none;
-      border-color: #9ca3af;
+      border-color: rgba($ffd-navy, 0.35);
     }
   }
 }
@@ -4952,7 +4962,7 @@ $br-card-preview-accent: #1F9D6E;
   line-height: 1;
 
   &:hover {
-    background: #d1d5db;
+    background: $ffd-border;
     color: var(--text-primary);
   }
 }
@@ -4989,8 +4999,8 @@ $br-card-preview-accent: #1F9D6E;
   cursor: pointer;
 
   &:hover {
-    border-color: #ef4444;
-    color: #ef4444;
+    border-color: $status-danger;
+    color: $status-danger;
   }
 }
 
@@ -5018,12 +5028,12 @@ $br-card-preview-accent: #1F9D6E;
 }
 
 .br-invoke-test-btn {
-  border: 1px solid #00368c;
+  border: 1px solid $ffd-navy;
   border-radius: 999px;
   padding: 10px 32px;
   min-width: 100px;
   font: normal normal 600 14px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
   background: var(--surface-primary);
   cursor: pointer;
   transition: background 0.2s ease, opacity 0.2s ease;
@@ -5117,22 +5127,22 @@ $br-card-preview-accent: #1F9D6E;
   &--no {
     background: var(--surface-primary);
     border: 1px solid var(--border-primary);
-    color: #2563eb;
-    
+    color: $ffd-navy;
+
     &:hover {
       background: var(--bg-secondary);
     }
   }
-  
+
   &--yes {
-    background: #2563eb;
-    border: 1px solid #2563eb;
+    background: $ffd-coral;
+    border: 1px solid $ffd-coral;
     color: #ffffff;
-    box-shadow: 0 0 0 3px #bfdbfe;
+    box-shadow: $shadow-focus;
 
     &:hover {
-      background: #1d4ed8;
-      border-color: #1d4ed8;
+      background: darken($ffd-coral, 8%);
+      border-color: darken($ffd-coral, 8%);
     }
   }
 }
@@ -5273,7 +5283,7 @@ body .modal.br-invoke-test-result-modal.show {
   border-radius: 999px;
   background: var(--surface-primary);
   font: normal normal 500 14px/1.4 $font-primary;
-  color: #00368c;
+  color: $ffd-navy;
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
@@ -5283,8 +5293,8 @@ body .modal.br-invoke-test-result-modal.show {
 
   &:focus {
     outline: none;
-    border-color: #00368c;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    border-color: $ffd-navy;
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
   }
 
   &:disabled {
@@ -5602,8 +5612,8 @@ body.app-dark-mode {
   transition: border-color 0.2s ease, color 0.2s ease;
 
   &:hover {
-    border-color: #00368c;
-    color: #00368c;
+    border-color: $ffd-navy;
+    color: $ffd-navy;
   }
 }
 
@@ -5691,7 +5701,7 @@ body.app-dark-mode {
 
   &:focus {
     outline: none;
-    border-color: #00368c;
+    border-color: $ffd-navy;
   }
 }
 
@@ -5714,7 +5724,7 @@ body.app-dark-mode {
 
 .br-ccd-crumb-sep {
   margin: 0 6px;
-  color: #d1d5db;
+  color: $ffd-border;
 }
 
 .br-ccd-stagerow {
@@ -5783,7 +5793,7 @@ body.app-dark-mode {
 
 .br-ccd-save-btn {
   flex-shrink: 0;
-  background: #2f6fed;
+  background: $ffd-coral;
   color: #ffffff;
   border: none;
   border-radius: 999px;
@@ -5793,7 +5803,17 @@ body.app-dark-mode {
   transition: background 0.2s ease;
 
   &:hover {
-    background: #2456c4;
+    background: darken($ffd-coral, 8%);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: $shadow-focus;
   }
 }
 

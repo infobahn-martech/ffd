@@ -17,14 +17,14 @@
   .modal-content {
     border: none;
     border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba($ffd-navy, 0.3);
     overflow: hidden;
     background: var(--surface-primary);
     height: 100%;
   }
 
   .modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--modal-overlay);
     backdrop-filter: blur(4px);
   }
 }
@@ -94,7 +94,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: rgba(0, 54, 140, 0.08);
+  background: rgba($ffd-navy, 0.08);
   color: $colorPrimary;
   display: flex;
   align-items: center;
@@ -119,7 +119,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #b91c1c;
+  color: $status-danger;
   background: var(--surface-primary);
   border: 1px solid var(--border-primary);
   border-radius: 8px;
@@ -129,18 +129,27 @@
 
 .outlook-sign-in-btn {
   margin-top: 8px;
-  background: $colorPrimary;
-  color: #fff;
+  background: $ffd-coral;
+  color: $white;
   border: none;
   border-radius: 8px;
   padding: 10px 20px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: background-color 0.15s ease;
 
   &:hover:not(:disabled) {
-    opacity: 0.9;
+    background: darken($ffd-coral, 8%);
+  }
+
+  &:active:not(:disabled) {
+    background: darken($ffd-coral, 12%);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: $shadow-focus;
   }
 
   &:disabled {
@@ -177,18 +186,32 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: $colorPrimary;
-  color: #fff;
+  background: $ffd-coral;
+  color: $white;
   border: none;
   border-radius: 8px;
   padding: 10px 14px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: background-color 0.15s ease;
 
   &:hover {
-    opacity: 0.9;
+    background: darken($ffd-coral, 8%);
+  }
+
+  &:active {
+    background: darken($ffd-coral, 12%);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: $shadow-focus;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   @media ($sm-991) {
@@ -225,7 +248,7 @@
   }
 
   &--active {
-    background: rgba(0, 54, 140, 0.1);
+    background: rgba($ffd-navy, 0.1);
     color: $colorPrimary;
     font-weight: 600;
   }
@@ -237,7 +260,7 @@
 
 .outlook-folder-item-badge {
   background: $colorPrimary;
-  color: #fff;
+  color: $white;
   font-size: 11px;
   font-weight: 700;
   border-radius: 10px;
@@ -362,7 +385,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #b91c1c;
+  color: $status-danger;
   background: var(--surface-primary);
   border-bottom: 1px solid var(--border-primary);
   padding: 10px 14px;
@@ -375,7 +398,7 @@
   button {
     border: none;
     background: transparent;
-    color: #b91c1c;
+    color: $status-danger;
     font-weight: 600;
     cursor: pointer;
     text-decoration: underline;
@@ -399,7 +422,7 @@
   }
 
   &--active {
-    background: rgba(0, 54, 140, 0.06);
+    background: rgba($ffd-navy, 0.06);
   }
 
   &--unread &-from,
@@ -621,7 +644,7 @@
   .modal-content {
     border: none;
     border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba($ffd-navy, 0.3);
     overflow: hidden;
   }
 }
@@ -725,16 +748,26 @@
 
 .new-outlook-mail-send-btn {
   border: none;
-  background: $colorPrimary;
-  color: #fff;
+  background: $ffd-coral;
+  color: $white;
   border-radius: 8px;
   padding: 9px 20px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
+  transition: background-color 0.15s ease;
 
   &:hover:not(:disabled) {
-    opacity: 0.9;
+    background: darken($ffd-coral, 8%);
+  }
+
+  &:active:not(:disabled) {
+    background: darken($ffd-coral, 12%);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: $shadow-focus;
   }
 
   &:disabled {

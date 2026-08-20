@@ -264,7 +264,7 @@ function MyAccountsModal({ show, onClose }) {
                         position: 'absolute',
                         bottom: '6px',
                         right: '6px',
-                        backgroundColor: '#00368c',
+                        backgroundColor: 'var(--ffd-navy)',
                         color: '#fff',
                         borderRadius: '50%',
                         width: '42px',
@@ -276,11 +276,11 @@ function MyAccountsModal({ show, onClose }) {
                         transition: 'transform 0.2s ease, background-color 0.2s ease',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#002a6b';
+                        e.currentTarget.style.backgroundColor = 'var(--ffd-hover-dark)';
                         e.currentTarget.style.transform = 'scale(1.06)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#00368c';
+                        e.currentTarget.style.backgroundColor = 'var(--ffd-navy)';
                         e.currentTarget.style.transform = 'scale(1)';
                       }}
                     >
@@ -318,7 +318,7 @@ function MyAccountsModal({ show, onClose }) {
                           placeholder="First name"
                           autoComplete="name"
                           style={{
-                            backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
+                            backgroundColor: !isEditing ? 'var(--input-disabled-bg)' : 'var(--ffd-surface)',
                             cursor: !isEditing ? 'not-allowed' : 'text',
                           }}
                         />
@@ -368,7 +368,7 @@ function MyAccountsModal({ show, onClose }) {
                           placeholder="Email"
                           autoComplete="email"
                           style={{
-                            backgroundColor: !isEditing ? '#f8f9fc' : '#fff',
+                            backgroundColor: !isEditing ? 'var(--input-disabled-bg)' : 'var(--ffd-surface)',
                             cursor: !isEditing ? 'not-allowed' : 'text',
                             opacity: !isEditing ? 0.95 : 1,
                           }}
@@ -431,12 +431,12 @@ function MyAccountsModal({ show, onClose }) {
                     }}
                     onMouseEnter={(e) => {
                       if (!profileEditLoader) {
-                        e.currentTarget.style.backgroundColor = '#002a6b';
+                        e.currentTarget.style.backgroundColor = 'var(--ffd-hover-dark)';
                         e.currentTarget.style.transform = 'translateY(-2px)';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#00368c';
+                      e.currentTarget.style.backgroundColor = 'var(--ffd-navy)';
                       e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >

@@ -270,12 +270,12 @@ body .customer-pricing-infobhan-modal {
     }
 
     &::-webkit-scrollbar-thumb {
-      background: #c7cede;
+      background: rgba($ffd-navy, 0.25);
       border-radius: $radius-pill;
     }
 
     &::-webkit-scrollbar-thumb:hover {
-      background: #a7b1c8;
+      background: rgba($ffd-navy, 0.4);
     }
   }
 
@@ -403,9 +403,25 @@ body .customer-pricing-infobhan-modal {
   }
 
   .cpi-btn-primary {
-    background: $colorPrimary;
-    border: 1px solid $colorPrimary;
+    background: $ffd-coral;
+    border: 1px solid $ffd-coral;
     color: $white;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: darken($ffd-coral, 8%);
+      border-color: darken($ffd-coral, 8%);
+    }
+
+    &:active:not(:disabled) {
+      background: darken($ffd-coral, 12%);
+      border-color: darken($ffd-coral, 12%);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: $shadow-focus;
+    }
 
     &:disabled {
       opacity: 0.7;

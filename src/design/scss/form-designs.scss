@@ -47,7 +47,7 @@
         z-index: 0;
 
         .req {
-            color: #ff0000;
+            color: $status-danger;
             font-size: 0.875em;
         }
     }
@@ -102,14 +102,14 @@
 .form-check {
     .form-check-input {
         box-shadow: none !important;
-        border: 1px solid #98CBD0;
+        border: 1px solid $borderLight;
         width: 15px;
         height: 15px;
     }
 
     .form-check-input:checked {
-        background-color: #00368C;
-        border-color: #00368C;
+        background-color: $colorPrimary;
+        border-color: $colorPrimary;
     }
 }
 
@@ -158,11 +158,11 @@
         }
 
         .password-toggle:hover {
-            color: #0c234c;
+            color: $ffd-hover-dark;
         }
 
         .password-toggle:focus-visible {
-            outline: 2px solid rgba(0, 54, 140, 0.35);
+            outline: 2px solid rgba($ffd-navy, 0.35);
             outline-offset: 2px;
         }
     }
@@ -188,16 +188,16 @@
 
     &:hover {
         border-color: $colorPrimary;
-        background-color: #eef6ff;
+        background-color: $table-row-hover-bg;
     }
 
     &--active {
         border-color: $colorPrimary;
-        background-color: #eef6ff;
+        background-color: $table-row-hover-bg;
     }
 
     &--error {
-        border-color: #dc3545;
+        border-color: $status-danger;
         background-color: var(--surface-primary);
     }
 
@@ -214,7 +214,7 @@
 
     &__hint {
         font-size: 13px;
-        color: #6c757d;
+        color: $status-neutral;
         margin-top: 4px;
     }
 
@@ -241,16 +241,16 @@
     &__clear {
         padding: 4px 12px;
         font-size: 13px;
-        color: #dc3545;
+        color: $status-danger;
         background: transparent;
-        border: 1px solid #dc3545;
+        border: 1px solid $status-danger;
         border-radius: 6px;
         cursor: pointer;
         transition: background-color 0.2s, color 0.2s;
 
         &:hover {
-            background-color: #dc3545;
-            color: #fff;
+            background-color: $status-danger;
+            color: $white;
         }
     }
 }
@@ -336,19 +336,19 @@
             }
 
             &__option--is-focused {
-                background: #eaf2ff;
-                color: #0f2f68;
+                background: $table-row-hover-bg;
+                color: $colorPrimary;
             }
 
             &__option--is-selected {
-                background: #00368c;
-                color: #fff;
+                background: $colorPrimary;
+                color: $white;
             }
 
             /* Keep active same as focused/selected to avoid blink on click/hold */
             &__option:active {
-                background: #eaf2ff;
-                color: #0f2f68;
+                background: $table-row-hover-bg;
+                color: $colorPrimary;
             }
         }
     }
@@ -360,7 +360,7 @@
     label {
 
         .star {
-            color: red;
+            color: $status-danger;
         }
 
 
@@ -495,7 +495,7 @@ input[type=number] {
 }
 
 .premium-select.cf-invalid-icon.is-invalid .cf-multi-select-email-input {
-    border-color: #dc3545;
+    border-color: $status-danger;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
     background-position: right calc(0.375em + 0.1875rem) center;
@@ -529,7 +529,7 @@ input[type=number] {
     // itself — matching .form-control.is-invalid elsewhere — when the inner
     // DatePickerField reports hasError via its own "is-invalid" class.
     &:has(.is-invalid) {
-        border-color: #dc3545 !important;
+        border-color: $status-danger !important;
     }
 
     >.cf-date-picker {
@@ -669,18 +669,18 @@ input[type=number] {
     border: 1px solid var(--border-primary);
     border-radius: 14px;
     overflow: hidden;
-    box-shadow: 0 18px 36px rgba(0, 35, 104, 0.2);
+    box-shadow: 0 18px 36px rgba($ffd-navy, 0.2);
     font-family: "Manrope", sans-serif;
 }
 
 .premium-datepicker-calendar .react-datepicker__header {
-    background: linear-gradient(180deg, #ffffff 0%, #f5f8ff 100%);
+    background: linear-gradient(180deg, $white 0%, $table-row-hover-bg 100%);
     border-bottom: 1px solid var(--border-primary);
     padding-top: 12px;
 }
 
 .premium-datepicker-calendar .react-datepicker__current-month {
-    color: #0f285a;
+    color: $colorPrimary;
     font-size: 14px;
     font-weight: 700;
 }
@@ -692,36 +692,36 @@ input[type=number] {
 }
 
 .premium-datepicker-calendar .react-datepicker__day {
-    color: #1c3159;
+    color: $colorPrimary;
     border-radius: 8px;
     transition: all 0.2s ease;
 }
 
 .premium-datepicker-calendar .react-datepicker__day:hover {
-    background-color: #e9f0ff;
-    color: #002a7a;
+    background-color: $table-row-hover-bg;
+    color: $colorPrimary;
 }
 
 .premium-datepicker-calendar .react-datepicker__day--keyboard-selected {
-    background-color: #d9e6ff;
-    color: #00368c;
+    background-color: rgba($ffd-navy, 0.12);
+    color: $colorPrimary;
 }
 
 .premium-datepicker-calendar .react-datepicker__day--selected,
 .premium-datepicker-calendar .react-datepicker__day--in-selecting-range,
 .premium-datepicker-calendar .react-datepicker__day--in-range {
-    background: linear-gradient(180deg, #2d72ff 0%, #0047c1 100%);
-    color: #ffffff;
+    background: linear-gradient(180deg, $ffd-navy-light 0%, $ffd-navy 100%);
+    color: $white;
     font-weight: 700;
 }
 
 .premium-datepicker-calendar .react-datepicker__day--today {
-    box-shadow: inset 0 0 0 1px #6d98ff;
+    box-shadow: inset 0 0 0 1px $ffd-navy-light;
     font-weight: 700;
 }
 
 .premium-datepicker-calendar .react-datepicker__navigation-icon::before {
-    border-color: #325baf;
+    border-color: $colorPrimary;
     border-width: 2px 2px 0 0;
 }
 
@@ -732,7 +732,7 @@ input[type=number] {
 
 .premium-datepicker-calendar .react-datepicker__today-button,
 .premium-datepicker-calendar .react-datepicker__close-icon::after {
-    color: #00368c;
+    color: $colorPrimary;
 }
 
 .avatar-outer {
@@ -771,7 +771,7 @@ input[type=number] {
 }
 
 .avatar-outer:hover .avatar-edit-icon {
-    background: #00368c;
+    background: $colorPrimary;
 }
 
 .avatar-edit-pencil {
@@ -820,11 +820,11 @@ input[type=number] {
 }
 
 .email-add-btn {
-    color: #00368C;
+    color: $colorPrimary;
 
     &:hover {
-        background: #e8f0fe;
-        color: #00368C;
+        background: $table-row-hover-bg;
+        color: $colorPrimary;
     }
 
     svg {
@@ -833,11 +833,11 @@ input[type=number] {
 }
 
 .email-remove-btn {
-    color: #dc3545;
+    color: $status-danger;
 
     &:hover {
-        background: #fee;
-        color: #dc3545;
+        background: rgba($status-danger, 0.12);
+        color: $status-danger;
     }
 
     svg {

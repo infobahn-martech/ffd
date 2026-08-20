@@ -52,7 +52,7 @@
   min-width: 24px;
   height: 24px;
   border-radius: 4px;
-  background: var(--column-color, #2A00FF);
+  background: var(--column-color, var(--ffd-navy));
   padding: 2px 6px;
 }
 
