@@ -3,15 +3,17 @@
 // Layout inside the detail view (.subtasks-tab-*) reuses invoice.scss — not modified here.
 // DateTimePicker styling reuses general.scss (.cf-datetime-picker) — not redefined here.
 
-$tc-green:        #2e7d32;
-$tc-green-dark:   #1b5e20;
-$tc-border:       #e2e2ea;
-$tc-border-hover: #c8d4ea;
-$tc-focus:        #00368c;
-$tc-bg-input:     #ffffff;
-$tc-bg-readonly:  #f5f6fa;
-$tc-text:         #1a1a1a;
-$tc-text-muted:   #9aa0ad;
+@import "../partials/partials";
+
+$tc-green:        $ffd-coral;
+$tc-green-dark:   $ffd-coral-hover;
+$tc-border:       $ffd-border;
+$tc-border-hover: $ffd-navy-light;
+$tc-focus:        $ffd-navy;
+$tc-bg-input:     $ffd-surface;
+$tc-bg-readonly:  var(--bg-secondary);
+$tc-text:         $ffd-text-primary;
+$tc-text-muted:   $ffd-text-secondary;
 $tc-font:         "Manrope", sans-serif;
 
 // ── Topbar colour ─────────────────────────────────────────────────────────────
@@ -139,7 +141,7 @@ $tc-font:         "Manrope", sans-serif;
   &:focus {
     outline: none;
     border-color: $tc-focus;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.1);
   }
 
   &.is-invalid { border-color: #ef4444; }
@@ -172,7 +174,7 @@ $tc-font:         "Manrope", sans-serif;
 
   &:hover:not(:disabled) {
     background: $tc-green-dark;
-    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
+    box-shadow: 0 4px 12px rgba($ffd-coral, 0.25);
   }
   &:active:not(:disabled) { transform: translateY(1px); }
   &:disabled { opacity: 0.65; cursor: not-allowed; }
@@ -192,7 +194,7 @@ $tc-font:         "Manrope", sans-serif;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.05s ease;
 
-  &:hover:not(:disabled) { border-color: #c8d4ea; color: $tc-focus; background: #f7f9fd; }
+  &:hover:not(:disabled) { border-color: $tc-border-hover; color: $tc-focus; background: #f7f9fd; }
   &:active:not(:disabled) { transform: translateY(1px); }
   &:disabled { opacity: 0.65; cursor: not-allowed; }
 }
@@ -247,7 +249,7 @@ $tc-font:         "Manrope", sans-serif;
 }
 
 .st-upload-browse {
-  color: #4a6cf7;
+  color: var(--ffd-coral);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -291,7 +293,7 @@ $tc-font:         "Manrope", sans-serif;
   border: 1px solid var(--border-primary);
   border-radius: 20px;
   font-size: 11px;
-  color: #15803d;
+  color: var(--ffd-teal);
   font-family: $tc-font;
   max-width: 180px;
   overflow: hidden;
@@ -412,7 +414,7 @@ $tc-font:         "Manrope", sans-serif;
   padding: 0;
   font-size: 11.5px;
   font-weight: 600;
-  color: #4a6cf7;
+  color: var(--ffd-coral);
   cursor: pointer;
   font-family: $tc-font;
 
@@ -443,7 +445,7 @@ $tc-font:         "Manrope", sans-serif;
 .st-doc-item {
   font-size: 12.5px;
   font-family: $tc-font;
-  color: #4a6cf7;
+  color: var(--ffd-coral);
   text-decoration: underline;
 
   &:hover { color: $tc-green-dark; }

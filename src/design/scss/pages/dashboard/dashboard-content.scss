@@ -16,7 +16,7 @@
   .dashboard-title {
     font: normal normal 600 32px/1.4 'Manrope', sans-serif;
     letter-spacing: 0.1px;
-    color: #00368c;
+    color: $ffd-navy;
     margin: 0 0 8px 0;
   }
 
@@ -66,7 +66,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 54, 140, 0.1);
+  background: rgba($ffd-navy, 0.1);
   flex-shrink: 0;
 
   svg {
@@ -104,10 +104,10 @@
   }
 
   &.up {
-    color: #10b981;
+    color: var(--ffd-teal);
 
     svg {
-      color: #10b981;
+      color: var(--ffd-teal);
     }
   }
 
@@ -171,7 +171,7 @@
 // Recharts customizations
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
-  stroke: #e5e7eb;
+  stroke: var(--ffd-border);
 }
 
 .recharts-text {

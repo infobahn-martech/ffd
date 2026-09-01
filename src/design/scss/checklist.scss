@@ -392,7 +392,7 @@
 
 // .checklist-section:hover {
 //   border-color: $colorPrimary;
-//   box-shadow: 0 2px 8px rgba(0, 54, 140, 0.15);
+//   box-shadow: 0 2px 8px rgba($ffd-navy, 0.15);
 // }
 
 .checklist-section:last-child {
@@ -517,9 +517,9 @@
 }
 
 .checklist-select-all-btn:hover {
-  background: rgba(0, 54, 140, 0.1);
+  background: rgba($ffd-navy, 0.1);
   border-color: $colorPrimary;
-  box-shadow: 0 2px 6px rgba(0, 54, 140, 0.15);
+  box-shadow: 0 2px 6px rgba($ffd-navy, 0.15);
   transform: translateY(-1px);
 }
 
@@ -589,7 +589,7 @@
 }
 
 .checklist-items-table thead {
-  background: linear-gradient(180deg, #f4f5fb 0%, #eef1f8 100%);
+  background: linear-gradient(180deg, var(--ffd-surface) 0%, var(--bg-secondary) 100%);
 }
 
 .checklist-items-table th {
@@ -1143,9 +1143,9 @@
 }
 
 .checklist-item-label:hover {
-  background: rgba(0, 54, 140, 0.05);
+  background: rgba($ffd-navy, 0.05);
   border-color: $colorPrimary;
-  box-shadow: 0 4px 12px rgba(0, 54, 140, 0.15);
+  box-shadow: 0 4px 12px rgba($ffd-navy, 0.15);
   transform: translateY(-1px);
 }
 
@@ -1303,7 +1303,7 @@
 
 .cf-multiselect-input:hover {
   border-color: $colorPrimary;
-  box-shadow: 0 2px 6px rgba(0, 54, 140, 0.15);
+  box-shadow: 0 2px 6px rgba($ffd-navy, 0.15);
 }
 
 .cf-multiselect-tags {
@@ -1359,7 +1359,7 @@
 }
 
 .cf-multiselect-tag:hover {
-  background: rgba(0, 54, 140, 0.1);
+  background: rgba($ffd-navy, 0.1);
   border-color: $colorPrimary;
 }
 
@@ -1730,9 +1730,9 @@
 
 .checklist-file-upload-label:hover {
   border-color: $colorPrimary;
-  background: rgba(0, 54, 140, 0.05);
+  background: rgba($ffd-navy, 0.05);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 54, 140, 0.15);
+  box-shadow: 0 4px 12px rgba($ffd-navy, 0.15);
 }
 
 .checklist-file-upload-label:hover::before {
@@ -1749,7 +1749,7 @@
   color: #ffffff;
   border-color: $colorPrimary;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 54, 140, 0.25);
+  box-shadow: 0 4px 12px rgba($ffd-navy, 0.25);
 }
 
 .checklist-file-upload-icon-placeholder {
@@ -1799,7 +1799,7 @@
 }
 
 .checklist-file-label:hover {
-  background: rgba(0, 54, 140, 0.1);
+  background: rgba($ffd-navy, 0.1);
   border-color: $colorPrimary;
   opacity: 0.8;
 }
@@ -1867,7 +1867,7 @@
 
 .checklist-file-preview-container:hover {
   border-color: $colorPrimary;
-  box-shadow: 0 4px 12px rgba(0, 54, 140, 0.15);
+  box-shadow: 0 4px 12px rgba($ffd-navy, 0.15);
 }
 
 .checklist-file-preview-clickable {
@@ -1886,7 +1886,7 @@
 }
 
 .checklist-file-preview-clickable:hover {
-  background: linear-gradient(135deg, rgba(0, 54, 140, 0.1) 0%, rgba(0, 54, 140, 0.05) 100%);
+  background: linear-gradient(135deg, rgba($ffd-navy, 0.1) 0%, rgba($ffd-navy, 0.05) 100%);
 }
 
 .checklist-file-preview-clickable:hover .checklist-file-preview-icon {
@@ -1935,7 +1935,7 @@
   border-color: $colorPrimary;
   color: #ffffff;
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 54, 140, 0.3);
+  box-shadow: 0 4px 12px rgba($ffd-navy, 0.3);
 }
 
 .checklist-file-preview-download:active {
@@ -2271,7 +2271,7 @@
   background: $colorPrimary;
   opacity: 0.85;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 54, 140, 0.3);
+  box-shadow: 0 2px 8px rgba($ffd-navy, 0.3);
 }
 
 .checklist-item-detail-btn:active {
@@ -4279,7 +4279,7 @@ span.cl-item-meta-chip.cl-item-meta-chip--expiry {
 }
 
 .checklist-file-action-btn:focus-visible {
-  outline: 2px solid rgba(0, 54, 140, 0.35);
+  outline: 2px solid rgba($ffd-navy, 0.35);
   outline-offset: 2px;
 }
 

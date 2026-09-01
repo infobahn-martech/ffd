@@ -83,12 +83,12 @@
 }
 
 .material-table-container::-webkit-scrollbar-thumb {
-  background: #888;
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
 .material-table-container::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--scrollbar-thumb-hover);
 }
 
 .material-table {

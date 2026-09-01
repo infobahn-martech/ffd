@@ -127,7 +127,7 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &::placeholder {
-    color: #cbd5e1;
+    color: var(--input-placeholder);
   }
 
   &:hover {
@@ -136,8 +136,8 @@
 
   &:focus {
     outline: none;
-    border-color: rgba(0, 54, 140, 0.35);
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    border-color: rgba($ffd-coral, 0.35);
+    box-shadow: 0 0 0 3px rgba($ffd-coral, 0.08);
   }
 
   &.add-dashboard-input--invalid {
@@ -184,7 +184,7 @@
     font-family: $font-primary;
     font-size: 0.9375rem;
     font-weight: 600;
-    color: #00368c;
+    color: var(--ffd-coral);
     background: transparent;
     border: none;
     border-radius: 6px;
@@ -192,7 +192,7 @@
     transition: color 0.2s ease, opacity 0.2s ease;
 
     &:hover:not(:disabled) {
-      color: #002a66;
+      color: var(--ffd-coral-hover);
       text-decoration: none;
     }
 

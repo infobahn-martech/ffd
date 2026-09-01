@@ -63,13 +63,13 @@ const formatStatValue = (key, value) => {
 const Dashboard = () => {
   const [overview, setOverview] = useState(null);
   const isDark = useThemeStore((state) => state.isDark);
-  const chartGridColor = isDark ? "#293548" : "#e5e7eb";
-  const chartAxisColor = isDark ? "#8f9aaa" : "#6b7280";
+  const chartGridColor = isDark ? "#293548" : "#E2E5E7";
+  const chartAxisColor = isDark ? "#8f9aaa" : "#667680";
   const chartTooltipStyle = {
     backgroundColor: isDark ? "#151f2e" : "#fff",
-    border: `1px solid ${isDark ? "#293548" : "#e5e7eb"}`,
+    border: `1px solid ${isDark ? "#293548" : "#E2E5E7"}`,
     borderRadius: "8px",
-    color: isDark ? "#f5f7fa" : "#111827",
+    color: isDark ? "#f5f7fa" : "#0F2A3D",
   };
 
   useEffect(() => {

@@ -346,7 +346,7 @@ const TagsModal = ({ show, onClose }) => {
                 </tr>
               ) : tags.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                     No tags found
                   </td>
                 </tr>

@@ -382,7 +382,7 @@ const TypesModal = ({ show, onClose }) => {
                 <tr>
                   <td
                     colSpan="6"
-                    style={{ textAlign: 'center', padding: '40px', color: '#999' }}
+                    style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}
                   >
                     No types found
                   </td>

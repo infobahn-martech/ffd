@@ -9,7 +9,7 @@
   // SVG progress ring driven by --ct-progress CSS variable
   .ct-tc-svg-fill {
     fill: none;
-    stroke: #0d9488;
+    stroke: var(--ffd-teal);
     stroke-width: 2.5;
     stroke-dasharray: 72;
     stroke-linecap: round;
@@ -19,13 +19,13 @@
 
   // Selection states
   &--selected {
-    outline: 2px solid #2563eb;
+    outline: 2px solid var(--ffd-coral);
     outline-offset: 2px;
     border-radius: 8px;
   }
 
   &--selectable:not(.ct-tc--selected):hover {
-    outline: 1px solid #93c5fd;
+    outline: 1px solid var(--ffd-coral);
     outline-offset: 2px;
     border-radius: 8px;
   }
@@ -54,8 +54,8 @@
     transition: background 0.15s, border-color 0.15s;
 
     &--checked {
-      background: #2563eb;
-      border-color: #2563eb;
+      background: var(--ffd-coral);
+      border-color: var(--ffd-coral);
     }
   }
 }
@@ -74,9 +74,9 @@
   transition: border-color 0.15s, background 0.15s, color 0.15s;
 
   &--active {
-    border-color: #2563eb;
-    background: #eff6ff;
-    color: #2563eb;
+    border-color: var(--ffd-coral);
+    background: var(--ffd-coral-soft);
+    color: var(--ffd-coral);
   }
 }
 
@@ -87,22 +87,22 @@
   gap: 10px;
   flex-wrap: wrap;
   padding: 10px 16px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--ffd-coral-soft);
+  border: 1px solid var(--ffd-coral);
   border-radius: 8px;
   margin: 0 0 10px;
 
   &-label {
     font-size: 13px;
     font-weight: 600;
-    color: #1e40af;
+    color: var(--ffd-coral);
     white-space: nowrap;
   }
 
   &-divider {
     width: 1px;
     height: 20px;
-    background: #bfdbfe;
+    background: var(--ffd-coral);
     flex-shrink: 0;
   }
 
@@ -124,8 +124,8 @@
     transition: border-color 0.15s, background 0.15s, color 0.15s;
 
     &--active {
-      border-color: #2563eb;
-      background: #2563eb;
+      border-color: var(--ffd-coral);
+      background: var(--ffd-coral);
       color: #fff;
     }
   }
@@ -141,7 +141,7 @@
 
     &:focus {
       outline: none;
-      border-color: #2563eb;
+      border-color: var(--ffd-coral);
     }
   }
 
@@ -149,7 +149,7 @@
     padding: 5px 14px;
     border: none;
     border-radius: 6px;
-    background: #2563eb;
+    background: var(--ffd-coral);
     color: #fff;
     font-size: 13px;
     font-weight: 600;
@@ -158,12 +158,12 @@
     transition: background 0.15s;
 
     &:disabled {
-      background: #93c5fd;
+      background: var(--ffd-coral-soft);
       cursor: not-allowed;
     }
 
     &:not(:disabled):hover {
-      background: #1d4ed8;
+      background: var(--ffd-coral-hover);
     }
   }
 

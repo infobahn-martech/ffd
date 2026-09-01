@@ -1,9 +1,11 @@
+@import "../../partials/partials";
+
 .not-found-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  background: linear-gradient(135deg, var(--ffd-background) 0%, var(--ffd-surface) 100%);
   padding: 20px;
   font-family: 'Manrope', sans-serif;
 }
@@ -38,10 +40,10 @@
 .error-code {
   font-size: 120px;
   font-weight: 700;
-  color: #00368c;
+  color: var(--ffd-navy);
   line-height: 1;
   margin-bottom: 20px;
-  text-shadow: 2px 2px 4px rgba(0, 54, 140, 0.1);
+  text-shadow: 2px 2px 4px rgba($ffd-navy, 0.1);
   letter-spacing: -4px;
 }
 
@@ -75,7 +77,7 @@
 .not-found-title {
   font-size: 32px;
   font-weight: 600;
-  color: #0c234c;
+  color: var(--ffd-navy);
   margin-bottom: 16px;
   line-height: 1.3;
 }
@@ -106,15 +108,15 @@
     cursor: pointer;
 
     &.btn-primary {
-      background-color: #00368c;
-      border: 1px solid #00368c;
+      background-color: var(--ffd-coral);
+      border: 1px solid var(--ffd-coral);
       color: #fff;
 
       &:hover {
-        background-color: #002d73;
-        border-color: #002d73;
+        background-color: var(--ffd-coral-hover);
+        border-color: var(--ffd-coral-hover);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 54, 140, 0.3);
+        box-shadow: 0 4px 12px rgba($ffd-coral, 0.3);
       }
 
       &:active {
@@ -123,15 +125,15 @@
     }
 
     &.btn-outline.btn-login {
-      color: #00368c;
-      border: 1px solid #00368c;
+      color: var(--ffd-navy);
+      border: 1px solid var(--ffd-navy);
       background-color: transparent;
 
       &:hover {
-        background-color: #00368c;
+        background-color: var(--ffd-navy);
         color: #fff;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 54, 140, 0.2);
+        box-shadow: 0 4px 12px rgba($ffd-navy, 0.2);
       }
 
       &:active {

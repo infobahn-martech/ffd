@@ -164,7 +164,7 @@ function Index() {
                     style={{
                       marginLeft: "4px",
                       fontSize: "16px",
-                      color: "#0c234c",
+                      color: "var(--ffd-navy)",
                       fontFamily: `"Manrope", sans-serif`,
                     }}
                   >

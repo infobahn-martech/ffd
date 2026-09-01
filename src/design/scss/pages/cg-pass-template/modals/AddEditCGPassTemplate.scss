@@ -1,3 +1,5 @@
+﻿@import "../../../partials/partials";
+
 // Top-level rules ensure table cell borders apply regardless of modal
 // portal nesting. The .ql-table-better class is set by quill-table-better
 // on every table it creates, so this only targets our feature's tables.
@@ -24,13 +26,13 @@
 }
 
 // Appended to document.body by the custom image controls (not scoped inside the
-// modal), so these have to be top-level rules too — see attachImageControls in
+// modal), so these have to be top-level rules too â€” see attachImageControls in
 // AddEditCGPassTemplate.jsx. Modeled after Microsoft Word's image selection UI:
 // an outline box, 8 resize handles at the corners/edge midpoints, and a small
 // "Layout Options" icon that opens a wrap/align dropdown.
 .ql-image-selection-box {
   position: fixed;
-  border: 1px solid #2B7DE9;
+  border: 1px solid var(--ffd-coral);
   pointer-events: none;
   z-index: 9998;
 }
@@ -39,7 +41,7 @@
   position: fixed;
   width: 8px;
   height: 8px;
-  border: 1px solid #2B7DE9;
+  border: 1px solid var(--ffd-coral);
   border-radius: 50%;
   background: var(--surface-primary);
   z-index: 10000;
@@ -129,12 +131,12 @@
     }
 
     &:hover {
-      border-color: #98CBD0;
+      border-color: var(--ffd-coral);
     }
 
     &:focus {
       border-color: var(--border-primary);
-      box-shadow: 0 0 0 2px rgba(0, 54, 140, 0.1);
+      box-shadow: 0 0 0 2px rgba($ffd-coral, 0.1);
       outline: none;
     }
 

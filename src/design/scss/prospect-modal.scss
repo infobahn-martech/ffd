@@ -177,8 +177,8 @@ $primary-font: "Manrope", sans-serif;
     }
 
     &.close {
-      background-color: #DEF0F2;
-      color: #00368c;
+      background-color: rgba($ffd-navy, 0.08);
+      color: var(--ffd-navy);
     }
   }
 }
@@ -201,7 +201,7 @@ $primary-font: "Manrope", sans-serif;
 
   .popup-title {
     font: normal normal 600 20px/30px 'Manrope';
-    color: #00368C;
+    color: var(--ffd-navy);
   }
 
   .popup-sub-title {
@@ -229,8 +229,8 @@ input#selectedFile {
 
 .file-up {
   label {
-    color: #00368c;
-    background-color: #DEF0F2;
+    color: var(--ffd-navy);
+    background-color: var(--ffd-surface);
     border: 1px solid var(--border-primary);
     border-radius: 7px !important;
     top: 8px;
@@ -283,7 +283,7 @@ span.error.text-danger {
 .modal-title {
 
   letter-spacing: 0.1px;
-  color: #00368c;
+  color: var(--ffd-navy);
   font-size: 20px;
   font-weight: 600;
 }

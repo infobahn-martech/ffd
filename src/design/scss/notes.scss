@@ -76,7 +76,7 @@
   gap: 8px;
   align-self: flex-start;
   padding: 5px 6px 5px 10px;
-  background: #eaf1ff;
+  background: var(--ffd-teal-soft);
   border: 1px solid var(--border-primary);
   border-radius: 999px;
 }
@@ -174,11 +174,11 @@
   }
 
   .ql-stroke {
-    stroke: #5c6370;
+    stroke: var(--text-secondary);
   }
 
   .ql-fill {
-    fill: #5c6370;
+    fill: var(--text-secondary);
   }
 
   .ql-picker-label {
@@ -187,11 +187,11 @@
 
   &:focus-within {
     .ql-toolbar {
-      border-color: #a9c1ee;
+      border-color: $ffd-navy;
     }
 
     .ql-container {
-      border-color: #a9c1ee;
+      border-color: $ffd-navy;
       box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
     }
   }
@@ -366,7 +366,7 @@
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  background: #eaf1ff;
+  background: rgba($ffd-navy, 0.08);
   color: $ffd-navy;
   font-size: 11px;
   font-weight: 700;
@@ -468,7 +468,7 @@
 }
 
 .notes-tab-note-card--editing {
-  border-color: #a9c1ee;
+  border-color: $ffd-teal;
   background: var(--surface-primary);
 
   &::before {
@@ -532,7 +532,7 @@
   transition: background 0.15s ease, color 0.15s ease;
 
   &:hover:not(:disabled) {
-    background: #eaf1ff;
+    background: rgba($ffd-navy, 0.08);
     color: $ffd-navy;
   }
 

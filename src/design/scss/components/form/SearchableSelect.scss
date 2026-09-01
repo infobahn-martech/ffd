@@ -1,4 +1,4 @@
-/* Stacking for all searchable selects */
+﻿/* Stacking for all searchable selects */
 .cf-searchable-select .cf-multi-select-dropdown {
   z-index: var(--cf-searchable-menu-z, 10000);
 }
@@ -40,7 +40,7 @@
 }
 
 .cf-multi-select-option.is-highlighted {
-  background: #e8eef9;
+  background: var(--ffd-coral-soft);
 }
 
 .cf-ms-tags-list {
@@ -54,7 +54,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #e8eef9;
+  background: var(--ffd-coral-soft);
   color: var(--text-primary);
   border-radius: 4px;
   padding: 2px 6px;
@@ -74,7 +74,7 @@
   flex-shrink: 0;
 
   &:hover {
-    color: #c00;
+    color: var(--color-danger);
   }
 }
 
@@ -82,7 +82,7 @@
   flex-shrink: 0;
   pointer-events: none;
   margin-right: 4px;
-  accent-color: #4c7ef3;
+  accent-color: var(--ffd-coral);
 }
 
 .cf-owner-searchable-select {

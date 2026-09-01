@@ -53,7 +53,7 @@
   .attachments-list-title-bar {
     width: 3px;
     height: 18px;
-    background: #4338ca;
+    background: var(--ffd-coral);
     border-radius: 3px;
     display: inline-block;
     flex-shrink: 0;
@@ -123,7 +123,7 @@
   .attachment-category-accent {
     width: 3px;
     height: 20px;
-    background: #4338ca;
+    background: var(--ffd-coral);
     border-radius: 3px;
     flex-shrink: 0;
   }
@@ -149,7 +149,7 @@
     font-size: 12px;
     font-weight: 600;
     color: var(--text-primary);
-    background: #eef2ff;
+    background: var(--ffd-coral-soft);
     border: 1px solid var(--border-primary);
     border-radius: 999px;
     line-height: 1;
@@ -286,7 +286,7 @@
   }
 
   .attachment-separator {
-    color: #cbd5e1;
+    color: var(--border-primary);
     font-size: 10px;
   }
 
@@ -345,7 +345,7 @@
 
   .attachment-action-btn.view:hover:not(:disabled) {
     color: var(--text-primary);
-    background: #e8efff;
+    background: var(--ffd-coral-soft);
     border-color: var(--border-primary);
   }
 

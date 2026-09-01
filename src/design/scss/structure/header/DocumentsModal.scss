@@ -1,4 +1,4 @@
-.documents-modal {
+﻿.documents-modal {
   .modal-dialog {
     max-width: 1400px;
     width: calc(100vw - 60px);
@@ -30,7 +30,7 @@
     }
 
     .modal-title {
-      color: #00368c;
+      color: var(--ffd-navy);
       font-size: 24px;
       font-weight: 700;
       margin: 0;
@@ -125,7 +125,7 @@
 
         &:focus {
           outline: none;
-          border-color: #00368c;
+          border-color: var(--ffd-navy);
           box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.1);
         }
 
@@ -160,11 +160,11 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--scrollbar-thumb);
     border-radius: 4px;
 
     &:hover {
-      background: #94a3b8;
+      background: var(--scrollbar-thumb-hover);
     }
   }
 
@@ -207,7 +207,7 @@
     }
 
     .tb-head {
-      background-color: #00368c;
+      background-color: var(--ffd-navy);
       color: #ffffff;
       font-weight: 600;
       font-size: 13px;
@@ -234,12 +234,12 @@
     }
 
     .clickable-link {
-      color: #2563eb;
+      color: var(--ffd-coral);
       cursor: pointer;
       transition: color 0.2s ease;
 
       &:hover {
-        color: #1d4ed8;
+        color: var(--ffd-coral-hover);
         text-decoration: underline;
       }
     }
@@ -302,7 +302,7 @@
 
     .results-info {
       font-size: 14px;
-      color: #00368c;
+      color: var(--ffd-navy);
       font-weight: 500;
       white-space: nowrap;
     }
@@ -336,7 +336,7 @@
         &.prev-btn,
         &.next-btn {
           background-color: var(--bg-secondary);
-          color: #00368c;
+          color: var(--ffd-navy);
           border-color: var(--border-primary);
 
           &:hover:not(:disabled) {
@@ -357,14 +357,14 @@
         }
 
         &.page-number-btn {
-          background-color: #00368c;
+          background-color: var(--ffd-navy);
           color: #ffffff;
-          border-color: #00368c;
+          border-color: var(--ffd-navy);
           font-weight: 600;
           min-width: 36px;
 
           &.active {
-            background-color: #00368c;
+            background-color: var(--ffd-navy);
             color: #ffffff;
           }
         }
@@ -470,10 +470,10 @@
   }
 
   &.on-station-pill-toggle--on {
-    background-color: #00368c;
+    background-color: var(--ffd-navy);
 
     &:hover {
-      background-color: #002d6e;
+      background-color: var(--ffd-hover-dark);
     }
 
     .on-station-pill-toggle__thumb {
@@ -505,10 +505,10 @@
     margin-top: 20px;
   }
 
-  /* Light table header, full column names — no truncation, no sort arrows */
+  /* Light table header, full column names â€” no truncation, no sort arrows */
   .documents-table .tb-head {
     background-color: var(--surface-primary);
-    color: #00368c;
+    color: var(--ffd-navy);
     border-bottom: 2px solid var(--border-primary);
     white-space: normal;
     overflow: visible;

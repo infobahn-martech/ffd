@@ -1,6 +1,6 @@
-@import "partials/partials";
+﻿@import "partials/partials";
 
-/* Email Preview–style scrollbar for General tab column scroll regions */
+/* Email Previewâ€“style scrollbar for General tab column scroll regions */
 @mixin general-email-preview-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
@@ -606,7 +606,7 @@
     }
   }
 
-  /* Add Card form fields — same background treatment as the Pre Arrival / Arrival /
+  /* Add Card form fields â€” same background treatment as the Pre Arrival / Arrival /
      Departure form column, scoped to the left form panel only (not Email Preview). */
   .general-add-form-panel {
     .cf-input,
@@ -622,7 +622,7 @@
       }
     }
 
-    /* .cf-multi-select-email-input's base border is transparent — it relies on a
+    /* .cf-multi-select-email-input's base border is transparent â€” it relies on a
        faint inset box-shadow plus its tinted background for definition. On a
        white background that shadow is invisible, so give it an explicit
        visible border here, matching .cf-input's resting border. */
@@ -980,7 +980,7 @@
   }
 }
 
-/* Daily Task/Todo — card layout: header + input + scrollable list + pinned summary */
+/* Daily Task/Todo â€” card layout: header + input + scrollable list + pinned summary */
 .daily-task-todo-wrapper {
   width: 100%;
   max-width: 100%;
@@ -1211,7 +1211,7 @@
     top: 0;
     bottom: 0;
     width: 3px;
-    background: #cbd5e1;
+    background: var(--ffd-border);
     transition: background 0.18s ease;
   }
 
@@ -1386,7 +1386,7 @@
   font-weight: 700;
 
   &::before {
-    content: "· ";
+    content: "Â· ";
   }
 }
 
@@ -1528,11 +1528,11 @@
   }
 
   .ql-stroke {
-    stroke: #666;
+    stroke: var(--text-secondary);
   }
 
   .ql-fill {
-    fill: #666;
+    fill: var(--text-secondary);
   }
 
   .ql-picker-label {
@@ -1573,7 +1573,7 @@
 }
 
 /* ==========================================================
-   VIEW MODE — APPOINTMENT DETAIL BOXES (read-only, non-add-mode)
+   VIEW MODE â€” APPOINTMENT DETAIL BOXES (read-only, non-add-mode)
    ========================================================== */
 
 @keyframes detail-box-reveal {
@@ -1828,7 +1828,7 @@
   }
 }
 
-// Adjust two-column layout — 40–60 split (inherits grid columns from base)
+// Adjust two-column layout â€” 40â€“60 split (inherits grid columns from base)
 .general-info-two-column {
   gap: 28px;
   align-items: start;
@@ -2576,7 +2576,7 @@
 
   // Active (in-progress) stage reads as an ongoing/operational state rather
   // than a true completion, so it gets the teal "active" accent instead of
-  // the completed stage's success green — keeps the two stages visually
+  // the completed stage's success green â€” keeps the two stages visually
   // distinct instead of sharing one color.
   &.active {
     background: $ffd-teal;
@@ -2601,7 +2601,7 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: #d0d0d0;
+      background: var(--ffd-border);
       display: block;
     }
   }
@@ -3085,7 +3085,7 @@
   overflow: hidden;
 }
 
-// Reusable scrollable-menu class for Billing Entity dropdowns (Vessel / Tug / Barge / Other) — keeps a
+// Reusable scrollable-menu class for Billing Entity dropdowns (Vessel / Tug / Barge / Other) â€” keeps a
 // fixed max height with an internal scrollbar instead of clipping long option lists.
 .cf-multi-select-dropdown.billing-entity-select {
   max-height: 260px;
@@ -3147,7 +3147,7 @@
   padding: 2px 0;
 }
 
-// Configurable max-height for MultiSelectField dropdowns (e.g. Select Checklist) — the height comes
+// Configurable max-height for MultiSelectField dropdowns (e.g. Select Checklist) â€” the height comes
 // from the --cf-multiselect-menu-max-height custom property set on the field's root wrapper.
 .cf-multi-select-dropdown--menu-height {
   max-height: var(--cf-multiselect-menu-max-height, 260px);
@@ -3400,7 +3400,7 @@
   font-weight: 500;
 }
 
-/* Fields locked independently of the form's overall view/edit mode — the standard
+/* Fields locked independently of the form's overall view/edit mode â€” the standard
    disabled look above already applies via the native `disabled` attribute; this only
    adds a label-level cue (icon + italics) so the lock reads as intentional, not stale UI. */
 .cf-field--readonly > label {
@@ -3419,7 +3419,7 @@
 .cf-input:has(input:disabled),
 .cf-input:has(select:disabled),
 .cf-select:has(select:disabled) {
-  background: linear-gradient(135deg, #f8f9fd 0%, #eef0f9 100%) !important;
+  background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%) !important;
   border-color: var(--border-primary) !important;
   opacity: 1;
   cursor: not-allowed;
@@ -3431,7 +3431,7 @@
 }
 
 .cf-owner-select:disabled {
-  background: linear-gradient(135deg, #f8f9fd 0%, #eef0f9 100%) !important;
+  background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%) !important;
   color: var(--text-primary) !important;
   cursor: not-allowed !important;
   opacity: 1;
@@ -3443,7 +3443,7 @@
 }
 
 .date-time-row input:disabled {
-  background: linear-gradient(135deg, #f8f9fd 0%, #eef0f9 100%) !important;
+  background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%) !important;
   color: var(--text-primary) !important;
   cursor: not-allowed !important;
 
@@ -3452,10 +3452,10 @@
   }
 }
 
-/* Multi-Select Email Disabled Styles — sleek read-only look */
+/* Multi-Select Email Disabled Styles â€” sleek read-only look */
 .cf-multi-select-email.disabled .cf-multi-select-email-input,
 .cf-multi-select-email-input.disabled {
-  background: linear-gradient(135deg, #f8f9fd 0%, #eef0f9 100%) !important;
+  background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%) !important;
   border-color: var(--border-primary) !important;
   cursor: not-allowed !important;
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
@@ -3472,7 +3472,7 @@
 
 .cf-multi-select-email.disabled .cf-email-tag,
 .cf-multi-select-email-input.disabled .cf-email-tag {
-  background-color: #e4e7f7 !important;
+  background-color: var(--surface-hover) !important;
   color: var(--text-primary) !important;
 }
 
@@ -3560,7 +3560,7 @@
   }
 }
 
-/* Every rule above hardcodes disabled/read-only text to rgb(26, 26, 26) — fine
+/* Every rule above hardcodes disabled/read-only text to rgb(26, 26, 26) â€” fine
    against the light disabled background, but unreadable against the dark
    surface. Re-point them at the theme's own text color in dark mode. */
 [data-theme="dark"] .cardform-body.card-form-panel.general-tab-body {
@@ -4025,7 +4025,7 @@
   box-shadow: 0 2px 8px rgba(0, 137, 123, 0.12);
 }
 
-/* Email Preview — Attachments */
+/* Email Preview â€” Attachments */
 .email-preview-meta .email-preview-row.email-preview-row--attachments {
   align-items: flex-start;
 }
@@ -4378,9 +4378,9 @@
   .MuiPickersInputBase-root.Mui-disabled,
   .MuiOutlinedInput-root.Mui-disabled,
   .MuiInputBase-root.Mui-disabled {
-    background: linear-gradient(135deg, #f8f9fd 0%, #eef0f9 100%) !important;
+    background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%) !important;
     box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03) !important;
-    -webkit-text-fill-color: #33364a !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
 
     [data-theme="dark"] & {
       background: linear-gradient(135deg, var(--surface-hover) 0%, var(--surface-secondary) 100%) !important;

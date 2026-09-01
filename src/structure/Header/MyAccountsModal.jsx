@@ -431,12 +431,12 @@ function MyAccountsModal({ show, onClose }) {
                     }}
                     onMouseEnter={(e) => {
                       if (!profileEditLoader) {
-                        e.currentTarget.style.backgroundColor = 'var(--ffd-hover-dark)';
+                        e.currentTarget.style.backgroundColor = 'var(--ffd-coral-hover)';
                         e.currentTarget.style.transform = 'translateY(-2px)';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--ffd-navy)';
+                      e.currentTarget.style.backgroundColor = 'var(--ffd-coral)';
                       e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >

@@ -1,3 +1,5 @@
+@import "partials/partials";
+
 .blockers-modal {
   .modal-dialog {
     max-width: 1250px;
@@ -31,7 +33,7 @@
       left: 0;
       right: 0;
       height: 3px;
-      background: linear-gradient(90deg, #101d33 0%, #24365a 55%, #c9a227 100%);
+      background: linear-gradient(90deg, var(--ffd-navy) 0%, var(--ffd-navy-light) 55%, var(--ffd-coral) 100%);
       z-index: 1;
     }
   }
@@ -129,8 +131,8 @@
 
         &:focus {
           outline: none;
-          border-color: #16243f;
-          box-shadow: 0 0 0 3px rgba(22, 36, 63, 0.1);
+          border-color: var(--ffd-coral);
+          box-shadow: 0 0 0 3px rgba($ffd-coral, 0.1);
         }
 
         &::placeholder {
@@ -172,7 +174,7 @@
       }
 
       .blockers-add-btn {
-        background: linear-gradient(135deg, #101d33 0%, #24365a 100%);
+        background: var(--ffd-coral);
         border: none;
         border-radius: 50%;
         width: 40px;
@@ -182,14 +184,14 @@
         justify-content: center;
         cursor: pointer;
         color: #ffffff;
-        box-shadow: 0 4px 12px rgba(16, 29, 51, 0.28);
+        box-shadow: 0 4px 12px rgba($ffd-coral, 0.28);
         transition: all 0.2s ease;
         flex-shrink: 0;
 
         &:hover {
-          background: linear-gradient(135deg, #0a1626 0%, #1a2a47 100%);
+          background: var(--ffd-coral-hover);
           transform: scale(1.05);
-          box-shadow: 0 6px 16px rgba(16, 29, 51, 0.34), 0 0 0 3px rgba(201, 162, 39, 0.22);
+          box-shadow: 0 6px 16px rgba($ffd-coral, 0.34), 0 0 0 3px rgba($ffd-coral, 0.22);
         }
 
         &:active {
@@ -219,11 +221,11 @@
     }
 
     &::-webkit-scrollbar-thumb {
-      background: #d0d0d7;
+      background: var(--scrollbar-thumb);
       border-radius: 4px;
 
       &:hover {
-        background: #b0b0b7;
+        background: var(--scrollbar-thumb-hover);
       }
     }
   }
@@ -450,7 +452,7 @@
 
         &:hover:not(:disabled) {
           background: var(--surface-primary);
-          border-color: #16243f;
+          border-color: var(--ffd-coral);
           color: var(--text-primary);
         }
 

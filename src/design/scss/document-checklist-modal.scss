@@ -1,3 +1,5 @@
+@import "partials/partials";
+
 body .document-checklist-modal .modal-dialog {
   max-width: 680px !important;
 }
@@ -49,17 +51,17 @@ body .document-checklist-modal .modal-dialog {
 
 .document-checklist-modal .document-checklist-select-wrap .react-select__multi-value {
   border-radius: 16px;
-  background: #e8f0ff;
+  background: var(--ffd-coral-soft);
 }
 
 .document-checklist-modal .document-checklist-select-wrap .react-select__multi-value__label {
-  color: #0f3f87;
+  color: var(--ffd-coral);
   font-weight: 500;
 }
 
 .document-checklist-modal .document-checklist-select-wrap .react-select__multi-value__remove:hover {
-  background: #cddfff;
-  color: #0a2f69;
+  background: rgba($ffd-coral, 0.18);
+  color: var(--ffd-coral-hover);
 }
 
 .document-checklist-modal .document-checklist-select-wrap .react-select__menu {

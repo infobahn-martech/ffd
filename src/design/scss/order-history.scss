@@ -66,7 +66,7 @@
   thead th {
     font-weight: 600;
     font-size: 12px;
-    background: #e2e6ff !important;
+    background: rgba($ffd-navy, 0.08) !important;
     color: var(--text-primary) !important;
     white-space: nowrap;
   }
@@ -206,9 +206,9 @@
 }
 
 .order-history-step.is-done .order-history-step-icon {
-  background: #e2e6ff;
-  color: #00368c;
-  border-color: #00368c;
+  background: var(--ffd-teal-soft);
+  color: var(--ffd-teal);
+  border-color: var(--ffd-teal);
   animation: order-history-check-pop 0.35s ease;
 }
 
@@ -221,7 +221,7 @@
 
 .order-history-step-doc {
   font-size: 12px;
-  color: #00368c;
+  color: var(--ffd-navy);
   font-weight: 500;
   word-break: break-word;
 }
@@ -257,7 +257,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: #00368c;
+  background: var(--ffd-teal);
   transform-origin: left;
   animation: order-history-line-fill 0.4s ease forwards;
 }

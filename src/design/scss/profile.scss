@@ -27,7 +27,7 @@
         font-size: 20px;
         line-height: 30px;
         letter-spacing: 0.1px;
-        color: #00368c;
+        color: var(--text-primary);
         padding-top: 26px;
         padding-bottom: 41px;
 
@@ -68,7 +68,7 @@
         .profile-img {
             width: 173px;
             height: 173px;
-            border: 8px solid #00368C4A;
+            border: 8px solid rgba($ffd-navy, 0.29);
             border-radius: 100px;
 
             @media($sm-1281) {
@@ -97,7 +97,7 @@
             font-weight: 300;
             margin-left: 5px;
             letter-spacing: 0px;
-            color: #00368C;
+            color: var(--text-primary);
         }
 
         .text-sec {
@@ -108,10 +108,10 @@
         }
 
         .edit-btn {
-            background-color: #DEF0F2;
+            background-color: rgba($ffd-navy, 0.08);
             border-radius: 8px;
             border: 1px solid var(--border-primary);
-            color: #00368C;
+            color: $ffd-navy;
 
             @media($sm-1281) {
                 padding: 10px;
@@ -183,15 +183,19 @@
         }
 
         &.close {
-            background-color: #DEF0F2;
-            color: #00368c;
+            background-color: rgba($ffd-navy, 0.08);
+            color: $ffd-navy;
         }
     }
 }
 
 .green-btn {
-    background: #00368C;
+    background: var(--ffd-coral);
     color: #fff;
+
+    &:hover:not(:disabled) {
+        background: var(--ffd-coral-hover);
+    }
 }
 
 

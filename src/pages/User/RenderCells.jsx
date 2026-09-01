@@ -101,7 +101,7 @@ export const RenderAction = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: isActive ? '#00368c' : '#d1d5db',
+                  backgroundColor: isActive ? 'var(--ffd-teal)' : '#d1d5db',
                   transition: '0.3s',
                   borderRadius: '20px',
                 }}

@@ -9,14 +9,15 @@ $ffd-navy: #0F2A3D;
 $ffd-navy-light: #16374C;
 $ffd-hover-dark: #1B4359;
 $ffd-coral: #D85A30;
+$ffd-coral-hover: #BF4824;
 $ffd-coral-soft: #FBE9E3;
 $ffd-teal: #4EC9A1;
 $ffd-teal-soft: #E3F7F1;
 $ffd-background: #F5F4F1;
 $ffd-surface: #fff;
-$ffd-text-primary: #17232C;
-$ffd-text-secondary: #66727A;
-$ffd-border: #DDDCD7;
+$ffd-text-primary: #0F2A3D;
+$ffd-text-secondary: #667680;
+$ffd-border: #E2E5E7;
 
 // Legacy brand aliases — existing selectors reference these names across the
 // codebase, so they now resolve into the FFD palette instead of the old

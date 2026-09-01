@@ -49,7 +49,7 @@
 .material-edit-form .cf-input select:disabled,
 .material-edit-form .date-time-row input:disabled {
   color: var(--text-primary) !important;
-  -webkit-text-fill-color: #33364a !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
   opacity: 1 !important;
 }
 

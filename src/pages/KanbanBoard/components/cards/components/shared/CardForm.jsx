@@ -13,8 +13,8 @@ import DynamicIcon from "../../../../../../structure/SideNav/components/DynamicI
 import { mapBackendIconNameToIconKey } from "../../../../../../store/KanbanManagementReducer";
 import { TaskCardDetailView } from "../../../../../../pages/TaskCard";
 
-const DEFAULT_ACCENT_COLOR = "#2A00FF";
-const ADD_CARD_TOPBAR_DEFAULT_HEX = "#2e7d32";
+const DEFAULT_ACCENT_COLOR = "#0F2A3D";
+const ADD_CARD_TOPBAR_DEFAULT_HEX = "#D85A30";
 
 /** Map header CSS color (hex or rgb/rgba) to normalized hex for SedresColorPicker. */
 const appearanceColorToPickerHex = (value, fallbackHex = ADD_CARD_TOPBAR_DEFAULT_HEX) => {
@@ -78,7 +78,7 @@ const getStepNumberFromColumnId = (columnId, columns, columnOrder) => {
 const TYPE_PICKER_WIDTH = 272;
 
 const contrastIconFg = (bg) => {
-  if (!bg || typeof bg !== "string") return "#1a1a1a";
+  if (!bg || typeof bg !== "string") return "var(--ffd-text-primary)";
   let r;
   let g;
   let b;
@@ -86,19 +86,19 @@ const contrastIconFg = (bg) => {
   if (trimmed.startsWith("#")) {
     const h = trimmed.slice(1);
     const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
-    if (full.length < 6) return "#1a1a1a";
+    if (full.length < 6) return "var(--ffd-text-primary)";
     r = parseInt(full.slice(0, 2), 16);
     g = parseInt(full.slice(2, 4), 16);
     b = parseInt(full.slice(4, 6), 16);
   } else {
     const m = trimmed.match(/\d+/g);
-    if (!m || m.length < 3) return "#1a1a1a";
+    if (!m || m.length < 3) return "var(--ffd-text-primary)";
     r = Number(m[0]);
     g = Number(m[1]);
     b = Number(m[2]);
   }
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.62 ? "#1a1a1a" : "#ffffff";
+  return luminance > 0.62 ? "var(--ffd-text-primary)" : "#ffffff";
 };
 
 const resolveCardTypeIdFromCard = (card) => {
@@ -1106,8 +1106,8 @@ TopBar.propTypes = {
 };
 
 const StepsProgress = ({ totalSteps = 0, activeStep = 1, completedSteps = 0, stepLabels = [], onStepClick, currentStep }) => {
-  const GREEN_COMPLETED = "#2e7d32";
-  const GREEN_INACTIVE = "#8bc48a";
+  const GREEN_COMPLETED = "var(--ffd-teal)";
+  const GREEN_INACTIVE = "var(--text-muted)";
 
   const actualCurrentStep = currentStep !== null && currentStep !== undefined ? currentStep : activeStep;
 

@@ -9,7 +9,7 @@ import "../../../../design/scss/pages/kanban-board/column.scss";
 function Column({ column, cards, setSelectedCard, isExpanded = false, isShrunk = false, onHeaderClick, onContextMenu, columnHeight, onHeightChange, isClassicLayout = false, isModernLayout = false, isDarkMode = false }) {
   const columnRef = useRef(null);
   const lastReportedHeightRef = useRef(null);
-  const columnColor = column.color || "#2A00FF";
+  const columnColor = column.color || "var(--ffd-navy)";
 
   // Truncate title to 8 characters when shrunk
   const displayTitle = isShrunk && column.title.length > 8

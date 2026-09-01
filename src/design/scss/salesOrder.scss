@@ -460,7 +460,7 @@
   .MuiInputBase-root.Mui-disabled {
     background: transparent !important;
     box-shadow: none !important;
-    -webkit-text-fill-color: #5b6178 !important;
+    -webkit-text-fill-color: var(--text-secondary) !important;
   }
 
   .MuiPickersInputBase-root.Mui-disabled .MuiSvgIcon-root,

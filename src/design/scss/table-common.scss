@@ -272,8 +272,12 @@ body {
 }
 
 .green-btn {
-    background: $status-success;
+    background: var(--ffd-coral);
     color: $white;
+
+    &:hover:not(:disabled) {
+        background: var(--ffd-coral-hover);
+    }
 }
 
 .red-btn {

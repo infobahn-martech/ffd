@@ -14,7 +14,7 @@ export default function ColumnHeader({
   isModernLayout = false,
   isDarkMode = false,
 }) {
-  const columnColor = column.color || "#2A00FF";
+  const columnColor = column.color || "var(--ffd-navy)";
   const tooltipId = `column-title-${column.id}`;
 
   if (isCollapsed) {

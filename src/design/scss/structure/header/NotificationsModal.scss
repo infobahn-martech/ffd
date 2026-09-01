@@ -70,7 +70,7 @@
       gap: 6px;
       background: transparent;
       border: none;
-      color: #65BD50;
+      color: var(--ffd-coral);
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
@@ -86,7 +86,7 @@
 
       &:hover {
         background-color: var(--surface-primary);
-        color: #4ade80;
+        color: var(--ffd-coral-hover);
       }
 
       &:active {
@@ -129,7 +129,7 @@
       }
 
       &:focus {
-        outline: 2px solid #0263D1;
+        outline: 2px solid var(--ffd-coral);
         outline-offset: 2px;
       }
     }
@@ -159,11 +159,11 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--scrollbar-thumb);
     border-radius: 4px;
 
     &:hover {
-      background: #94a3b8;
+      background: var(--scrollbar-thumb-hover);
     }
   }
 
@@ -247,7 +247,7 @@
           width: 8px;
           height: 8px;
           border-radius: 50%;
-          background-color: #65BD50;
+          background-color: var(--ffd-coral);
           flex-shrink: 0;
         }
 
@@ -301,7 +301,7 @@
       font-family: 'Manrope', sans-serif;
 
       &:hover {
-        color: #00368c;
+        color: var(--ffd-coral);
       }
     }
   }

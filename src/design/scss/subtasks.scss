@@ -4,6 +4,8 @@
    that Comments.jsx and other tabs still rely on)
    ========================================================== */
 
+@import "partials/partials";
+
 .task-tab {
   display: flex;
   flex-direction: column;
@@ -111,7 +113,7 @@
 }
 
 .task-tab-required {
-  color: #dc3545;
+  color: $status-danger;
 }
 
 .task-tab-assignee-row {
@@ -143,8 +145,8 @@
 
   &:focus {
     outline: none;
-    border-color: #a9c1ee;
-    box-shadow: 0 0 0 3px rgba(0, 54, 140, 0.08);
+    border-color: $ffd-navy;
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.08);
   }
 
   &:disabled {
@@ -162,14 +164,14 @@
   border: 1px dashed var(--border-primary);
   border-radius: 10px;
   background: var(--surface-primary);
-  color: #00368c;
+  color: $ffd-navy;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
 
   &:hover {
-    border-color: #00368c;
+    border-color: $ffd-navy;
     background: var(--surface-primary);
   }
 }
@@ -221,8 +223,8 @@
   transition: background 0.15s ease, color 0.15s ease;
 
   &:hover {
-    background: #eaf1ff;
-    color: #00368c;
+    background: rgba($ffd-navy, 0.08);
+    color: $ffd-navy;
   }
 }
 
@@ -261,7 +263,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #00368c 0%, #0049b8 100%);
+  background: linear-gradient(135deg, $ffd-coral 0%, $ffd-coral-hover 100%);
   border: none;
   color: #ffffff;
   border-radius: 10px;
@@ -279,7 +281,7 @@
   }
 
   &:hover:not(:disabled) {
-    box-shadow: 0 6px 16px rgba(0, 54, 140, 0.3);
+    box-shadow: 0 6px 16px rgba($ffd-coral, 0.3);
   }
 
   &:active:not(:disabled) {
@@ -309,7 +311,7 @@
 
   &:hover:not(:disabled) {
     border-color: var(--border-primary);
-    color: #00368c;
+    color: $ffd-navy;
     background: var(--surface-primary);
   }
 
@@ -343,8 +345,8 @@
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  background: #eaf1ff;
-  color: #00368c;
+  background: rgba($ffd-navy, 0.08);
+  color: $ffd-navy;
   font-size: 11px;
   font-weight: 700;
 }
@@ -436,7 +438,7 @@
     transform: translateY(-1px);
 
     &::before {
-      background: #00368c;
+      background: $ffd-navy;
     }
 
     .task-tab-icon-btn {
@@ -451,20 +453,20 @@
   border-color: var(--border-primary);
 
   &::before {
-    background: #2e7d32;
+    background: $status-completed-text;
   }
 
   &:hover::before {
-    background: #2e7d32;
+    background: $status-completed-text;
   }
 }
 
 .task-tab-task-card--editing {
-  border-color: #a9c1ee;
+  border-color: $ffd-navy-light;
   background: var(--surface-primary);
 
   &::before {
-    background: #00368c;
+    background: $ffd-navy;
   }
 }
 
@@ -513,8 +515,8 @@
   transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
 
   &:hover:not(:disabled) {
-    background: #eaf1ff;
-    color: #00368c;
+    background: rgba($ffd-navy, 0.08);
+    color: $ffd-navy;
   }
 
   &:disabled {
@@ -542,13 +544,13 @@
 }
 
 .task-tab-status-badge--pending {
-  background: #fff3e0;
-  color: #b8720a;
+  background: $status-pending-bg;
+  color: $status-pending-text;
 }
 
 .task-tab-status-badge--completed {
   background: var(--bg-secondary);
-  color: #2e7d32;
+  color: $status-completed-text;
 }
 
 .task-tab-task-meta {
@@ -614,7 +616,7 @@
   background: var(--surface-primary);
   font-size: 11px;
   font-weight: 500;
-  color: #00368c;
+  color: var(--ffd-coral);
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
@@ -626,7 +628,7 @@
   }
 
   &:hover {
-    background: #e0eafc;
+    background: var(--ffd-coral-soft);
     text-decoration: none;
   }
 }

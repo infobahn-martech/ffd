@@ -83,7 +83,7 @@ const Analytics = () => {
       change: '+12%',
       isPositive: true,
       icon: FiBarChart2,
-      color: '#0F2A3D'
+      color: 'var(--ffd-navy)'
     },
     {
       id: 2,
@@ -92,7 +92,7 @@ const Analytics = () => {
       change: `+${completionRate}%`,
       isPositive: true,
       icon: FiBarChart2,
-      color: '#28A745'
+      color: 'var(--color-success)'
     },
     {
       id: 3,
@@ -101,7 +101,7 @@ const Analytics = () => {
       change: `+${inProgressRate}%`,
       isPositive: true,
       icon: FiBarChart2,
-      color: '#4EC9A1'
+      color: 'var(--ffd-teal)'
     },
     {
       id: 4,
@@ -110,7 +110,7 @@ const Analytics = () => {
       change: '-8%',
       isPositive: false,
       icon: FiBarChart2,
-      color: '#DC3545'
+      color: 'var(--color-danger)'
     },
   ];
 

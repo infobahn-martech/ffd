@@ -153,7 +153,7 @@
  */
 .card-list--swimlane-grid {
   box-sizing: border-box;
-  background: rgba(234, 241, 251, 0.72);
+  background: rgba($ffd-background, 0.72);
   border-radius: 8px;
   min-height: 0;
   height: 100%;
@@ -167,7 +167,7 @@
 }
 
 .kanban-classic-layout .card-list--swimlane-grid {
-  background: rgba(238, 240, 245, 0.72);
+  background: rgba($ffd-background, 0.5);
 }
 
 /* Swimlane board: fixed width (layout-dependent), height from content */
