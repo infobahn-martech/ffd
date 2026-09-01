@@ -6,7 +6,7 @@ const DefaultMenu = ({ menu, subMenus, to, icon, isOpen, toggleCollapse, onSubme
   const { pathname } = useLocation();
   return !subMenus ? (
     <li className="menu-link">
-      <Link to={to ?? '# '} className={`link ${pathname === to && 'active'}`}>
+      <Link to={to ?? '# '} className={`link ${pathname === to ? 'active' : ''}`}>
         <span className="ico">
           <img src={icon} alt="" />
         </span>
@@ -55,7 +55,7 @@ const DefaultMenu = ({ menu, subMenus, to, icon, isOpen, toggleCollapse, onSubme
             >
               <Link
                 to={to}
-                className={`link ${pathname === to && 'submenu_active'}`}
+                className={`link ${pathname === to ? 'submenu_active' : ''}`}
                 onClick={handleClick}
               >
                 <ul>

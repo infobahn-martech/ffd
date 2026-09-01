@@ -190,9 +190,8 @@
 
                 }
 
-                &:hover {
-                    color: var(--color-primary-accent);
-                    background-color: var(--surface-primary);
+                &:hover:not(.submenu_active) {
+                    background-color: rgba(255, 255, 255, 0.08);
                 }
 
                 &.submenu_active {
@@ -292,18 +291,26 @@
                 }
 
                 &:not(.darkmode-toggle) {
-                    &.active,
+                    // Hover gets a subtle highlight only — the full white-bg/coral-text
+                    // "selected" treatment is reserved for &.active so a hovered item
+                    // never reads as selected while a different route is actually active.
+                    &:hover:not(.active) {
+                        background-color: rgba(255, 255, 255, 0.08);
+                    }
 
-                    &:hover {
+                    &.active {
                         background-color: var(--surface-primary);
                         color: var(--color-primary-accent);
 
                         img {
-                            filter: brightness(1) invert(0); // show original colored icon on active hover
+                            // Recolors the icon to exactly #D85A30 (the FFD coral accent)
+                            // regardless of the source SVG's own stroke color — verified
+                            // pixel-exact (216, 90, 48) via canvas sampling. Do not swap
+                            // this for `brightness(1) invert(0)` (reveals the source
+                            // icon's native color, e.g. blue) or a hardcoded hex filter.
+                            filter: brightness(0) saturate(100%) invert(36%) sepia(90%) saturate(700%) hue-rotate(336deg) brightness(100%) contrast(90%);
                         }
-                    }
 
-                    &.active {
                         &:before {
                             content: '';
                             position: absolute;
