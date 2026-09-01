@@ -3,7 +3,7 @@ import { Droppable } from "@hello-pangea/dnd";
 import PropTypes from "prop-types";
 import CardItem from "../cards/CardItem";
 import { buildSwimlaneDroppableId } from "../../hooks/useKanbanDnD";
-import { CARD_GAP, CELL_PADDING_X, getCardsPerRow, getCardWidth } from "../../utils/boardGridHelpers";
+import { CARD_GAP, CELL_PADDING_X, getCardsPerRow } from "../../utils/boardGridHelpers";
 import "../../../../design/scss/pages/kanban-board/column.scss";
 
 /**
@@ -21,7 +21,6 @@ export default function SwimlaneColumnCell({
   isClassicLayout = false,
   isModernLayout = false,
   isDarkMode = false,
-  layoutView = null,
 }) {
   const EMPTY_DROP_ZONE_MIN_HEIGHT = 720;
   /* Only fall back to the big placeholder height when nothing else in the row sets a
@@ -31,9 +30,11 @@ export default function SwimlaneColumnCell({
   const cellRef = useRef(null);
   const lastReportedHeightRef = useRef(null);
   const droppableId = buildSwimlaneDroppableId(laneId, column.id);
-  /* Inner card grid: repeat(cardsPerRow, …) — layout inside the cell; board row width uses the same ratio via boardGridHelpers */
+  /* Inner card grid: cardsPerRow fluid tracks (each 1fr) so cards fill the column's
+     actual rendered width — the column track itself still has a px floor via
+     boardGridHelpers' minmax(Wpx, 1fr), cards just stretch to fill whatever that
+     track resolves to instead of being capped at a fixed pixel width. */
   const perRow = getCardsPerRow(column);
-  const cardWidth = getCardWidth(layoutView);
 
   const handleContextMenu = (e) => {
     e.preventDefault();
@@ -129,12 +130,14 @@ export default function SwimlaneColumnCell({
             ref={provided.innerRef}
             {...provided.droppableProps}
             style={{
-              /* Inner card grid: fixed column widths; row height = tallest card in that row (implicit auto rows) */
+              /* Inner card grid: fluid columns (each 1fr of the cell's actual width) so
+                 cards fill the column instead of sitting at a fixed px width with dead
+                 space beside them; row height = tallest card in that row (implicit auto rows) */
               display: "grid",
-              gridTemplateColumns: `repeat(${perRow}, ${cardWidth}px)`,
+              gridTemplateColumns: `repeat(${perRow}, minmax(0, 1fr))`,
               gap: `${CARD_GAP}px`,
               padding: `${CELL_PADDING_X}px`,
-              justifyItems: "start",
+              justifyItems: "stretch",
               alignItems: "start",
               alignContent: "start",
               minHeight: isUnconstrainedEmpty ? `${EMPTY_DROP_ZONE_MIN_HEIGHT}px` : undefined,
@@ -149,7 +152,6 @@ export default function SwimlaneColumnCell({
                 setSelectedCard={setSelectedCard}
                 isClassicLayout={isClassicLayout}
                 isModernLayout={isModernLayout}
-                fixedDimensions={{ width: cardWidth }}
               />
             ))}
             {provided.placeholder}
@@ -178,5 +180,4 @@ SwimlaneColumnCell.propTypes = {
   isClassicLayout: PropTypes.bool,
   isModernLayout: PropTypes.bool,
   isDarkMode: PropTypes.bool,
-  layoutView: PropTypes.string,
 };
