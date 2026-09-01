@@ -89,7 +89,7 @@ function Index() {
       <div className="form-wrap">
         <div className="content-wrap">
           <div className="logo-wrap">
-            <span className="app-logo-text">FFD</span>
+            {/* <span className="app-logo-text">FFD</span> */}
           </div>
 
           <div className="head-wrap">
