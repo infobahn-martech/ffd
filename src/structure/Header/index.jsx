@@ -20,6 +20,7 @@ import {
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 
+import sedresLogoWhite from '../../assets/images/SedresLogoWhite.png';
 import { useBreakpoint } from '../../shared/hooks/useWindowSize';
 import useAuthReducer from '../../store/AuthReducer';
 import MyAccountsModal from './MyAccountsModal';
@@ -212,13 +213,13 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
           </>
         )}
 
-        <span
-          className="sedres-logo app-logo-text"
+        <img
+          src={sedresLogoWhite}
+          alt="Sedres"
+          className="sedres-logo"
           onClick={() => navigate('/workspaces')}
           style={{ cursor: 'pointer' }}
-        >
-          FFD
-        </span>
+        />
 
         {!restrictedBoardUser && (pathname === '/kanban-board/operator' || pathname === '/compact') && (
           <div className="top-links">
