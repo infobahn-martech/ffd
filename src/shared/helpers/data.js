@@ -95,7 +95,7 @@ export function mapBoardWorkflowFromApi(workflow) {
         stageId,
         stageTitle,
         wipLimit: null,
-        cardsPerRow: Number(col?.cards_per_row) || 1,
+        cardsPerRow: Number(col?.cards_per_row) || DEFAULT_CARDS_PER_ROW,
         backgroundColor: normalizeHexColor(col?.background_color, "#ffffff"),
         parentColumnId: col._parentColumnId ?? null,
         parentTitle: col._parentTitle ?? null,

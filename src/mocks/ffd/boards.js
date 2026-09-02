@@ -19,7 +19,7 @@ const singleColumnStage = (id, name, colorCode) => ({
     {
       column_id: id,
       column_name: name,
-      cards_per_row: 1,
+      cards_per_row: 2,
       background_color: "#ffffff",
       cards_by_swimlane: {},
     },
