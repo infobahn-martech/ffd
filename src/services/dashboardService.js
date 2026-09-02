@@ -5,71 +5,113 @@
 
 const MOCK_OVERVIEW = {
   stats: [
-    { key: "total_vessels", label: "Total Vessels", value: 142, change_percent: 12, trend: "up" },
-    { key: "active_crew", label: "Active Crew", value: 1234, change_percent: 8, trend: "up" },
-    { key: "completed_jobs", label: "Completed Jobs", value: 856, change_percent: 15, trend: "up" },
-    { key: "revenue", label: "Revenue", value: 2400000, change_percent: 22, trend: "up" },
+    { key: "new_inquiries", label: "New Inquiries", value: 8, change_percent: 14, trend: "up" },
+    { key: "pending_quotations", label: "Pending Quotations", value: 5, change_percent: -6, trend: "down" },
+    { key: "jobs_in_progress", label: "Jobs In Progress", value: 23, change_percent: 9, trend: "up" },
+    { key: "completed_jobs", label: "Completed Jobs", value: 142, change_percent: 18, trend: "up" },
+    { key: "alerts_followups", label: "Alerts / Follow-ups", value: 4, change_percent: 0, trend: "flat" },
   ],
 
-  vessel_traffic: [
-    { month: "Jan", month_number: 1, arrivals: 45, departures: 38 },
-    { month: "Feb", month_number: 2, arrivals: 52, departures: 45 },
-    { month: "Mar", month_number: 3, arrivals: 48, departures: 42 },
-    { month: "Apr", month_number: 4, arrivals: 61, departures: 55 },
-    { month: "May", month_number: 5, arrivals: 55, departures: 48 },
-    { month: "Jun", month_number: 6, arrivals: 67, departures: 60 },
-    { month: "Jul", month_number: 7, arrivals: 72, departures: 65 },
-    { month: "Aug", month_number: 8, arrivals: 68, departures: 62 },
-    { month: "Sep", month_number: 9, arrivals: 75, departures: 70 },
-    { month: "Oct", month_number: 10, arrivals: 80, departures: 75 },
-    { month: "Nov", month_number: 11, arrivals: 85, departures: 78 },
-    { month: "Dec", month_number: 12, arrivals: 90, departures: 82 },
+  // Mode-wise Inquiry Count (pie)
+  mode_wise_inquiries: [
+    { key: "air", name: "Air", value: 34 },
+    { key: "sea", name: "Sea", value: 52 },
+    { key: "land", name: "Land", value: 19 },
   ],
 
-  services_by_type: [
-    { key: "transport", name: "Transport", value: 320 },
-    { key: "medical", name: "Medical", value: 180 },
-    { key: "hotel", name: "Hotel", value: 245 },
-    { key: "launch_hire", name: "Launch Hire", value: 150 },
-    { key: "warehouse", name: "Warehouse", value: 195 },
-    { key: "customs", name: "Customs", value: 220 },
-  ],
-
+  // Job Status Overview (bar) — colors follow the spec's status legend:
+  // Pending-Yellow, In Progress-Blue, Completed-Green, Delayed-Red.
   job_status: [
-    { key: "completed", name: "Completed", value: 450 },
-    { key: "in_progress", name: "In Progress", value: 300 },
-    { key: "pending", name: "Pending", value: 150 },
-    { key: "on_hold", name: "On Hold", value: 100 },
-  ],
-
-  service_requests_trend: [
-    { month: "Jan", month_number: 1, requests: 285 },
-    { month: "Feb", month_number: 2, requests: 310 },
-    { month: "Mar", month_number: 3, requests: 295 },
-    { month: "Apr", month_number: 4, requests: 340 },
-    { month: "May", month_number: 5, requests: 325 },
-    { month: "Jun", month_number: 6, requests: 380 },
-    { month: "Jul", month_number: 7, requests: 395 },
-    { month: "Aug", month_number: 8, requests: 375 },
-    { month: "Sep", month_number: 9, requests: 410 },
-    { month: "Oct", month_number: 10, requests: 435 },
-    { month: "Nov", month_number: 11, requests: 450 },
-    { month: "Dec", month_number: 12, requests: 475 },
+    { key: "pending", name: "Pending", value: 18 },
+    { key: "in_progress", name: "In Progress", value: 23 },
+    { key: "completed", name: "Completed", value: 142 },
+    { key: "delayed", name: "Delayed", value: 6 },
   ],
 
   revenue_trend: [
-    { month: "Jan", month_number: 1, revenue: 180000, expenses: 120000 },
-    { month: "Feb", month_number: 2, revenue: 195000, expenses: 125000 },
-    { month: "Mar", month_number: 3, revenue: 210000, expenses: 130000 },
-    { month: "Apr", month_number: 4, revenue: 225000, expenses: 135000 },
-    { month: "May", month_number: 5, revenue: 240000, expenses: 140000 },
-    { month: "Jun", month_number: 6, revenue: 255000, expenses: 145000 },
-    { month: "Jul", month_number: 7, revenue: 270000, expenses: 150000 },
-    { month: "Aug", month_number: 8, revenue: 285000, expenses: 155000 },
-    { month: "Sep", month_number: 9, revenue: 300000, expenses: 160000 },
-    { month: "Oct", month_number: 10, revenue: 315000, expenses: 165000 },
-    { month: "Nov", month_number: 11, revenue: 330000, expenses: 170000 },
-    { month: "Dec", month_number: 12, revenue: 345000, expenses: 175000 },
+    { month: "Jan", revenue: 180000 },
+    { month: "Feb", revenue: 195000 },
+    { month: "Mar", revenue: 210000 },
+    { month: "Apr", revenue: 225000 },
+    { month: "May", revenue: 240000 },
+    { month: "Jun", revenue: 255000 },
+  ],
+
+  quote_conversion_rate: 62,
+
+  // Inquiry & Job Table (central section)
+  inquiries: [
+    {
+      id: "INQ-1042",
+      customer: "ABC Traders",
+      mode: "Air",
+      type: "Import",
+      cargo: "Electronics, 150kg",
+      route: "Riyadh → Jeddah",
+      status: "quotation_sent",
+      assigned_to: "Alex Johnson",
+    },
+    {
+      id: "RFQ-1041",
+      customer: "Nova Logistics",
+      mode: "Sea",
+      type: "Export",
+      cargo: "Machinery, 4.2t",
+      route: "Jeddah → Dubai",
+      status: "pending",
+      assigned_to: "Priya Patel",
+    },
+    {
+      id: "SED-AIR-0123",
+      customer: "Gulf Freight Co.",
+      mode: "Air",
+      type: "DAP",
+      cargo: "Auto parts, 80kg",
+      route: "Dammam → Riyadh",
+      status: "confirmed",
+      assigned_to: "Sam Lee",
+    },
+    {
+      id: "SED-SEA-0118",
+      customer: "Al Rashid Trading",
+      mode: "Sea",
+      type: "Import",
+      cargo: "Furniture, 12t",
+      route: "Shanghai → Jeddah",
+      status: "in_transit",
+      assigned_to: "Jordan Smith",
+    },
+    {
+      id: "SED-LAND-0091",
+      customer: "Desert Rose LLC",
+      mode: "Land",
+      type: "DDP",
+      cargo: "Textiles, 900kg",
+      route: "Riyadh → Dubai",
+      status: "delivered",
+      assigned_to: "Alex Johnson",
+    },
+    {
+      id: "RFQ-1039",
+      customer: "BGP Arabia Co.",
+      mode: "Sea",
+      type: "Export",
+      cargo: "Steel coils, 8t",
+      route: "Jeddah → Rotterdam",
+      status: "pending",
+      assigned_to: "Priya Patel",
+    },
+  ],
+
+  follow_ups: [
+    { id: "fu-1", label: "Follow up quote — Nova Logistics", due: "Today", customer: "Nova Logistics", mode: "Sea" },
+    { id: "fu-2", label: "Confirm pickup slot — Al Rashid Trading", due: "Tomorrow", customer: "Al Rashid Trading", mode: "Sea" },
+    { id: "fu-3", label: "Rate expiry reminder — BGP Arabia Co.", due: "In 2 days", customer: "BGP Arabia Co.", mode: "Sea" },
+  ],
+
+  pending_approvals: [
+    { id: "pa-1", label: "Quotation approval — ABC Traders (margin 9%)" },
+    { id: "pa-2", label: "Job confirmation — Gulf Freight Co." },
   ],
 };
 

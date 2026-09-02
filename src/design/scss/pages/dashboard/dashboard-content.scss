@@ -168,6 +168,205 @@
   }
 }
 
+// Quick Actions / Shortcuts panel
+.quick-actions-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.quick-action-tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 10px;
+  font: normal normal 600 14px/1.4 'Manrope', sans-serif;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $ffd-navy;
+    color: $ffd-navy;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .quick-action-icon {
+    display: flex;
+    color: var(--ffd-teal);
+    font-size: 18px;
+  }
+}
+
+// Revenue / Quote Conversion Rate badge (inside its chart-card)
+.conversion-rate-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  .conversion-rate-value {
+    font: normal normal 700 28px/1 'Manrope', sans-serif;
+    color: $ffd-navy;
+  }
+
+  .conversion-rate-label {
+    font: normal normal 400 13px/1.4 'Manrope', sans-serif;
+    color: var(--text-secondary);
+  }
+}
+
+// Follow-ups & Tasks widget
+.followups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.followup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-secondary, rgba(15, 42, 61, 0.04));
+  font: normal normal 500 13px/1.4 'Manrope', sans-serif;
+  color: var(--text-primary);
+}
+
+.followup-due {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.followups-subheading {
+  font: normal normal 600 13px/1.4 'Manrope', sans-serif;
+  color: var(--text-secondary);
+  margin: 16px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+// Inquiry & Job Table
+.inquiry-table-card {
+  background: var(--surface-primary);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-primary);
+  margin-top: 20px;
+}
+
+.inquiry-table-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-primary);
+    background: var(--surface-primary);
+    color: var(--text-primary);
+    font: normal normal 500 13px/1.4 'Manrope', sans-serif;
+  }
+}
+
+.inquiry-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 220px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font: normal normal 400 13px/1.4 'Manrope', sans-serif;
+  }
+}
+
+.inquiry-table-wrap {
+  overflow-x: auto;
+}
+
+.inquiry-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: normal normal 400 13px/1.4 'Manrope', sans-serif;
+
+  th,
+  td {
+    padding: 10px 12px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border-primary);
+  }
+
+  th {
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+
+    .sort-arrow {
+      color: $ffd-navy;
+    }
+  }
+
+  td {
+    color: var(--text-primary);
+  }
+}
+
+.inquiry-table-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 24px 0;
+}
+
+.inquiry-table-actions {
+  display: flex;
+  gap: 6px;
+
+  button {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-primary);
+    background: transparent;
+    color: var(--text-secondary);
+    font: normal normal 500 11px/1.4 'Manrope', sans-serif;
+    cursor: pointer;
+
+    &:hover {
+      border-color: $ffd-navy;
+      color: $ffd-navy;
+    }
+  }
+}
+
+.job-status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid;
+  font: normal normal 600 11px/1.4 'Manrope', sans-serif;
+}
+
 // Recharts customizations
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
