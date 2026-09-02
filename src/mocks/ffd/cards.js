@@ -11,6 +11,11 @@
  *
  * Only fields the generic CardItem/CardForm architecture actually reads are used —
  * see CardItem.jsx and mapBoardWorkflowFromApi for the supported field list.
+ *
+ * Most boards keep one flat array per column (single "default" swimlane, filled in
+ * by src/mocks/ffd/index.js). The Operations board has two swimlanes (Priority /
+ * Non Priority — see boards.js), so its per-column entries are keyed by swimlane id
+ * instead of a flat array.
  */
 
 import { mockCardTypes, mockCardTags, mockCardBlockers, mockCardStickers } from "./cardMeta";
@@ -41,139 +46,261 @@ const withSticker = (row) => ({
   sticker_icon: row.icon_name,
 });
 
-// ---- FFD Operations Board (5-column primary demo board) ----
+// ---- FFD Commercials (RFQ -> Rates Requested -> Quoted -> Won / Cancelled) ----
 
-export const opsBoardCardsByColumn = {
-  "col-new": [
+export const commercialsBoardCardsByColumn = {
+  "col-rfq": [
     {
-      card_id: "ffd-card-1",
-      card_name: "Prepare service request",
-      username: "",
-      ...withType(type("type-task")),
-    },
-    {
-      card_id: "ffd-card-2",
-      card_name: "Review client documents",
+      card_id: "comm-card-1",
+      card_name: "RFQ-1024 | ABC Traders | Air Freight",
       username: "Alex Johnson",
-      billing_entity: "Acme Industries",
-      ...withType(type("type-review")),
-      ...withTag(tag("tag-docs")),
+      billing_entity: "ABC Traders",
+      ...withType(type("type-request")),
     },
     {
-      card_id: "ffd-card-3",
-      card_name: "Client clarification required",
+      card_id: "comm-card-2",
+      card_name: "RFQ-1025 | Nova Logistics | Sea Freight",
+      username: "Priya Patel",
+      billing_entity: "Nova Logistics",
+      ...withType(type("type-request")),
+    },
+  ],
+  "col-rates-requested": [
+    {
+      card_id: "comm-card-3",
+      card_name: "Vendor rates sourced — DHL, FedEx, Aramex",
       username: "Sam Lee",
-      priority: true,
-      ...withBlocker(blocker("blocker-client")),
+      task_name: "Min 2-3 rates to be uploaded as PDF",
       ...withTag(tag("tag-followup")),
     },
-  ],
-  "col-assigned": [
     {
-      card_id: "ffd-card-4",
-      card_name: "Assign operations team",
-      username: "Priya Patel",
-      kpi_percentage: 20,
-      timeline: "5d left",
-      ...withType(type("type-task")),
-    },
-    {
-      card_id: "ffd-card-5",
-      card_name: "Verify request details",
+      card_id: "comm-card-4",
+      card_name: "Rate request shared with vendors",
       username: "Jordan Smith",
-      ...withSticker(sticker("sticker-needs-check")),
-    },
-    {
-      card_id: "ffd-card-6",
-      card_name: "Schedule field activity",
-      username: "Alex Johnson",
-      timeline: "3d left",
-      ...withType(type("type-field")),
-      ...withTag(tag("tag-urgent")),
-    },
-    {
-      card_id: "ffd-card-7",
-      card_name: "Upload supporting documents for the client's service request before the review deadline",
-      username: "",
-      task_name: "Attach files",
+      billing_entity: "Nova Logistics",
     },
   ],
-  "col-in-progress": [
+  "col-quoted-comm": [
     {
-      card_id: "ffd-card-8",
-      card_name: "Update service status",
-      username: "Sam Lee",
-      kpi_percentage: 55,
-      timeline: "2d left",
-      card_color: "#0d9488",
-      ...withType(type("type-task")),
-    },
-    {
-      card_id: "ffd-card-9",
-      card_name: "Manager review",
-      username: "Priya Patel",
-      ...withType(type("type-review")),
-      ...withBlocker(blocker("blocker-approval")),
-    },
-    {
-      card_id: "ffd-card-10",
-      card_name: "Fix issue",
-      username: "",
-    },
-    {
-      card_id: "ffd-card-11",
-      card_name: "Coordinate with field team",
-      username: "Jordan Smith",
-      kpi_percentage: 40,
-      timeline: "1d left",
-      ...withType(type("type-field")),
-    },
-  ],
-  "col-review": [
-    {
-      card_id: "ffd-card-12",
-      card_name: "Complete final verification",
+      card_id: "comm-card-5",
+      card_name: "Quotation sent to ABC Traders",
       username: "Alex Johnson",
-      kpi_percentage: 90,
+      kpi_percentage: 100,
       ...withSticker(sticker("sticker-approved")),
-      ...withType(type("type-review")),
-    },
-    {
-      card_id: "ffd-card-13",
-      card_name: "Manager sign-off pending",
-      username: "Priya Patel",
-      ...withBlocker(blocker("blocker-approval")),
-      ...withTag(tag("tag-internal")),
-    },
-    {
-      card_id: "ffd-card-14",
-      card_name: "Submit report",
-      username: "Sam Lee",
-      timeline: "Overdue by 2 days",
-      card_color: "#dc2626",
     },
   ],
-  "col-completed": [
+  "col-won": [
     {
-      card_id: "ffd-card-15",
-      card_name: "Close service request",
+      card_id: "comm-card-6",
+      card_name: "Job confirmed — ABC Traders",
+      username: "Priya Patel",
+      kpi_percentage: 100,
+      ...withType(type("type-task")),
+    },
+  ],
+  "col-cancelled-comm": [
+    {
+      card_id: "comm-card-7",
+      card_name: "RFQ cancelled — Nova Logistics",
+      username: "Sam Lee",
+      card_color: "#dc2626",
+      task_name: "Reason: client sourced alternate carrier",
+    },
+  ],
+};
+
+// ---- FFD Operations Board (Quoted Basis / Contractual -> Completed -> Costing / Cancelled) ----
+// Two swimlanes: Priority / Non Priority (see priorityNonPrioritySwimlanes in boards.js).
+
+export const opsBoardCardsByColumn = {
+  "col-ops-quoted": {
+    priority: [
+      {
+        card_id: "ffd-card-1",
+        card_name: "Prepare service request",
+        username: "",
+        ...withType(type("type-task")),
+      },
+      {
+        card_id: "ffd-card-3",
+        card_name: "Client clarification required",
+        username: "Sam Lee",
+        priority: true,
+        ...withBlocker(blocker("blocker-client")),
+        ...withTag(tag("tag-followup")),
+      },
+    ],
+    "non-priority": [
+      {
+        card_id: "ffd-card-2",
+        card_name: "Review client documents",
+        username: "Alex Johnson",
+        billing_entity: "Acme Industries",
+        ...withType(type("type-review")),
+        ...withTag(tag("tag-docs")),
+      },
+    ],
+  },
+  "col-ops-contractual": {
+    priority: [
+      {
+        card_id: "ffd-card-4",
+        card_name: "Assign operations team",
+        username: "Priya Patel",
+        kpi_percentage: 20,
+        timeline: "5d left",
+        ...withType(type("type-task")),
+      },
+    ],
+    "non-priority": [
+      {
+        card_id: "ffd-card-5",
+        card_name: "Verify request details",
+        username: "Jordan Smith",
+        ...withSticker(sticker("sticker-needs-check")),
+      },
+      {
+        card_id: "ffd-card-6",
+        card_name: "Schedule field activity",
+        username: "Alex Johnson",
+        timeline: "3d left",
+        ...withType(type("type-field")),
+        ...withTag(tag("tag-urgent")),
+      },
+    ],
+  },
+  "col-ops-completed": {
+    priority: [
+      {
+        card_id: "ffd-card-8",
+        card_name: "Update service status",
+        username: "Sam Lee",
+        kpi_percentage: 55,
+        timeline: "2d left",
+        card_color: "#0d9488",
+        ...withType(type("type-task")),
+      },
+    ],
+    "non-priority": [
+      {
+        card_id: "ffd-card-9",
+        card_name: "Manager review",
+        username: "Priya Patel",
+        ...withType(type("type-review")),
+        ...withBlocker(blocker("blocker-approval")),
+      },
+      {
+        card_id: "ffd-card-11",
+        card_name: "Coordinate with field team",
+        username: "Jordan Smith",
+        kpi_percentage: 40,
+        timeline: "1d left",
+        ...withType(type("type-field")),
+      },
+    ],
+  },
+  "col-ops-costing-issued": {
+    priority: [
+      {
+        card_id: "ffd-card-12",
+        card_name: "Complete final verification",
+        username: "Alex Johnson",
+        kpi_percentage: 90,
+        ...withSticker(sticker("sticker-approved")),
+        ...withType(type("type-review")),
+      },
+    ],
+    "non-priority": [
+      {
+        card_id: "ffd-card-13",
+        card_name: "Manager sign-off pending",
+        username: "Priya Patel",
+        ...withBlocker(blocker("blocker-approval")),
+        ...withTag(tag("tag-internal")),
+      },
+      {
+        card_id: "ffd-card-14",
+        card_name: "Submit report",
+        username: "Sam Lee",
+        timeline: "Overdue by 2 days",
+        card_color: "#dc2626",
+      },
+    ],
+  },
+  "col-ops-cancelled": {
+    priority: [
+      {
+        card_id: "ffd-card-18",
+        card_name: "Job cancelled — client request",
+        username: "Jordan Smith",
+        card_color: "#dc2626",
+        task_name: "Reason to be updated in comments",
+      },
+    ],
+    "non-priority": [
+      {
+        card_id: "ffd-card-19",
+        card_name: "Cancelled — duplicate request",
+        username: "",
+        card_color: "#dc2626",
+      },
+    ],
+  },
+};
+
+// ---- FFD Billing Board (Costing Issued -> Invoice Issued -> Submitted -> Job Completed -> Ready to Archive) ----
+
+export const billingBoardCardsByColumn = {
+  "col-billing-costing-issued": [
+    {
+      card_id: "bill-card-1",
+      card_name: "Costing sheet prepared",
+      username: "Sam Lee",
+      ...withType(type("type-task")),
+    },
+    {
+      card_id: "bill-card-2",
+      card_name: "Costing pending review",
+      username: "Priya Patel",
+      ...withBlocker(blocker("blocker-approval")),
+    },
+  ],
+  "col-billing-invoice-issued": [
+    {
+      card_id: "bill-card-3",
+      card_name: "Invoice #INV-2044 issued",
+      username: "Alex Johnson",
+      ...withSticker(sticker("sticker-done")),
+    },
+    {
+      card_id: "bill-card-4",
+      card_name: "Invoice sent to client",
       username: "Jordan Smith",
+    },
+  ],
+  "col-billing-invoice-submitted": [
+    {
+      card_id: "bill-card-5",
+      card_name: "Invoice submitted to finance",
+      username: "Sam Lee",
+      ...withType(type("type-task")),
+    },
+  ],
+  "col-billing-job-completed": [
+    {
+      card_id: "bill-card-6",
+      card_name: "Job completed — awaiting documents",
+      username: "Priya Patel",
+      kpi_percentage: 100,
+    },
+  ],
+  "col-billing-ready-archive": [
+    {
+      card_id: "bill-card-7",
+      card_name: "Ready to archive — all documents received",
+      username: "Alex Johnson",
       kpi_percentage: 100,
       ...withSticker(sticker("sticker-done")),
-      ...withType(type("type-task")),
-    },
-    {
-      card_id: "ffd-card-16",
-      card_name: "Archive documentation",
-      username: "",
-    },
-    {
-      card_id: "ffd-card-17",
-      card_name: "Client satisfaction confirmed",
-      username: "Alex Johnson",
-      billing_entity: "North Region Team",
-      kpi_percentage: 100,
-      ...withType(type("type-review")),
     },
   ],
 };

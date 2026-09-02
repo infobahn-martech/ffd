@@ -17,10 +17,24 @@ export const mockWorkspaces = [
     background: null,
     boards: [
       {
+        board_id: "ffd-board-commercials",
+        board_name: "FFD Commercials",
+        board_status: "1",
+        total_cards: 7,
+        background: null,
+      },
+      {
         board_id: "ffd-board-ops",
         board_name: "FFD Operations Board",
         board_status: "1",
-        total_cards: 17,
+        total_cards: 12,
+        background: null,
+      },
+      {
+        board_id: "ffd-board-billing",
+        board_name: "FFD Billing Board",
+        board_status: "1",
+        total_cards: 7,
         background: null,
       },
     ],

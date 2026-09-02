@@ -30,23 +30,67 @@ const defaultSwimlane = [
   { swimlane_id: "default", swimlane_name: "Default", color_code: "#ffffff", swimlane_order: 1 },
 ];
 
+/** Operations board is split into Priority / Non Priority swimlanes. */
+const priorityNonPrioritySwimlanes = [
+  { swimlane_id: "priority", swimlane_name: "Priority", color_code: "#ffffff", swimlane_order: 1 },
+  { swimlane_id: "non-priority", swimlane_name: "Non Priority", color_code: "#ffffff", swimlane_order: 2 },
+];
+
 /** board_id -> array of raw workflow objects (one board can have multiple workflows/accordions). */
 export const mockBoardStructures = {
+  "ffd-board-commercials": [
+    {
+      workflow_id: "ffd-wf-commercials",
+      workflow_name: "FFD Commercials",
+      role_id: null,
+      description: "RFQ through won/cancelled commercial pipeline",
+      board_id: "ffd-board-commercials",
+      is_pinned: false,
+      is_collapsed: false,
+      stages: [
+        singleColumnStage("col-rfq", "RFQ", "#7c3aed"),
+        singleColumnStage("col-rates-requested", "Rates Requested", "#b45309"),
+        singleColumnStage("col-quoted-comm", "Quoted", "#16a34a"),
+        singleColumnStage("col-won", "Won", "#ea580c"),
+        singleColumnStage("col-cancelled-comm", "Cancelled", "#dc2626"),
+      ],
+      swimlanes: defaultSwimlane,
+    },
+  ],
   "ffd-board-ops": [
     {
       workflow_id: "ffd-wf-ops",
       workflow_name: "FFD Operations Board",
       role_id: null,
-      description: "Primary operations workflow",
+      description: "Quoted-basis and contractual operations through to costing",
       board_id: "ffd-board-ops",
       is_pinned: false,
       is_collapsed: false,
       stages: [
-        singleColumnStage("col-new", "New", "#2666be"),
-        singleColumnStage("col-assigned", "Assigned", "#7c3aed"),
-        singleColumnStage("col-in-progress", "In Progress", "#f59e0b"),
-        singleColumnStage("col-review", "Review", "#0d9488"),
-        singleColumnStage("col-completed", "Completed", "#22c55e"),
+        singleColumnStage("col-ops-quoted", "Operations (Quoted Basis)", "#7c3aed"),
+        singleColumnStage("col-ops-contractual", "Operations (Contractual)", "#b45309"),
+        singleColumnStage("col-ops-completed", "Completed (Costing Issuance)", "#16a34a"),
+        singleColumnStage("col-ops-costing-issued", "Costing Issued", "#ea580c"),
+        singleColumnStage("col-ops-cancelled", "Cancelled", "#dc2626"),
+      ],
+      swimlanes: priorityNonPrioritySwimlanes,
+    },
+  ],
+  "ffd-board-billing": [
+    {
+      workflow_id: "ffd-wf-billing",
+      workflow_name: "FFD Billing Board",
+      role_id: null,
+      description: "Costing through invoicing and archival",
+      board_id: "ffd-board-billing",
+      is_pinned: false,
+      is_collapsed: false,
+      stages: [
+        singleColumnStage("col-billing-costing-issued", "Costing Issued", "#b45309"),
+        singleColumnStage("col-billing-invoice-issued", "Invoice Issued", "#16a34a"),
+        singleColumnStage("col-billing-invoice-submitted", "Invoice Submitted", "#0f2a3d"),
+        singleColumnStage("col-billing-job-completed", "Job Completed", "#0f2a3d"),
+        singleColumnStage("col-billing-ready-archive", "Ready to Archive", "#0f2a3d"),
       ],
       swimlanes: defaultSwimlane,
     },

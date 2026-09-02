@@ -27,7 +27,12 @@
 
 import { mockWorkspaces } from "./workspaces";
 import { mockBoardStructures } from "./boards";
-import { opsBoardCardsByColumn, serviceBoardCardsByColumn } from "./cards";
+import {
+  commercialsBoardCardsByColumn,
+  opsBoardCardsByColumn,
+  billingBoardCardsByColumn,
+  serviceBoardCardsByColumn,
+} from "./cards";
 import { mockCardTypes, mockCardTags, mockCardBlockers, mockCardStickers } from "./cardMeta";
 
 export const isMockDataEnabled = import.meta.env.VITE_USE_MOCK_DATA === "true";
@@ -77,17 +82,23 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const seedBoardCards = () => {
   const boards = clone(mockBoardStructures);
+  /** Entry per column is either a flat array (single "default" swimlane) or an
+   *  object already keyed by swimlane id (multi-swimlane boards, e.g. Operations). */
   const fill = (boardId, cardsByColumn) => {
     for (const workflow of boards[boardId] ?? []) {
       for (const stage of workflow.stages ?? []) {
         for (const col of stage.columns ?? []) {
-          const cards = cardsByColumn[col.column_id] ?? [];
-          col.cards_by_swimlane = { default: clone(cards) };
+          const entry = cardsByColumn[col.column_id];
+          col.cards_by_swimlane = Array.isArray(entry)
+            ? { default: clone(entry) }
+            : clone(entry ?? {});
         }
       }
     }
   };
+  fill("ffd-board-commercials", commercialsBoardCardsByColumn);
   fill("ffd-board-ops", opsBoardCardsByColumn);
+  fill("ffd-board-billing", billingBoardCardsByColumn);
   fill("ffd-board-service", serviceBoardCardsByColumn);
   return boards;
 };

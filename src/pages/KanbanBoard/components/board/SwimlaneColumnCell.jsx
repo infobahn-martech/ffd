@@ -22,7 +22,7 @@ export default function SwimlaneColumnCell({
   isModernLayout = false,
   isDarkMode = false,
 }) {
-  const EMPTY_DROP_ZONE_MIN_HEIGHT = 720;
+  const EMPTY_DROP_ZONE_MIN_HEIGHT = 220;
   /* Only fall back to the big placeholder height when nothing else in the row sets a
      height — otherwise an empty column would stretch the whole swimlane row to 720px
      even when its siblings only need ~200px (all cells share one CSS grid row). */
