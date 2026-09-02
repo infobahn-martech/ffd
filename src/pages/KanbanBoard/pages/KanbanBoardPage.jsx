@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import { useLayoutView } from "../../../shared/context/LayoutViewContext";
 import { getBoardPageBackgroundStyle } from "../../../shared/utils/dashboardBackground";
 import Workspaces from "../../Workspaces";
@@ -24,6 +24,7 @@ import { useThemeStore } from "../../../shared/store/themeStore";
 export default function KanbanBoardPage() {
   const { boardId: boardIdParam } = useParams();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const selectedBoardId = useMemo(() => {
     if (boardIdParam != null && boardIdParam !== "") return boardIdParam;
     const segments = location.pathname.split("/").filter(Boolean);
@@ -46,6 +47,7 @@ export default function KanbanBoardPage() {
     patchCardBlocker,
     patchCardSticker,
     patchCardTag,
+    patchCardJob,
     boardLoading,
     boardLoadError,
     boardBackground,
@@ -91,6 +93,27 @@ export default function KanbanBoardPage() {
   const [contextMenuLaneId, setContextMenuLaneId] = useState(null);
   const [accordionMenu, setAccordionMenu] = useState(null);
   const [accordionMenuWorkflowId, setAccordionMenuWorkflowId] = useState(null);
+
+  // Dashboard drill-down (see src/pages/Dashboard/index.jsx handleViewRow/handleCreateInquiry/
+  // handleCreateJob) links here with ?openCard=<cardId> to auto-open that card's Job window
+  // once the board finishes loading. The param is stripped from the URL right after so it
+  // doesn't re-trigger on a later close/reopen or persist if the user shares the link.
+  useEffect(() => {
+    const openCardId = searchParams.get("openCard");
+    if (!openCardId || boardLoading || workflows.length === 0) return;
+    const workflow = findWorkflowByCardId(workflows, openCardId);
+    const card = workflow?.cards?.[openCardId];
+    if (!card) return;
+    handleSelectCard(card);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("openCard");
+        return next;
+      },
+      { replace: true }
+    );
+  }, [searchParams, boardLoading, workflows, handleSelectCard, setSearchParams]);
 
   useSyncKanbanSidebarWorkflows(workflows);
   useKanbanAddCardFromSidebar({
@@ -335,6 +358,7 @@ export default function KanbanBoardPage() {
           patchCardBlocker={patchCardBlocker}
           patchCardSticker={patchCardSticker}
           patchCardTag={patchCardTag}
+          patchCardJob={patchCardJob}
         />
       )}
 

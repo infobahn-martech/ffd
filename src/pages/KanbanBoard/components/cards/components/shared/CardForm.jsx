@@ -1,4 +1,15 @@
 import { useState, useMemo, useCallback, useEffect, useRef, useLayoutEffect } from "react";
+import {
+  JobWindowTabs,
+  JobHeaderPanel,
+  JobOverviewTab,
+  JobCargoDetailsPanel,
+  JobPickupDetailsPanel,
+  JobDeliveryDetailsPanel,
+  JobDocumentationChecklist,
+  JobDocumentsPanel,
+  JobStatusTimeline,
+} from "./CardParts/JobWindow";
 import { createPortal } from "react-dom";
 import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import PropTypes from "prop-types";
@@ -1206,28 +1217,75 @@ CardFormFooter.propTypes = {
   totalSteps: PropTypes.number,
 };
 
+const JOB_WINDOW_TABS = [
+  { key: "overview", label: "Overview" },
+  { key: "cargo", label: "Cargo" },
+  { key: "pickup", label: "Pickup" },
+  { key: "delivery", label: "Delivery" },
+  { key: "documentation", label: "Documentation" },
+  { key: "documents", label: "Documents" },
+  { key: "status", label: "Status" },
+];
+
 /**
  * Generic card-detail modal: header (title, color, type/tag/blocker/sticker — see
  * TopBar) plus a column-driven stage stepper (see CardFormFooter). The body below
- * the header is a single placeholder "Details" section — FFD's real card-detail
- * fields/tabs aren't defined yet, so nothing has been invented here. Wire the real
- * fields into <CardDetailsBody> once that schema exists; a tab-bar dispatch is the
- * natural next step if/when there's more than one tab.
+ * the header renders the FFD "Job window" (Job Header + Cargo/Pickup/Delivery/
+ * Documentation/Status tabs — see CardParts/JobWindow) whenever the card carries
+ * job data (card.job, populated from src/mocks/ffd/jobDetails.js via
+ * mapBoardWorkflowFromApi); cards without job data — every other board, and
+ * Task Workflow cards — fall back to the original placeholder body unchanged.
  */
-function CardDetailsBody({ card }) {
+function CardDetailsBody({ card, onPatchJobSection }) {
+  const [activeTab, setActiveTab] = useState("overview");
+  const job = card?.job;
+
+  if (!job) {
+    return (
+      <div className="cardform-body cardform-body--placeholder">
+        {card?.user && <p className="cardform-body-field">Assignee: {card.user}</p>}
+        {card?.timeLeft && <p className="cardform-body-field">Time left: {card.timeLeft}</p>}
+        <p className="cardform-body-placeholder-note">
+          No additional card fields are configured yet.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="cardform-body cardform-body--placeholder">
-      {card?.user && <p className="cardform-body-field">Assignee: {card.user}</p>}
-      {card?.timeLeft && <p className="cardform-body-field">Time left: {card.timeLeft}</p>}
-      <p className="cardform-body-placeholder-note">
-        No additional card fields are configured yet.
-      </p>
+    <div className="cardform-body cardform-body--job">
+      <JobHeaderPanel header={job.header} onCommit={(fields) => onPatchJobSection("header", fields)} />
+      <JobWindowTabs tabs={JOB_WINDOW_TABS} activeTab={activeTab} onChange={setActiveTab} />
+      {activeTab === "overview" && (
+        <JobOverviewTab
+          numbers={job.numbers}
+          nomination={job.nomination}
+          onPatchSection={onPatchJobSection}
+        />
+      )}
+      {activeTab === "cargo" && (
+        <JobCargoDetailsPanel cargo={job.cargo} onPatchSection={onPatchJobSection} />
+      )}
+      {activeTab === "pickup" && (
+        <JobPickupDetailsPanel pickup={job.pickup} onPatchSection={onPatchJobSection} />
+      )}
+      {activeTab === "delivery" && (
+        <JobDeliveryDetailsPanel delivery={job.delivery} onPatchSection={onPatchJobSection} />
+      )}
+      {activeTab === "documentation" && (
+        <JobDocumentationChecklist documentation={job.documentation} onPatchSection={onPatchJobSection} />
+      )}
+      {activeTab === "documents" && <JobDocumentsPanel card={card} />}
+      {activeTab === "status" && (
+        <JobStatusTimeline status={job.status} onPatchSection={onPatchJobSection} />
+      )}
     </div>
   );
 }
 
 CardDetailsBody.propTypes = {
   card: PropTypes.object,
+  onPatchJobSection: PropTypes.func,
 };
 
 function CardForm({
@@ -1247,6 +1305,7 @@ function CardForm({
   patchCardBlocker,
   patchCardSticker,
   patchCardTag,
+  patchCardJob,
 }) {
   const isSubTaskCard = card?.isSubTask === true;
 
@@ -1535,6 +1594,39 @@ function CardForm({
     [isAddMode, card?.id, card?.card_id, card?.title, patchCardTitle]
   );
 
+  /** Auto-saves one Job-window section (header/cargo/pickup/delivery/documentation/
+   *  status/nomination) — same fire-on-change UX as the topbar type/tag/blocker/
+   *  sticker pickers, via the batched update_job_details endpoint. */
+  const handlePatchJobSection = useCallback(
+    (section, fields) => {
+      const cardIdRaw = card?.id ?? card?.card_id;
+      if (cardIdRaw == null || String(cardIdRaw).trim() === "") return;
+      const id = String(cardIdRaw).trim();
+      kanbanBoardService
+        .updateJobDetails({ card_id: id, section, fields })
+        .then((res) => {
+          const body = res?.data;
+          if (body && typeof body === "object" && body.status === "error") {
+            const msg =
+              typeof body.message === "string" && body.message.trim()
+                ? body.message
+                : "Could not update job details.";
+            throw new Error(msg);
+          }
+          patchCardJob?.(id, section, fields);
+        })
+        .catch((err) => {
+          const msg =
+            err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            err?.message ||
+            "Could not update job details.";
+          notify(typeof msg === "string" ? msg : "Could not update job details.", "error");
+        });
+    },
+    [card?.id, card?.card_id, patchCardJob]
+  );
+
   if (!show) return null;
 
   return (
@@ -1560,7 +1652,7 @@ function CardForm({
         {isSubTaskCard ? (
           <TaskCardDetailView card={card} onClose={handleClose} />
         ) : (
-          <CardDetailsBody card={card} />
+          <CardDetailsBody card={card} onPatchJobSection={handlePatchJobSection} />
         )}
         {!isAddMode && !isSubTaskCard && (
           <CardFormFooter
@@ -1603,6 +1695,7 @@ CardForm.propTypes = {
   patchCardBlocker: PropTypes.func,
   patchCardSticker: PropTypes.func,
   patchCardTag: PropTypes.func,
+  patchCardJob: PropTypes.func,
 };
 
 export default CardForm;

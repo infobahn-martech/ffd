@@ -302,6 +302,8 @@
 
 .inquiry-table-wrap {
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 480px;
 }
 
 .inquiry-table {
@@ -365,6 +367,32 @@
   border-radius: 999px;
   border: 1px solid;
   font: normal normal 600 11px/1.4 'Manrope', sans-serif;
+}
+
+// Home page footer (Documentation / Help / Settings — see the requirements doc's
+// Home Page Layout notes). Scoped to the Dashboard page itself rather than the
+// shared app Layout, since a persistent global footer would compete with the
+// full-height Kanban board layout on every other route.
+.dashboard-footer {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-primary);
+
+  button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font: normal normal 500 13px/1.4 'Manrope', sans-serif;
+    cursor: pointer;
+
+    &:hover {
+      color: $ffd-navy;
+      text-decoration: underline;
+    }
+  }
 }
 
 // Recharts customizations

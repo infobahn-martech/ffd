@@ -31,9 +31,12 @@ import {
   commercialsBoardCardsByColumn,
   opsBoardCardsByColumn,
   billingBoardCardsByColumn,
+  customsBoardCardsByColumn,
   serviceBoardCardsByColumn,
 } from "./cards";
 import { mockCardTypes, mockCardTags, mockCardBlockers, mockCardStickers } from "./cardMeta";
+import { jobDetailsByCardId } from "./jobDetails";
+import { documentsByCardId, nextDocumentId, DOCUMENT_TYPES } from "./documents";
 
 export const isMockDataEnabled = import.meta.env.VITE_USE_MOCK_DATA === "true";
 
@@ -67,6 +70,15 @@ export const mockUserProfile = {
         actions: [{ action_key: "VIEW_WORKFLOW" }],
         sub_modules: [],
       },
+      // FFD's four modules (see src/shared/constants/permissions.js) — the mock
+      // Super Admin gets every action so the sidebar and boards stay fully visible.
+      ...["COMMERCIAL_PRICING", "OPERATIONS_MODULE", "CUSTOMS_CLEARANCE", "BILLING_DESK"].map(
+        (module_key) => ({
+          module_key,
+          actions: ["VIEW", "CREATE", "EDIT", "APPROVE"].map((action_key) => ({ action_key })),
+          sub_modules: [],
+        })
+      ),
     ],
   },
 };
@@ -80,6 +92,14 @@ export const mockUserProfile = {
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
+/** Merges jobDetailsByCardId onto matching card rows in place (mutates `cards`, an array). */
+const applyJobDetails = (cards) => {
+  for (const card of cards) {
+    const job = jobDetailsByCardId[card.card_id];
+    if (job) card.job = job;
+  }
+};
+
 const seedBoardCards = () => {
   const boards = clone(mockBoardStructures);
   /** Entry per column is either a flat array (single "default" swimlane) or an
@@ -92,6 +112,9 @@ const seedBoardCards = () => {
           col.cards_by_swimlane = Array.isArray(entry)
             ? { default: clone(entry) }
             : clone(entry ?? {});
+          for (const cards of Object.values(col.cards_by_swimlane)) {
+            applyJobDetails(cards);
+          }
         }
       }
     }
@@ -99,17 +122,20 @@ const seedBoardCards = () => {
   fill("ffd-board-commercials", commercialsBoardCardsByColumn);
   fill("ffd-board-ops", opsBoardCardsByColumn);
   fill("ffd-board-billing", billingBoardCardsByColumn);
+  fill("ffd-board-customs", customsBoardCardsByColumn);
   fill("ffd-board-service", serviceBoardCardsByColumn);
   return boards;
 };
 
 let workspacesState = clone(mockWorkspaces);
 let boardsState = seedBoardCards();
+let documentsState = clone(documentsByCardId);
 
 const delay = (ms = 220) => new Promise((resolve) => setTimeout(resolve, ms));
 const ok = (body = {}) => delay().then(() => ({ data: { status: "success", ...body } }));
 
-function findCardById(cardId) {
+/** @returns {{ card: object, boardId: string } | null} */
+function findCardWithBoard(cardId) {
   for (const boardId of Object.keys(boardsState)) {
     for (const workflow of boardsState[boardId]) {
       for (const stage of workflow.stages ?? []) {
@@ -118,13 +144,17 @@ function findCardById(cardId) {
             const card = col.cards_by_swimlane[laneId].find(
               (c) => String(c.card_id) === String(cardId)
             );
-            if (card) return card;
+            if (card) return { card, boardId };
           }
         }
       }
     }
   }
   return null;
+}
+
+function findCardById(cardId) {
+  return findCardWithBoard(cardId)?.card ?? null;
 }
 
 function findWorkspaceAndBoard(boardId) {
@@ -137,6 +167,111 @@ function findWorkspaceAndBoard(boardId) {
 
 let mockIdCounter = 1;
 const nextMockId = (prefix) => `${prefix}-${mockIdCounter++}`;
+
+/**
+ * Human-facing RFQ/Quotation/Job numbers (distinct from the internal `nextMockId` ids
+ * above). Job numbers are mode-suffixed and sequential per mode, e.g. "SED-SEA-0123" —
+ * RFQ/Quotation numbers are a flat sequence, e.g. "RFQ-1043"/"QUO-1043", matching the
+ * pre-existing placeholder style already used in the Dashboard's mock data.
+ */
+const numberCounters = { RFQ: 1043, QUO: 1043, JOB: {} };
+
+/** @param {"RFQ"|"QUO"} kind */
+const nextFlatNumber = (kind) => `${kind}-${numberCounters[kind]++}`;
+
+/** @param {string} mode e.g. "AIR" | "SEA" | "LAND" */
+const nextJobNumber = (mode) => {
+  const key = String(mode || "GEN").toUpperCase();
+  const n = (numberCounters.JOB[key] ?? 100) + 1;
+  numberCounters.JOB[key] = n;
+  return `SED-${key}-${String(n).padStart(4, "0")}`;
+};
+
+/**
+ * Coarse status bucket for a column, reused by the Dashboard's status badges/
+ * charts (see JOB_STATUS_COLORS in src/pages/Dashboard/index.jsx: Pending-Yellow,
+ * In Progress-Blue, Completed-Green, Delayed-Red). Derived from the column's
+ * position/title rather than tracked separately, since every board's columns
+ * already encode this progression (first column = pending, a "cancel"/"held"
+ * column = delayed, a "complet/won/deliver/archive/cleared/done/closed" column =
+ * completed, anything else = in progress).
+ */
+function bucketColumnStatus(column, columnOrder, colKey) {
+  const title = String(column?.title || "").toLowerCase();
+  if (/cancel|held|query/.test(title)) return "delayed";
+  if (/complet|won|deliver|archive|cleared|done|closed/.test(title)) return "completed";
+  return columnOrder.indexOf(colKey) === 0 ? "pending" : "in_progress";
+}
+
+/**
+ * Flattens every board's cards into row objects for the Dashboard's Inquiry & Job
+ * table / stat widgets — the same underlying state the Kanban boards render, so
+ * a Dashboard row's board_id/card_id always resolves to a real card (drill-down).
+ * Cards with Job-window data (see jobDetails.js) surface richer fields (mode,
+ * type, cargo, route); cards without it fall back to their raw display fields.
+ */
+export function getAllCardsFlat() {
+  const rows = [];
+  for (const boardId of Object.keys(boardsState)) {
+    for (const workflow of boardsState[boardId]) {
+      const columnOrder = (workflow.stages ?? []).flatMap((stage) =>
+        (stage.columns ?? []).map((col) => String(col.column_id))
+      );
+      for (const stage of workflow.stages ?? []) {
+        for (const col of stage.columns ?? []) {
+          const colKey = String(col.column_id);
+          for (const laneId of Object.keys(col.cards_by_swimlane ?? {})) {
+            for (const card of col.cards_by_swimlane[laneId]) {
+              const job = card.job;
+              const route =
+                job?.pickup?.location && job?.delivery?.location
+                  ? `${job.pickup.location} → ${job.delivery.location}`
+                  : "";
+              rows.push({
+                board_id: boardId,
+                card_id: card.card_id,
+                workflow_id: workflow.workflow_id,
+                id: job?.numbers?.job_number || job?.numbers?.rfq_number || card.card_id,
+                customer: card.billing_entity || job?.header?.client_name || card.username || "",
+                mode: job?.header?.mode_of_shipment || "",
+                type: job?.header?.type || "",
+                cargo: job?.cargo?.description || card.card_name || "",
+                route,
+                status: bucketColumnStatus(col, columnOrder, colKey),
+                assigned_to: card.username || "",
+                column_title: col.column_name,
+                workflow_name: workflow.workflow_name,
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+  return rows;
+}
+
+/**
+ * Documents awaiting manager approval (margin < 15% or sale > SR.5000 — see
+ * generateDocument below), for the Dashboard's Pending Approvals panel.
+ */
+export function getPendingApprovals() {
+  const rows = [];
+  for (const cardId of Object.keys(documentsState)) {
+    for (const doc of documentsState[cardId]) {
+      if (doc.approval_status !== "pending") continue;
+      const typeLabel = DOCUMENT_TYPES.find((t) => t.key === doc.document_type)?.label ?? doc.document_type;
+      const card = findCardById(cardId);
+      rows.push({
+        document_id: doc.document_id,
+        card_id: cardId,
+        board_id: doc.board_id,
+        label: `${typeLabel} approval — ${card?.card_name || cardId} (margin ${doc.margin_percent ?? "—"}%)`,
+      });
+    }
+  }
+  return rows;
+}
 
 // ---------------------------------------------------------------------------
 // Mock services — same function names/signatures as the real service modules
@@ -305,6 +440,106 @@ export const mockKanbanBoardService = {
     const card = findCardById(card_id);
     if (card) card.card_name = title;
     return ok({ message: "Card title updated." });
+  },
+
+  updateJobDetails: ({ card_id, section, fields }) => {
+    const card = findCardById(card_id);
+    if (card && section) {
+      card.job = card.job || {};
+      card.job[section] = { ...(card.job[section] || {}), ...fields };
+    }
+    return ok({ message: "Job details updated." });
+  },
+
+  /**
+   * Creates a new card on the given board/column/swimlane — used by the Dashboard's
+   * "New Inquiry"/"Create a Job" quick actions (see src/pages/Dashboard/index.jsx).
+   * `number_kind: "RFQ"` generates job.numbers.rfq_number; `"JOB"` generates
+   * job.numbers.job_number (mode-suffixed, e.g. "SED-AIR-0123" — pass `mode`).
+   */
+  createCard: ({ board_id, column_id, swimlane_id, card_name, number_kind, mode, job }) => {
+    const workflows = boardsState[String(board_id)] || [];
+    let targetCol = null;
+    findCol: for (const workflow of workflows) {
+      for (const stage of workflow.stages ?? []) {
+        for (const col of stage.columns ?? []) {
+          if (column_id == null || String(col.column_id) === String(column_id)) {
+            targetCol = col;
+            break findCol;
+          }
+        }
+      }
+    }
+    if (!targetCol) {
+      return ok({ status: "error", message: "Board or column not found." });
+    }
+    targetCol.cards_by_swimlane = targetCol.cards_by_swimlane || {};
+    const laneId = swimlane_id || Object.keys(targetCol.cards_by_swimlane)[0] || "default";
+    targetCol.cards_by_swimlane[laneId] = targetCol.cards_by_swimlane[laneId] || [];
+    const cardId = nextMockId("card");
+
+    const generatedNumbers = {};
+    if (number_kind === "RFQ") generatedNumbers.rfq_number = nextFlatNumber("RFQ");
+    if (number_kind === "JOB") generatedNumbers.job_number = nextJobNumber(mode);
+    const hasGeneratedNumbers = Object.keys(generatedNumbers).length > 0;
+    const mergedJob = hasGeneratedNumbers
+      ? { ...(job || {}), numbers: { ...(job?.numbers || {}), ...generatedNumbers } }
+      : job;
+
+    targetCol.cards_by_swimlane[laneId].push({
+      card_id: cardId,
+      card_name: card_name || "Untitled",
+      ...(mergedJob ? { job: mergedJob } : {}),
+    });
+    return ok({
+      message: "Card created.",
+      data: { card_id: cardId, board_id: String(board_id), ...generatedNumbers },
+    });
+  },
+
+  listDocumentsForCard: (cardId) => ok({ data: documentsState[String(cardId)] ?? [] }),
+
+  /**
+   * Generates a controlled document for a card. `needs_manager_approval` follows
+   * the requirements doc's rule for Quotation/Costing files: margin < 15% or sale
+   * amount > SR.5000 requires manager sign-off before the document is usable.
+   */
+  generateDocument: ({ card_id, document_type, margin_percent, sale_amount, fields }) => {
+    const found = findCardWithBoard(card_id);
+    if (!found) return ok({ status: "error", message: "Card not found." });
+
+    const subjectToApproval = document_type === "quotation" || document_type === "costing";
+    const needsApproval =
+      subjectToApproval &&
+      ((margin_percent != null && margin_percent < 15) || (sale_amount != null && sale_amount > 5000));
+
+    const doc = {
+      document_id: nextDocumentId(),
+      card_id: String(card_id),
+      board_id: found.boardId,
+      document_type,
+      generated_at: new Date().toISOString(),
+      fields: fields || {},
+      margin_percent: margin_percent ?? null,
+      sale_amount: sale_amount ?? null,
+      needs_manager_approval: needsApproval,
+      approval_status: needsApproval ? "pending" : subjectToApproval ? "approved" : "none",
+    };
+
+    documentsState[String(card_id)] = [...(documentsState[String(card_id)] || []), doc];
+    return ok({ message: "Document generated.", data: doc });
+  },
+
+  approveDocument: ({ document_id }) => {
+    for (const cardId of Object.keys(documentsState)) {
+      const doc = documentsState[cardId].find((d) => String(d.document_id) === String(document_id));
+      if (doc) {
+        doc.approval_status = "approved";
+        doc.needs_manager_approval = false;
+        break;
+      }
+    }
+    return ok({ message: "Document approved." });
   },
 };
 

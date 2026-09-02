@@ -25,6 +25,12 @@ export const PERMISSION_MODULES = {
   THIRD_PARTY_SERVICE: "THIRD_PARTY_SERVICE",
   MATERIAL_MANAGEMENT: "MATERIAL_MANAGEMENT",
   SETTINGS: "SETTINGS",
+  // FFD's four job-lifecycle modules (see the Kanban boards ffd-board-commercials/
+  // ffd-board-ops/ffd-board-billing) — Customs Clearance has no board yet.
+  COMMERCIAL_PRICING: "COMMERCIAL_PRICING",
+  OPERATIONS_MODULE: "OPERATIONS_MODULE",
+  CUSTOMS_CLEARANCE: "CUSTOMS_CLEARANCE",
+  BILLING_DESK: "BILLING_DESK",
 };
 
 export const PERMISSION_SUBMODULES = {
@@ -56,6 +62,9 @@ export const PERMISSION_ACTIONS = {
   ADD: "ADD",
   EDIT: "EDIT",
   DELETE: "DELETE",
+  // Super User quotation/costing sign-off (margin < 15% or sale > SR.5000 — see
+  // JobDocumentsPanel).
+  APPROVE: "APPROVE",
   UPLOAD: "UPLOAD",
   ARCHIVE: "ARCHIVE",
   DISABLE: "DISABLE",
@@ -371,4 +380,43 @@ export const PERMISSIONS = {
   THIRD_PARTY_SERVICE: { key: PERMISSION_MODULES.THIRD_PARTY_SERVICE },
   MATERIAL_MANAGEMENT: { key: PERMISSION_MODULES.MATERIAL_MANAGEMENT },
   SETTINGS: { key: PERMISSION_MODULES.SETTINGS },
+  // FFD's four modules map 1:1 to a board (or, for Customs Clearance, will once
+  // one exists) rather than sub-screens, so a flat action set is enough — no
+  // submodules needed.
+  COMMERCIAL_PRICING: {
+    key: PERMISSION_MODULES.COMMERCIAL_PRICING,
+    actions: {
+      VIEW: PERMISSION_ACTIONS.VIEW,
+      CREATE: PERMISSION_ACTIONS.CREATE,
+      EDIT: PERMISSION_ACTIONS.EDIT,
+      APPROVE: PERMISSION_ACTIONS.APPROVE,
+    },
+  },
+  OPERATIONS_MODULE: {
+    key: PERMISSION_MODULES.OPERATIONS_MODULE,
+    actions: {
+      VIEW: PERMISSION_ACTIONS.VIEW,
+      CREATE: PERMISSION_ACTIONS.CREATE,
+      EDIT: PERMISSION_ACTIONS.EDIT,
+      APPROVE: PERMISSION_ACTIONS.APPROVE,
+    },
+  },
+  CUSTOMS_CLEARANCE: {
+    key: PERMISSION_MODULES.CUSTOMS_CLEARANCE,
+    actions: {
+      VIEW: PERMISSION_ACTIONS.VIEW,
+      CREATE: PERMISSION_ACTIONS.CREATE,
+      EDIT: PERMISSION_ACTIONS.EDIT,
+      APPROVE: PERMISSION_ACTIONS.APPROVE,
+    },
+  },
+  BILLING_DESK: {
+    key: PERMISSION_MODULES.BILLING_DESK,
+    actions: {
+      VIEW: PERMISSION_ACTIONS.VIEW,
+      CREATE: PERMISSION_ACTIONS.CREATE,
+      EDIT: PERMISSION_ACTIONS.EDIT,
+      APPROVE: PERMISSION_ACTIONS.APPROVE,
+    },
+  },
 };

@@ -33,6 +33,7 @@ import { useThemeStore } from '../../shared/store/themeStore';
 import NavTabButton from '../../components/NavTabButton';
 import { isRestrictedBoardUser, isPortOperatorUser } from '../../shared/helpers/restrictedBoardUser';
 import { isVendorRole, getRoleId } from '../../shared/helpers/vendorDashboardRoles';
+import { getPendingApprovals } from '../../mocks/ffd';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePortal = null }) {
   const { pathname } = useLocation();
@@ -48,7 +49,10 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
   const [imageError, setImageError] = useState(false);
   const { layoutView, setLayoutView } = useLayoutView();
   const { isDark, toggleTheme } = useThemeStore();
-  const [notificationCount, setNotificationCount] = useState(3); // Default count, can be updated with real data
+  // Real count of documents pending manager approval (see JobDocumentsPanel /
+  // getPendingApprovals) — recomputed on navigation, since mock state changes
+  // synchronously and there's no cross-component event bus to push updates.
+  const [notificationCount, setNotificationCount] = useState(() => getPendingApprovals().length);
   const dropdownRef = useRef(null);
   const doLogout = useAuthReducer((state) => state.doLogout);
   const profileData = useAuthReducer((state) => state.profileData);
@@ -190,6 +194,10 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
   useEffect(() => {
     setImageError(false);
   }, [resolvedAvatar]);
+
+  useEffect(() => {
+    setNotificationCount(getPendingApprovals().length);
+  }, [pathname]);
 
   return (
     <div className={`sedres-header ${layoutView === 'dark' ? 'sedres-header-dark' : ''}`}>

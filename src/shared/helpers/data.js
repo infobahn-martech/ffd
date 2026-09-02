@@ -310,6 +310,12 @@ export function mapBoardWorkflowFromApi(workflow) {
               card.waste_disposal != null && String(card.waste_disposal).trim() !== ""
                 ? Number(card.waste_disposal)
                 : null,
+            // "Job window" fields (cargo/pickup/delivery/documentation/status/nomination/
+            // numbers) — see src/mocks/ffd/jobDetails.js for the mock shape and
+            // CardParts/JobWindow for the components that read this. Cards without job
+            // data (most boards) simply have `job: null`, which CardForm.jsx's
+            // CardDetailsBody uses to fall back to the generic placeholder body.
+            job: card.job ?? null,
             raw: card,
             cardSource: "api",
             // Task Card modal (kanban_card/create_task_card) cards always live under the

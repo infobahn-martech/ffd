@@ -108,6 +108,31 @@ const updateCardNote = (payload) =>
 const deleteCardNote = (noteId) =>
   Gateway.post(`/kanban_card/delete_card_note/${encodeURIComponent(String(noteId))}`);
 
+/**
+ * "Job window" fields (see CardParts/JobWindow) — one batched endpoint covering all
+ * sections (cargo/pickup/delivery/documentation/status/nomination) rather than a
+ * near-duplicate method per section, since they share the same shape.
+ * @param {{ card_id: string|number, section: 'cargo'|'pickup'|'delivery'|'documentation'|'status'|'nomination', fields: object }} payload
+ */
+const updateJobDetails = (payload) =>
+  Gateway.post('/kanban_card/update_job_details', payload);
+
+/** @param {{ board_id: string, column_id?: string, swimlane_id?: string, card_name: string, job?: object }} payload */
+const createCard = (payload) =>
+  Gateway.post('/kanban_card/create_card', payload);
+
+/** Controlled documents (Rate Request/Quotation/Costing/Delivery Note — see JobDocumentsPanel). */
+const listDocumentsForCard = (cardId) =>
+  Gateway.get(`/kanban_card/list_documents/${encodeURIComponent(String(cardId))}`);
+
+/** @param {{ card_id: string|number, document_type: string, margin_percent?: number, sale_amount?: number, fields?: object }} payload */
+const generateDocument = (payload) =>
+  Gateway.post('/kanban_card/generate_document', payload);
+
+/** @param {{ document_id: string }} payload */
+const approveDocument = (payload) =>
+  Gateway.post('/kanban_card/approve_document', payload);
+
 const realKanbanBoardService = {
   getFullBoard,
   getCardById,
@@ -134,6 +159,11 @@ const realKanbanBoardService = {
   getCardNotes,
   updateCardNote,
   deleteCardNote,
+  updateJobDetails,
+  createCard,
+  listDocumentsForCard,
+  generateDocument,
+  approveDocument,
 };
 
 // TEMPORARY: dev-only mock switch — see src/mocks/ffd/index.js. Mock methods not

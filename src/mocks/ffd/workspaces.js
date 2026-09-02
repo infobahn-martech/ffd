@@ -37,6 +37,13 @@ export const mockWorkspaces = [
         total_cards: 7,
         background: null,
       },
+      {
+        board_id: "ffd-board-customs",
+        board_name: "FFD Customs Clearance",
+        board_status: "1",
+        total_cards: 5,
+        background: null,
+      },
     ],
   },
   {

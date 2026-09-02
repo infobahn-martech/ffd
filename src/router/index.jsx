@@ -21,6 +21,7 @@ import Permission from "../pages/Permission";
 import User from "../pages/User";
 import ActivityLog from "../pages/ActivityLog";
 import Notification from "../pages/Notification";
+import Settings from "../pages/Settings";
 import NotFound from "../pages/NotFound";
 import { ROUTE_PATHS } from "./paths";
 
@@ -124,7 +125,7 @@ const router = createBrowserRouter(
                 // Notification
                 { path: "/notification", element: <RouteGuard><Notification /></RouteGuard> },
                 // Settings
-                { path: "/settings", element: <RouteGuard><h1>Settings</h1></RouteGuard> },
+                { path: "/settings", element: <RouteGuard><Settings /></RouteGuard> },
               ],
             },
           ],

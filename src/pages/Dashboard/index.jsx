@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -22,6 +23,7 @@ import {
   FiCheckCircle,
   FiAlertTriangle,
   FiPlusCircle,
+  FiBriefcase,
   FiRepeat,
   FiSend,
   FiDollarSign,
@@ -29,6 +31,7 @@ import {
   FiSearch,
 } from "react-icons/fi";
 import dashboardService from "../../services/dashboardService";
+import kanbanBoardService from "../../services/kanbanBoardService";
 import { useThemeStore } from "../../shared/store/themeStore";
 import { notify } from "../../components/Toaster";
 import "../../design/scss/dashboard.scss";
@@ -62,18 +65,18 @@ const JOB_STATUS_COLORS = {
   delayed: "#DC3545",
 };
 
-// Inquiry/job row status -> the same 4-color legend (Quotation Sent / Confirmed / In Transit
-// bucket into "in progress" blue; Delivered buckets into "completed" green).
-const ROW_STATUS = {
-  pending: { label: "Pending", color: "#FFC107" },
-  quotation_sent: { label: "Quotation Sent", color: "#1976D2" },
-  confirmed: { label: "Confirmed", color: "#1976D2" },
-  in_transit: { label: "In Transit", color: "#1976D2" },
-  delivered: { label: "Delivered", color: "#28A745" },
+// Inquiry/job row status badges reuse the same 4-color legend as the Job Status
+// Overview chart (JOB_STATUS_COLORS above) — one status vocabulary board-wide.
+const STATUS_LABELS = {
+  pending: "Pending",
+  in_progress: "In Progress",
+  completed: "Completed",
+  delayed: "Delayed",
 };
 
 const QUICK_ACTIONS = [
   { key: "new_inquiry", label: "New Inquiry", icon: <FiPlusCircle /> },
+  { key: "create_job", label: "Create a Job", icon: <FiBriefcase /> },
   { key: "convert_to_job", label: "Convert Inquiry to Job", icon: <FiRepeat /> },
   { key: "send_quotation", label: "Send Quotation", icon: <FiSend /> },
   { key: "generate_invoice", label: "Generate Invoice", icon: <FiDollarSign /> },
@@ -85,6 +88,7 @@ const ROW_ACTIONS = ["View", "Edit", "Convert to Job", "Send Quotation"];
 const formatStatValue = (value) => value.toLocaleString();
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [overview, setOverview] = useState(null);
   const [search, setSearch] = useState("");
   const [modeFilter, setModeFilter] = useState("all");
@@ -136,6 +140,20 @@ const Dashboard = () => {
 
   const revenueData = overview?.revenue_trend ?? [];
 
+  const myTasksData = useMemo(() => {
+    const counts = { pending: 0, in_progress: 0, completed: 0 };
+    for (const row of overview?.my_tasks ?? []) {
+      if (row.status === "pending") counts.pending += 1;
+      else if (row.status === "completed") counts.completed += 1;
+      else counts.in_progress += 1; // in_progress + delayed both read as "ongoing" here
+    }
+    return [
+      { key: "pending", name: "Pending", value: counts.pending, color: JOB_STATUS_COLORS.pending },
+      { key: "in_progress", name: "Ongoing", value: counts.in_progress, color: JOB_STATUS_COLORS.in_progress },
+      { key: "completed", name: "Completed", value: counts.completed, color: JOB_STATUS_COLORS.completed },
+    ].filter((slice) => slice.value > 0);
+  }, [overview]);
+
   const handleSort = (field) => {
     setSort((prev) =>
       prev.field === field ? { field, dir: prev.dir === "asc" ? "desc" : "asc" } : { field, dir: "asc" }
@@ -166,6 +184,64 @@ const Dashboard = () => {
 
   const handlePlaceholderAction = (label) => {
     notify(`${label} — coming soon.`, "info");
+  };
+
+  const handleViewRow = (row) => {
+    if (!row.board_id || !row.card_id) {
+      notify("This row has no linked board card yet.", "error");
+      return;
+    }
+    navigate(`/kanban-board/${row.board_id}?openCard=${encodeURIComponent(row.card_id)}`);
+  };
+
+  const handleRowAction = (action, row) => {
+    if (action === "View") {
+      handleViewRow(row);
+      return;
+    }
+    handlePlaceholderAction(`${action} — ${row.id}`);
+  };
+
+  const handleCreateInquiry = async () => {
+    try {
+      const res = await kanbanBoardService.createCard({
+        board_id: "ffd-board-commercials",
+        column_id: "col-rfq",
+        card_name: "New inquiry",
+        number_kind: "RFQ",
+      });
+      const data = res?.data?.data;
+      if (!data?.card_id) throw new Error("No card id returned.");
+      notify(`Inquiry ${data.rfq_number ?? ""} created.`, "success");
+      navigate(`/kanban-board/ffd-board-commercials?openCard=${encodeURIComponent(data.card_id)}`);
+    } catch {
+      notify("Could not create a new inquiry.", "error");
+    }
+  };
+
+  const handleCreateJob = async () => {
+    try {
+      const res = await kanbanBoardService.createCard({
+        board_id: "ffd-board-ops",
+        column_id: "col-ops-quoted",
+        swimlane_id: "priority",
+        card_name: "New job",
+        number_kind: "JOB",
+        mode: "GEN",
+      });
+      const data = res?.data?.data;
+      if (!data?.card_id) throw new Error("No card id returned.");
+      notify(`Job ${data.job_number ?? ""} created.`, "success");
+      navigate(`/kanban-board/ffd-board-ops?openCard=${encodeURIComponent(data.card_id)}`);
+    } catch {
+      notify("Could not create a new job.", "error");
+    }
+  };
+
+  const handleQuickAction = (action) => {
+    if (action.key === "new_inquiry") return handleCreateInquiry();
+    if (action.key === "create_job") return handleCreateJob();
+    return handlePlaceholderAction(action.label);
   };
 
   if (!overview) {
@@ -209,7 +285,7 @@ const Dashboard = () => {
             key={action.key}
             type="button"
             className="quick-action-tile"
-            onClick={() => handlePlaceholderAction(action.label)}
+            onClick={() => handleQuickAction(action)}
           >
             <span className="quick-action-icon">{action.icon}</span>
             {action.label}
@@ -295,6 +371,36 @@ const Dashboard = () => {
 
         <div className="chart-card">
           <div className="chart-header">
+            <h3 className="chart-title">My Tasks</h3>
+            <p className="chart-subtitle">Pending, ongoing, and completed — circular overview</p>
+          </div>
+          {myTasksData.length === 0 ? (
+            <p className="followups-subheading">No tasks assigned.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={myTasksData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={90}
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  dataKey="value"
+                >
+                  {myTasksData.map((entry) => (
+                    <Cell key={entry.key} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={chartTooltipStyle} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        <div className="chart-card">
+          <div className="chart-header">
             <h3 className="chart-title">Follow-ups &amp; Tasks</h3>
             <p className="chart-subtitle">Daily follow-ups and pending approvals</p>
           </div>
@@ -342,9 +448,9 @@ const Dashboard = () => {
           </select>
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">All Statuses</option>
-            {Object.entries(ROW_STATUS).map(([key, meta]) => (
+            {Object.entries(STATUS_LABELS).map(([key, label]) => (
               <option key={key} value={key}>
-                {meta.label}
+                {label}
               </option>
             ))}
           </select>
@@ -381,31 +487,25 @@ const Dashboard = () => {
                 </tr>
               )}
               {inquiries.map((row) => {
-                const statusMeta = ROW_STATUS[row.status] ?? { label: row.status, color: "#667680" };
+                const statusLabel = STATUS_LABELS[row.status] ?? row.status;
+                const statusColor = JOB_STATUS_COLORS[row.status] ?? "#667680";
                 return (
-                  <tr key={row.id}>
+                  <tr key={`${row.board_id}:${row.card_id}`}>
                     <td>{row.id}</td>
-                    <td>{row.customer}</td>
-                    <td>{row.mode}</td>
-                    <td>{row.type}</td>
-                    <td>{row.cargo}</td>
-                    <td>{row.route}</td>
+                    <td>{row.customer || "—"}</td>
+                    <td>{row.mode || "—"}</td>
+                    <td>{row.type || "—"}</td>
+                    <td>{row.cargo || "—"}</td>
+                    <td>{row.route || "—"}</td>
                     <td>
-                      <span
-                        className="job-status-badge"
-                        style={{ color: statusMeta.color, borderColor: statusMeta.color }}
-                      >
-                        {statusMeta.label}
+                      <span className="job-status-badge" style={{ color: statusColor, borderColor: statusColor }}>
+                        {statusLabel}
                       </span>
                     </td>
                     <td>{row.assigned_to || "—"}</td>
                     <td className="inquiry-table-actions">
                       {ROW_ACTIONS.map((action) => (
-                        <button
-                          key={action}
-                          type="button"
-                          onClick={() => handlePlaceholderAction(`${action} — ${row.id}`)}
-                        >
+                        <button key={action} type="button" onClick={() => handleRowAction(action, row)}>
                           {action}
                         </button>
                       ))}
@@ -416,6 +516,18 @@ const Dashboard = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="dashboard-footer">
+        <button type="button" onClick={() => handlePlaceholderAction("Documentation")}>
+          Documentation
+        </button>
+        <button type="button" onClick={() => handlePlaceholderAction("Help")}>
+          Help
+        </button>
+        <button type="button" onClick={() => navigate("/settings")}>
+          Settings
+        </button>
       </div>
     </div>
   );

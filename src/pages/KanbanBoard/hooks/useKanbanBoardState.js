@@ -244,6 +244,31 @@ export default function useKanbanBoardState(selectedBoardId) {
     setSelectedCard((prev) => (prev?.id === id ? { ...prev, ...patch } : prev));
   }, []);
 
+  /** Merges a Job-window section update into card.job (e.g. after kanban_card/update_job_details). */
+  const patchCardJob = useCallback((cardId, section, fields) => {
+    if (cardId == null || String(cardId).trim() === "") return;
+    const id = String(cardId).trim();
+    setWorkflows((prev) =>
+      prev.map((wf) => {
+        const c = wf.cards?.[id];
+        if (!c) return wf;
+        const nextJob = { ...(c.job || {}), [section]: { ...(c.job?.[section] || {}), ...fields } };
+        return {
+          ...wf,
+          cards: {
+            ...wf.cards,
+            [id]: { ...c, job: nextJob },
+          },
+        };
+      })
+    );
+    setSelectedCard((prev) => {
+      if (prev?.id !== id) return prev;
+      const nextJob = { ...(prev.job || {}), [section]: { ...(prev.job?.[section] || {}), ...fields } };
+      return { ...prev, job: nextJob };
+    });
+  }, []);
+
   const patchCardTag = useCallback((cardId, tagId, meta = {}) => {
     if (cardId == null || String(cardId).trim() === "") return;
     const id = String(cardId).trim();
@@ -276,6 +301,7 @@ export default function useKanbanBoardState(selectedBoardId) {
     patchCardBlocker,
     patchCardSticker,
     patchCardTag,
+    patchCardJob,
     boardLoading,
     boardLoadError,
     boardBackground,

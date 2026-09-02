@@ -21,6 +21,10 @@ import '../../design/scss/sidebar.scss';
 import dashboardIcon from '../../assets/images/icon-dashboard.svg';
 import settingsIcon from '../../assets/images/icon-settings.svg';
 import usersIcon from '../../assets/images/icon-users.svg';
+import configIcon from '../../assets/images/icon-config.svg';
+import workersIcon from '../../assets/images/icon-workers.svg';
+import inspectionIcon from '../../assets/images/icon-inspection.svg';
+import billingIcon from '../../assets/images/icon-billing.svg';
 
 import { useBreakpoint } from '../../shared/hooks/useWindowSize';
 import {
@@ -100,6 +104,24 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
   const canEditWorkflow = hasPermission({
     moduleKey: PERMISSION_MODULES.KANBAN_WORKFLOW,
     actionKey: PERMISSION_ACTIONS.VIEW_WORKFLOW,
+  });
+  // FFD's four job-lifecycle modules — each links straight to its board rather
+  // than a dedicated page (see src/mocks/ffd/boards.js).
+  const canViewCommercialPricing = hasPermission({
+    moduleKey: PERMISSION_MODULES.COMMERCIAL_PRICING,
+    actionKey: PERMISSION_ACTIONS.VIEW,
+  });
+  const canViewOperationsModule = hasPermission({
+    moduleKey: PERMISSION_MODULES.OPERATIONS_MODULE,
+    actionKey: PERMISSION_ACTIONS.VIEW,
+  });
+  const canViewCustomsClearance = hasPermission({
+    moduleKey: PERMISSION_MODULES.CUSTOMS_CLEARANCE,
+    actionKey: PERMISSION_ACTIONS.VIEW,
+  });
+  const canViewBillingDesk = hasPermission({
+    moduleKey: PERMISSION_MODULES.BILLING_DESK,
+    actionKey: PERMISSION_ACTIONS.VIEW,
   });
 
   const boardRouteMatchForEditWorkflow = pathname.match(/^\/kanban-board\/([^/]+)$/);
@@ -311,6 +333,34 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       to: ROUTE_PATHS.DASHBOARD,
       icon: dashboardIcon,
       hasPermission: true,
+    },
+    {
+      menu: 'Commercial/Pricing Desk',
+      isDefaultMenu: true,
+      to: '/kanban-board/ffd-board-commercials',
+      icon: configIcon,
+      hasPermission: canViewCommercialPricing,
+    },
+    {
+      menu: 'Operations',
+      isDefaultMenu: true,
+      to: '/kanban-board/ffd-board-ops',
+      icon: workersIcon,
+      hasPermission: canViewOperationsModule,
+    },
+    {
+      menu: 'Customs Clearance',
+      isDefaultMenu: true,
+      to: '/kanban-board/ffd-board-customs',
+      icon: inspectionIcon,
+      hasPermission: canViewCustomsClearance,
+    },
+    {
+      menu: 'Billing Desk',
+      isDefaultMenu: true,
+      to: '/kanban-board/ffd-board-billing',
+      icon: billingIcon,
+      hasPermission: canViewBillingDesk,
     },
     {
       menu: 'User Management',

@@ -248,6 +248,53 @@ export const opsBoardCardsByColumn = {
   },
 };
 
+// ---- FFD Customs Clearance (Documents Received -> Under Review -> Duty Assessment -> Cleared / Held) ----
+
+export const customsBoardCardsByColumn = {
+  "col-customs-docs-received": [
+    {
+      card_id: "customs-card-1",
+      card_name: "Import docs received — Al Rashid Trading",
+      username: "Sam Lee",
+      ...withType(type("type-task")),
+    },
+  ],
+  "col-customs-under-review": [
+    {
+      card_id: "customs-card-2",
+      card_name: "Reviewing HS codes — BGP Arabia Co.",
+      username: "Jordan Smith",
+      ...withType(type("type-review")),
+    },
+  ],
+  "col-customs-duty-assessment": [
+    {
+      card_id: "customs-card-3",
+      card_name: "Duty assessment in progress — Gulf Freight Co.",
+      username: "Priya Patel",
+      ...withTag(tag("tag-urgent")),
+    },
+  ],
+  "col-customs-cleared": [
+    {
+      card_id: "customs-card-4",
+      card_name: "Cleared for delivery — Nova Logistics",
+      username: "Alex Johnson",
+      kpi_percentage: 100,
+      ...withSticker(sticker("sticker-done")),
+    },
+  ],
+  "col-customs-held": [
+    {
+      card_id: "customs-card-5",
+      card_name: "Held — missing certificate of origin",
+      username: "Sam Lee",
+      card_color: "#dc2626",
+      ...withBlocker(blocker("blocker-client")),
+    },
+  ],
+};
+
 // ---- FFD Billing Board (Costing Issued -> Invoice Issued -> Submitted -> Job Completed -> Ready to Archive) ----
 
 export const billingBoardCardsByColumn = {

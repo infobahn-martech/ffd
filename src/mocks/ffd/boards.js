@@ -95,6 +95,25 @@ export const mockBoardStructures = {
       swimlanes: defaultSwimlane,
     },
   ],
+  "ffd-board-customs": [
+    {
+      workflow_id: "ffd-wf-customs",
+      workflow_name: "FFD Customs Clearance",
+      role_id: null,
+      description: "Import/export customs clearance pipeline",
+      board_id: "ffd-board-customs",
+      is_pinned: false,
+      is_collapsed: false,
+      stages: [
+        singleColumnStage("col-customs-docs-received", "Documents Received", "#7c3aed"),
+        singleColumnStage("col-customs-under-review", "Under Review", "#b45309"),
+        singleColumnStage("col-customs-duty-assessment", "Duty Assessment", "#0d9488"),
+        singleColumnStage("col-customs-cleared", "Cleared", "#16a34a"),
+        singleColumnStage("col-customs-held", "Held / Query", "#dc2626"),
+      ],
+      swimlanes: defaultSwimlane,
+    },
+  ],
   "ffd-board-service": [
     {
       workflow_id: "ffd-wf-service",
