@@ -5,8 +5,9 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../design/scss/login.scss";
 import useAuthReducer from "../../store/AuthReducer";
 import { setItem } from "../../shared/helpers/localStorage";
-import { isMockDataEnabled, mockUserProfile } from "../../mocks/ffd";
+import { isMockDataEnabled, mockUserProfile, mockAdminCredentials } from "../../mocks/ffd";
 import { normalizePermissionSections } from "../../shared/utils/permissions";
+import useAlertReducer from "../../store/AlertReducer";
 
 function Index() {
   const navigate = useNavigate();
@@ -46,10 +47,21 @@ function Index() {
       return;
     }
 
-    // TEMPORARY: dev-only mock login (VITE_USE_MOCK_DATA=true) — bypasses the
-    // real login API so the app is reachable before a backend exists. See
-    // src/mocks/ffd/index.js for the switch and mockUserProfile. Remove this
-    // branch once the backend exists.
+    // TEMPORARY: dev-only mock login (VITE_USE_MOCK_DATA=true) — validates
+    // against a single hardcoded admin credential the same way the real login
+    // API would validate against the backend, so the app is reachable before
+    // a backend exists. See src/mocks/ffd/index.js for the switch,
+    // mockAdminCredentials, and mockUserProfile. Remove this branch once the
+    // backend exists.
+    if (
+      data.email.trim().toLowerCase() !== mockAdminCredentials.email.toLowerCase() ||
+      data.password !== mockAdminCredentials.password
+    ) {
+      const { error } = useAlertReducer.getState();
+      error("Invalid email or password.");
+      return;
+    }
+
     setItem("accessToken", "ffd-mock-token");
     setItem("userid", mockUserProfile.userid);
     setItem("refreshToken", "ffd-mock-refresh-token");

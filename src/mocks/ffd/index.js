@@ -40,6 +40,12 @@ import { documentsByCardId, nextDocumentId, DOCUMENT_TYPES } from "./documents";
 
 export const isMockDataEnabled = import.meta.env.VITE_USE_MOCK_DATA === "true";
 
+/** Only credentials accepted by the mock login check in Authentication/index.jsx. */
+export const mockAdminCredentials = {
+  email: "admin@gmail.com",
+  password: "admin@123",
+};
+
 /** Mock profile used to bypass real login while mock mode is on — see Authentication/index.jsx. */
 export const mockUserProfile = {
   userid: "ffd-mock-user",
