@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { FiX, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/fi';
+import { FiX, FiPlus, FiMoreVertical, FiInfo } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import NewTagModal, { normalizeTagAvailabilityLevel } from './NewTagModal';
 import useKanbanManagementReducer, {
@@ -19,7 +19,6 @@ const TagColorSwatch = ({ color }) => (
 const TagsModal = ({ show, onClose }) => {
   const tags = useKanbanManagementReducer((s) => s.tags);
   const tagsLoading = useKanbanManagementReducer((s) => s.tagsLoading);
-  const tagsError = useKanbanManagementReducer((s) => s.tagsError);
   const tagsPagination = useKanbanManagementReducer((s) => s.tagsPagination);
   const workspaceBoardOptions = useKanbanManagementReducer((s) => s.workspaceBoardOptions);
   const workspaceBoardsLoading = useKanbanManagementReducer((s) => s.workspaceBoardsLoading);
@@ -270,25 +269,6 @@ const TagsModal = ({ show, onClose }) => {
             </div>
           </div>
 
-          {tagsError && (
-            <div className="tags-modal-error-banner" role="alert">
-              <FiAlertCircle size={18} aria-hidden />
-              <span className="tags-modal-error-text">{tagsError}</span>
-              <button
-                type="button"
-                className="tags-modal-error-retry"
-                onClick={() =>
-                  fetchKanbanTags({
-                    search: debouncedSearch,
-                    page: currentPage,
-                    per_page: perPage,
-                  })
-                }
-              >
-                Retry
-              </button>
-            </div>
-          )}
         </div>
 
         <div className="blockers-table-section">

@@ -261,7 +261,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                     <input
                       type="text"
                       className="business-rules-search-input"
-                      placeholder="Filter by business rule name, ID, owner, t"
+                      placeholder="Filter by business rule name, ID, owner, board name"
                       value={searchValue}
                       onChange={(e) => { setSearchValue(e.target.value.trimStart()); setPage(1); }}
                     />
@@ -283,14 +283,14 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                   <thead>
                     <tr>
                       <th style={{ width: 44 }} />
-                      <th>ID</th>
-                      <th>NAME</th>
-                      <th>OWNER</th>
-                      <th>BOARD NAME</th>
-                      <th>EXECUTION ORDER</th>
-                      <th>TAGS</th>
-                      <th>SHARED WITH</th>
-                      <th>STATUS</th>
+                      <th>Id</th>
+                      <th>Name</th>
+                      <th>Owner</th>
+                      <th>Board name</th>
+                      <th>Execution order</th>
+                      <th>Tags</th>
+                      <th>Shared with</th>
+                      <th>Status</th>
                       <th style={{ width: 44 }} />
                     </tr>
                   </thead>

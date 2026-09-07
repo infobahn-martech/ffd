@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { FiX, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/fi';
+import { FiX, FiPlus, FiMoreVertical, FiInfo } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import NewStickerModal from './NewStickerModal';
 import DynamicIcon from './DynamicIcon';
@@ -55,7 +55,6 @@ const StickerIconSwatch = ({ color_code, iconKey }) => {
 const StickersModal = ({ show, onClose }) => {
   const cardStickers = useKanbanManagementReducer((s) => s.cardStickers);
   const cardStickersLoading = useKanbanManagementReducer((s) => s.cardStickersLoading);
-  const cardStickersError = useKanbanManagementReducer((s) => s.cardStickersError);
   const cardStickersPagination = useKanbanManagementReducer((s) => s.cardStickersPagination);
   const workspaceBoardOptions = useKanbanManagementReducer((s) => s.workspaceBoardOptions);
   const workspaceBoardsLoading = useKanbanManagementReducer((s) => s.workspaceBoardsLoading);
@@ -313,25 +312,6 @@ const StickersModal = ({ show, onClose }) => {
             </div>
           </div>
 
-          {cardStickersError && (
-            <div className="tags-modal-error-banner" role="alert">
-              <FiAlertCircle size={18} aria-hidden />
-              <span className="tags-modal-error-text">{cardStickersError}</span>
-              <button
-                type="button"
-                className="tags-modal-error-retry"
-                onClick={() =>
-                  fetchKanbanCardStickers({
-                    search: debouncedSearch,
-                    page: currentPage,
-                    limit,
-                  })
-                }
-              >
-                Retry
-              </button>
-            </div>
-          )}
         </div>
 
         <div className="blockers-table-section">

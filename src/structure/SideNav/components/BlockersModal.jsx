@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { FiX, FiPlus, FiMoreVertical, FiInfo, FiAlertCircle } from 'react-icons/fi';
+import { FiX, FiPlus, FiMoreVertical, FiInfo } from 'react-icons/fi';
 import { Modal } from 'react-bootstrap';
 import NewBlockerModal from './NewBlockerModal';
 import DynamicIcon from './DynamicIcon';
@@ -55,7 +55,6 @@ const BlockerIconSwatch = ({ color_code, iconKey }) => {
 const BlockersModal = ({ show, onClose }) => {
   const cardBlockers = useKanbanManagementReducer((s) => s.cardBlockers);
   const cardBlockersLoading = useKanbanManagementReducer((s) => s.cardBlockersLoading);
-  const cardBlockersError = useKanbanManagementReducer((s) => s.cardBlockersError);
   const cardBlockersPagination = useKanbanManagementReducer((s) => s.cardBlockersPagination);
   const workspaceBoardOptions = useKanbanManagementReducer((s) => s.workspaceBoardOptions);
   const workspaceBoardsLoading = useKanbanManagementReducer((s) => s.workspaceBoardsLoading);
@@ -313,25 +312,6 @@ const BlockersModal = ({ show, onClose }) => {
             </div>
           </div>
 
-          {cardBlockersError && (
-            <div className="tags-modal-error-banner" role="alert">
-              <FiAlertCircle size={18} aria-hidden />
-              <span className="tags-modal-error-text">{cardBlockersError}</span>
-              <button
-                type="button"
-                className="tags-modal-error-retry"
-                onClick={() =>
-                  fetchKanbanCardBlockers({
-                    search: debouncedSearch,
-                    page: currentPage,
-                    limit,
-                  })
-                }
-              >
-                Retry
-              </button>
-            </div>
-          )}
         </div>
 
         <div className="blockers-table-section">
