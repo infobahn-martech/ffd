@@ -5,12 +5,14 @@
     max-width: 1250px;
     width: 92%;
     margin: 1.5rem auto;
+    height: calc(100vh - 3rem);
     max-height: calc(100vh - 3rem);
 
     @media (max-width: 991px) {
       max-width: 95%;
       width: 95%;
       margin: 1rem auto;
+      height: calc(100vh - 2rem);
       max-height: calc(100vh - 2rem);
     }
   }
@@ -20,44 +22,64 @@
     border: none;
     box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
     overflow: hidden;
+    // Chrome/Firefox sometimes leave a 1px anti-aliased sliver of the
+    // background showing through the rounded corner where overflow:hidden
+    // clips a full-bleed child (the navy header) - forcing a new compositing
+    // layer makes the browser clip against the actual rounded mask instead.
+    transform: translateZ(0);
     background: var(--surface-primary);
+    height: 100%;
     max-height: calc(100vh - 3rem);
     display: flex;
     flex-direction: column;
     position: relative;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--ffd-navy) 0%, var(--ffd-navy-light) 55%, var(--ffd-coral) 100%);
-      z-index: 1;
-    }
+    // Global unscoped .modal-content rule in prospect-modal.scss leaks
+    // padding: 46px onto every modal that doesn't reset it.
+    padding: 0 !important;
   }
 
   .blockers-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--surface-primary);
-    padding: 18px 16px 18px 24px;
-    border-bottom: 1px solid var(--border-primary);
+    background: var(--ffd-navy);
+    padding: 18px 24px;
+    border-bottom: none;
+    // Global unscoped .modal-header rule in prospect-modal.scss leaks
+    // border-radius: 8px onto every modal header that doesn't reset it. Match
+    // modal-content's 20px top corners (not 0) so the navy background fills the
+    // rounded corners instead of leaving a clipped white sliver behind it.
+    border-radius: 20px 20px 0 0 !important;
+    // Same file also leaks margin-right: 21px onto every .modal-header, which
+    // shrinks this header short of the modal's right edge and exposes the
+    // white modal-content background behind it.
+    margin-right: 0 !important;
+
+    .blockers-modal-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
     .blockers-modal-title {
       font-size: 20px;
       font-weight: 600;
-      color: var(--text-primary);
+      color: #ffffff;
       margin: 0;
       font-family: 'Manrope', sans-serif;
     }
 
+    .blockers-modal-subtitle {
+      font-size: 13px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.7);
+      font-family: 'Manrope', sans-serif;
+    }
+
     .blockers-modal-close {
-      background: none;
+      background: rgba(255, 255, 255, 0.08);
       border: none;
-      color: var(--text-secondary);
+      color: rgba(255, 255, 255, 0.85);
       cursor: pointer;
       padding: 4px;
       display: flex;
@@ -67,8 +89,8 @@
       transition: all 0.2s ease;
 
       &:hover {
-        background: var(--surface-primary);
-        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.16);
+        color: #ffffff;
       }
     }
   }
@@ -173,10 +195,10 @@
         }
       }
 
-      .blockers-add-btn {
-        background: var(--ffd-coral);
+      .blockers-add-new-btn {
+        background: $colorPrimary;
         border: none;
-        border-radius: 50%;
+        border-radius: 10px;
         width: 40px;
         height: 40px;
         display: flex;
@@ -184,18 +206,19 @@
         justify-content: center;
         cursor: pointer;
         color: #ffffff;
-        box-shadow: 0 4px 12px rgba($ffd-coral, 0.28);
+        box-shadow: 0 4px 12px rgba($colorPrimary, 0.28);
         transition: all 0.2s ease;
         flex-shrink: 0;
 
         &:hover {
-          background: var(--ffd-coral-hover);
-          transform: scale(1.05);
-          box-shadow: 0 6px 16px rgba($ffd-coral, 0.34), 0 0 0 3px rgba($ffd-coral, 0.22);
+          opacity: 0.9;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba($colorPrimary, 0.34);
         }
 
         &:active {
-          transform: scale(0.95);
+          transform: translateY(0);
+          opacity: 1;
         }
       }
     }
@@ -433,7 +456,7 @@
       align-items: center;
       justify-content: flex-end;
       gap: 8px;
-      margin-top: 0;
+      margin-top: auto;
       padding: 12px 24px;
       border-top: 1px solid var(--border-primary);
       background: var(--surface-primary);
