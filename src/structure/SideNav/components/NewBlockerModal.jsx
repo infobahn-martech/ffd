@@ -72,6 +72,7 @@ const NewBlockerModal = ({
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [colorPickerPlacement, setColorPickerPlacement] = useState({ top: 0, left: 0 });
   const [isBoardSelectorOpen, setIsBoardSelectorOpen] = useState(false);
+  const [boardSelectorPlacement, setBoardSelectorPlacement] = useState({ top: 0, left: 0, width: 0 });
   const [boardSearch, setBoardSearch] = useState('');
   const [saveSubmitting, setSaveSubmitting] = useState(false);
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
@@ -80,6 +81,8 @@ const NewBlockerModal = ({
   const colorPickerPopoverRef = useRef(null);
   const boardSelectorRef = useRef(null);
   const addBoardBtnRef = useRef(null);
+  const boardsFieldRef = useRef(null);
+  const modalBodyRef = useRef(null);
   const iconPickerRef = useRef(null);
 
   const isEditMode = Boolean(
@@ -366,7 +369,7 @@ const NewBlockerModal = ({
         </button>
       </Modal.Header>
       <Modal.Body className="new-blocker-modal-body">
-        <div className="new-blocker-form">
+        <div ref={modalBodyRef} className="new-blocker-form">
           <div className="new-blocker-row-fields">
             <div className="new-blocker-field">
               <label className="new-blocker-label" htmlFor="new-blocker-color-trigger">
@@ -469,7 +472,7 @@ const NewBlockerModal = ({
             </div>
           </div>
 
-          <div className="new-blocker-field new-blocker-boards-field">
+          <div ref={boardsFieldRef} className="new-blocker-field new-blocker-boards-field">
             <p className="new-blocker-boards-text">The blocker is applied to the following boards</p>
             <div className="new-blocker-boards-controls">
               <button
@@ -478,27 +481,26 @@ const NewBlockerModal = ({
                 className="new-blocker-add-board-btn"
                 aria-label="Choose boards"
                 aria-expanded={isBoardSelectorOpen}
-                onClick={() => setIsBoardSelectorOpen((v) => !v)}
+                onClick={() => {
+                  if (!isBoardSelectorOpen && addBoardBtnRef.current) {
+                    const btn = addBoardBtnRef.current.getBoundingClientRect();
+                    const modalContent = addBoardBtnRef.current.closest('.modal-content');
+                    const container = modalContent
+                      ? modalContent.getBoundingClientRect()
+                      : (modalBodyRef.current ? modalBodyRef.current.getBoundingClientRect() : btn);
+                    setBoardSelectorPlacement({
+                      top: btn.bottom + 8,
+                      left: container.left,
+                      width: container.width,
+                    });
+                  }
+                  setIsBoardSelectorOpen((v) => !v);
+                }}
               >
                 <FiPlus size={20} />
               </button>
 
-              {isBoardSelectorOpen && (
-                <div className="new-blocker-board-selector" ref={boardSelectorRef}>
-                  <div className="new-blocker-board-selector-header">
-                    <FiFilter size={16} className="new-blocker-board-selector-search-icon" aria-hidden />
-                    <input
-                      type="search"
-                      className="new-blocker-board-selector-search"
-                      placeholder="Filter"
-                      value={boardSearch}
-                      onChange={(e) => setBoardSearch(e.target.value)}
-                      aria-label="Filter workspaces and boards"
-                    />
-                  </div>
-                  <div className="new-blocker-board-selector-scroll">{boardSelectorBody()}</div>
-                </div>
-              )}
+
             </div>
 
             {sortedChips.length > 0 && (
@@ -558,6 +560,35 @@ const NewBlockerModal = ({
               ariaLabel="Pick card blocker color"
               hexInputId={isEditMode ? 'editBlockerColorHex' : 'newBlockerColorHex'}
             />
+          </div>,
+          document.body
+        )}
+
+      {isBoardSelectorOpen &&
+        createPortal(
+          <div
+            ref={boardSelectorRef}
+            className="new-blocker-board-selector"
+            style={{
+              position: 'fixed',
+              top: boardSelectorPlacement.top,
+              left: boardSelectorPlacement.left,
+              width: boardSelectorPlacement.width,
+              zIndex: COLOR_PICKER_PORTAL_Z,
+            }}
+          >
+            <div className="new-blocker-board-selector-header">
+              <FiFilter size={16} className="new-blocker-board-selector-search-icon" aria-hidden />
+              <input
+                type="search"
+                className="new-blocker-board-selector-search"
+                placeholder="Filter"
+                value={boardSearch}
+                onChange={(e) => setBoardSearch(e.target.value)}
+                aria-label="Filter workspaces and boards"
+              />
+            </div>
+            <div className="new-blocker-board-selector-scroll">{boardSelectorBody()}</div>
           </div>,
           document.body
         )}

@@ -470,34 +470,30 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                   value={triggerSearch}
                   onChange={(e) => setTriggerSearch(e.target.value)}
                 />
-                <button
-                  type="button"
-                  className="br-picker-cancel-btn"
-                  onClick={handleBackToTable}
-                >
-                  Cancel
-                </button>
+
               </div>
 
-              <div className="br-picker-grid-wrapper">
+              <div className="br-picker-list-wrapper">
                 {isLoadingGet ? (
                   <div className="business-rules-empty-state">Loading...</div>
                 ) : mappedTriggers.length > 0 ? (
-                  <div className="br-picker-grid">
+                  <ul className="br-picker-list">
                     {mappedTriggers.map((trigger) => (
-                      <button
-                        key={trigger.id}
-                        type="button"
-                        className="br-picker-card"
-                        onClick={() => handleTriggerCardClick(trigger)}
-                      >
-                        <span className="br-picker-card-title">{trigger.name}</span>
-                        <div className="br-picker-card-icon">
-                          <BusinessRuleIcon iconType={trigger.icon} />
-                        </div>
-                      </button>
+                      <li key={trigger.id} className="br-picker-list-item">
+                        <button
+                          type="button"
+                          className="br-picker-list-btn"
+                          onClick={() => handleTriggerCardClick(trigger)}
+                        >
+                          <div className="br-picker-list-icon">
+                            <BusinessRuleIcon iconType={trigger.icon} />
+                          </div>
+                          <span className="br-picker-list-name">{trigger.name}</span>
+                          <span className="br-picker-list-arrow">›</span>
+                        </button>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 ) : (
                   <div className="business-rules-empty-state">No rule types found</div>
                 )}

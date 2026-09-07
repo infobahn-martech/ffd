@@ -1,67 +1,83 @@
-﻿@import "partials/partials";
+@import "partials/partials";
 
 .new-blocker-modal {
   .modal-dialog {
     width: 100%;
-    max-width: min(1140px, calc(100vw - 2rem));
+    max-width: min(780px, calc(100vw - 2rem));
   }
 
+  // Make modal-content a flex column so header/body/footer stack cleanly
   .modal-content {
     border-radius: 14px;
     border: none;
     box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
-    position: relative;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      border-radius: 14px 14px 0 0;
-      background: linear-gradient(90deg, var(--ffd-navy) 0%, var(--ffd-navy-light) 55%, var(--ffd-coral) 100%);
-      z-index: 1;
-    }
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important; // reset any global .modal-content padding leaks
   }
 
+  // ── HEADER ──────────────────────────────────────────────────────────────
   .new-blocker-modal-header {
+    flex: 0 0 auto;          // never shrink
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--surface-primary);
-    padding: 18px 24px;
-    border-bottom: 1px solid var(--border-primary);
+    background: $colorPrimary;
+    padding: 20px 28px;
+    border-bottom: none;
+    // Override Bootstrap's .modal-header border-top-*-radius so the navy
+    // background fills edge-to-edge inside modal-content's overflow:hidden.
+    border-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
 
     .new-blocker-modal-title {
       font-size: 20px;
       font-weight: 600;
-      color: var(--text-primary);
+      color: #ffffff;
       margin: 0;
-      font-family: 'Manrope', sans-serif;
+      font-family: $font-primary;
     }
 
     .new-blocker-modal-close {
-      background: none;
+      width: 32px;
+      height: 32px;
       border: none;
-      color: var(--text-secondary);
-      cursor: pointer;
-      padding: 4px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 4px;
+      cursor: pointer;
+      color: #ffffff;
+      padding: 0;
       transition: all 0.2s ease;
 
       &:hover {
-        background: var(--surface-primary);
-        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.22);
+        color: #ffffff;
+        transform: rotate(90deg);
+      }
+
+      &:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.4);
+        outline-offset: 2px;
       }
     }
   }
 
+  // ── BODY ────────────────────────────────────────────────────────────────
   .new-blocker-modal-body {
-    padding: 20px 24px;
+    flex: 1 1 auto;           // fill all available space
+    // Do NOT use overflow-y: auto here — it creates a clipping context
+    // that hides the absolutely-positioned board-selector dropdown.
+    // The form content is compact enough to never need inner scrolling.
+    overflow: visible;
+    padding: 24px 28px;
     background: var(--surface-primary);
   }
 
@@ -137,8 +153,8 @@
 
     &:hover {
       transform: scale(1.05);
-      border-color: var(--ffd-coral);
-      box-shadow: 0 0 0 3px rgba($ffd-coral, 0.1);
+      border-color: $ffd-navy;
+      box-shadow: 0 0 0 3px rgba($ffd-navy, 0.1);
     }
   }
 
@@ -168,8 +184,8 @@
 
     &:hover {
       transform: scale(1.05);
-      border-color: var(--ffd-coral);
-      box-shadow: 0 0 0 3px rgba($ffd-coral, 0.1);
+      border-color: $ffd-navy;
+      box-shadow: 0 0 0 3px rgba($ffd-navy, 0.1);
     }
   }
 
@@ -205,8 +221,8 @@
 
     &:focus {
       outline: none;
-      border-color: var(--ffd-coral);
-      box-shadow: 0 0 0 3px rgba($ffd-coral, 0.1);
+      border-color: $ffd-navy;
+      box-shadow: 0 0 0 3px rgba($ffd-navy, 0.1);
     }
   }
 
@@ -262,12 +278,12 @@
     }
 
     &.selected {
-      background: var(--ffd-coral-soft);
-      border-color: var(--ffd-coral);
-      color: var(--ffd-coral);
+      background: rgba($ffd-navy, 0.07);
+      border-color: $ffd-navy;
+      color: $ffd-navy;
 
       svg {
-        color: var(--ffd-coral);
+        color: $ffd-navy;
       }
     }
   }
@@ -293,8 +309,8 @@
 
     &:focus {
       outline: none;
-      border-color: var(--ffd-coral);
-      box-shadow: 0 0 0 3px rgba($ffd-coral, 0.1);
+      border-color: $ffd-navy;
+      box-shadow: 0 0 0 3px rgba($ffd-navy, 0.1);
     }
 
     &::placeholder {
@@ -325,8 +341,8 @@
 
     &:focus {
       outline: none;
-      border-color: var(--ffd-coral);
-      box-shadow: 0 0 0 3px rgba($ffd-coral, 0.1);
+      border-color: $ffd-navy;
+      box-shadow: 0 0 0 3px rgba($ffd-navy, 0.1);
     }
   }
 
@@ -352,9 +368,9 @@
     margin-top: 8px;
 
     &:hover {
-      background: var(--surface-primary);
-      border-color: var(--ffd-coral);
-      color: var(--text-primary);
+      background: rgba($ffd-navy, 0.04);
+      border-color: $ffd-navy;
+      color: $ffd-navy;
       transform: scale(1.05);
     }
   }
@@ -389,169 +405,6 @@
 
     .new-blocker-add-board-btn {
       margin-top: 0;
-    }
-  }
-
-  .new-blocker-board-selector {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    right: 0;
-    z-index: 20;
-    width: 100%;
-    max-width: 100%;
-    border: 1px solid var(--border-primary);
-    border-radius: 10px;
-    background: var(--surface-primary);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    overflow: hidden;
-    animation: new-blocker-board-selector-in 0.15s ease-out;
-  }
-
-  @keyframes new-blocker-board-selector-in {
-    from {
-      opacity: 0;
-      transform: translateY(-4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .new-blocker-board-selector-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 10px 12px 4px;
-    padding: 12px 18px;
-    background: var(--surface-primary);
-    border: 1px solid var(--border-primary);
-    border-radius: 999px;
-  }
-
-  .new-blocker-board-selector-search-icon {
-    flex-shrink: 0;
-    color: var(--text-muted);
-  }
-
-  .new-blocker-board-selector-search {
-    flex: 1;
-    min-width: 0;
-    border: none;
-    background: transparent;
-    font-size: 13px;
-    color: var(--text-primary);
-    font-family: 'Manrope', sans-serif;
-
-    &:focus {
-      outline: none;
-    }
-
-    &::placeholder {
-      color: var(--text-muted);
-    }
-  }
-
-  .new-blocker-board-selector-scroll {
-    max-height: 220px;
-    overflow-y: auto;
-    padding: 8px 0;
-
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: var(--scrollbar-thumb);
-      border-radius: 3px;
-    }
-  }
-
-  .new-blocker-board-selector-empty {
-    padding: 16px 14px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    text-align: center;
-    font-family: 'Manrope', sans-serif;
-  }
-
-  .new-blocker-workspace-group {
-    margin: 8px 12px;
-    padding: 12px;
-    border-radius: 12px;
-    background: var(--surface-primary);
-    border: 1px solid var(--border-primary);
-  }
-
-  .new-blocker-workspace-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-    padding: 4px 6px;
-    color: var(--text-primary);
-
-    svg {
-      color: var(--text-primary);
-      flex-shrink: 0;
-    }
-  }
-
-  .new-blocker-workspace-title {
-    flex: 1;
-    min-width: 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    font-family: 'Manrope', sans-serif;
-  }
-
-  .new-blocker-workspace-select-all {
-    flex-shrink: 0;
-    padding: 4px 8px;
-    border: none;
-    border-radius: 6px;
-    background: transparent;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-primary);
-    cursor: pointer;
-    font-family: 'Manrope', sans-serif;
-    transition: background 0.15s ease;
-
-    &:hover {
-      background: rgba($ffd-coral, 0.08);
-    }
-  }
-
-  .new-blocker-board-tile-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
-
-  .new-blocker-board-tile {
-    padding: 12px;
-    min-height: 44px;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    background: var(--bg-secondary);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-primary);
-    text-align: left;
-    font-family: 'Manrope', sans-serif;
-    cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease;
-
-    &:hover {
-      background: var(--bg-secondary);
-    }
-
-    &--selected {
-      border-color: var(--ffd-coral);
-      background: var(--bg-secondary);
     }
   }
 
@@ -594,31 +447,34 @@
     }
   }
 
+  // ── FOOTER ──────────────────────────────────────────────────────────────
   .new-blocker-modal-footer {
-    border-top: 1px solid var(--border-primary);
-    padding: 14px 24px;
+    flex: 0 0 auto;          // never grow — always pinned at bottom
+    border-top: 1px solid $ffd-border;
+    padding: 14px 28px;
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     background: var(--surface-primary);
   }
 
   .new-blocker-save-btn {
-    padding: 10px 24px;
-    background: var(--ffd-coral);
+    padding: 10px 28px;
+    background: $colorPrimary;
     color: #ffffff;
     border: none;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba($ffd-coral, 0.28);
+    box-shadow: 0 4px 12px rgba($ffd-navy, 0.25);
     transition: all 0.2s ease;
-    font-family: 'Manrope', sans-serif;
+    font-family: $font-primary;
 
     &:hover {
-      background: var(--ffd-coral-hover);
+      background: $ffd-hover-dark;
       transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba($ffd-coral, 0.34), 0 0 0 3px rgba($ffd-coral, 0.22);
+      box-shadow: 0 6px 16px rgba($ffd-navy, 0.32);
     }
 
     &:active {
@@ -626,14 +482,14 @@
     }
 
     &:disabled {
-      background: #c5cad4;
-      color: #f3f4f6;
+      background: $ffd-border;
+      color: $ffd-text-secondary;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
 
       &:hover {
-        background: #c5cad4;
+        background: $ffd-border;
         transform: none;
         box-shadow: none;
       }
@@ -710,3 +566,155 @@
   border-radius: 50%;
   pointer-events: none;
 }
+
+// ── Board Selector Portal — top-level rules ──────────────────────────────────
+// These styles are intentionally outside .new-blocker-modal because the
+// dropdown is rendered via createPortal at document.body.
+
+@keyframes new-blocker-board-selector-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.new-blocker-board-selector {
+  // position & z-index set via inline style (createPortal)
+  border: 1px solid var(--border-primary);
+  border-radius: 10px;
+  background: var(--surface-primary);
+  box-shadow: 0 8px 24px rgba(15, 42, 61, 0.14);
+  overflow: hidden;
+  animation: new-blocker-board-selector-in 0.15s ease-out;
+}
+
+.new-blocker-board-selector-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 12px 4px;
+  padding: 12px 18px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 999px;
+}
+
+.new-blocker-board-selector-search-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.new-blocker-board-selector-search {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: 'Manrope', sans-serif;
+
+  &:focus { outline: none; }
+
+  &::placeholder { color: var(--text-muted); }
+}
+
+.new-blocker-board-selector-scroll {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 8px 0;
+
+  &::-webkit-scrollbar { width: 6px; }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 3px;
+  }
+}
+
+.new-blocker-board-selector-empty {
+  padding: 16px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  font-family: 'Manrope', sans-serif;
+}
+
+.new-blocker-workspace-group {
+  margin: 8px 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+}
+
+.new-blocker-workspace-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 4px 6px;
+  color: var(--text-primary);
+
+  svg {
+    color: var(--text-primary);
+    flex-shrink: 0;
+  }
+}
+
+.new-blocker-workspace-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: 'Manrope', sans-serif;
+}
+
+.new-blocker-workspace-select-all {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba($ffd-navy, 0.06);
+    color: $ffd-navy;
+  }
+}
+
+.new-blocker-board-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.new-blocker-board-tile {
+  padding: 12px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: left;
+  font-family: 'Manrope', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: rgba($ffd-navy, 0.04);
+    border-color: rgba($ffd-navy, 0.25);
+  }
+
+  &--selected {
+    border-color: $ffd-navy;
+    background: rgba($ffd-navy, 0.06);
+    color: $ffd-navy;
+  }
+}

@@ -153,8 +153,8 @@
 
         &:focus {
           outline: none;
-          border-color: var(--ffd-coral);
-          box-shadow: 0 0 0 3px rgba($ffd-coral, 0.1);
+          border-color: $ffd-navy;
+          box-shadow: 0 0 0 3px rgba($ffd-navy, 0.1);
         }
 
         &::placeholder {
@@ -474,9 +474,9 @@
         transition: all 0.2s ease;
 
         &:hover:not(:disabled) {
-          background: var(--surface-primary);
-          border-color: var(--ffd-coral);
-          color: var(--text-primary);
+          background: rgba($ffd-navy, 0.04);
+          border-color: $ffd-navy;
+          color: $ffd-navy;
         }
 
         &:disabled {
