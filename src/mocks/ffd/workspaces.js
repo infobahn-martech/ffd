@@ -46,26 +46,26 @@ export const mockWorkspaces = [
       },
     ],
   },
-  {
-    workspace_id: "ffd-ws-service",
-    workspace_name: "Service Management",
-    workspace_status: "1",
-    background: null,
-    boards: [
-      {
-        board_id: "ffd-board-service",
-        board_name: "Service Requests",
-        board_status: "1",
-        total_cards: 6,
-        background: null,
-      },
-    ],
-  },
-  {
-    workspace_id: "ffd-ws-internal",
-    workspace_name: "Internal Tasks",
-    workspace_status: "1",
-    background: null,
-    boards: [],
-  },
+  // {
+  //   workspace_id: "ffd-ws-service",
+  //   workspace_name: "Service Management",
+  //   workspace_status: "1",
+  //   background: null,
+  //   boards: [
+  //     {
+  //       board_id: "ffd-board-service",
+  //       board_name: "Service Requests",
+  //       board_status: "1",
+  //       total_cards: 6,
+  //       background: null,
+  //     },
+  //   ],
+  // },
+  // {
+  //   workspace_id: "ffd-ws-internal",
+  //   workspace_name: "Internal Tasks",
+  //   workspace_status: "1",
+  //   background: null,
+  //   boards: [],
+  // },
 ];
