@@ -233,7 +233,10 @@ const TagsModal = ({ show, onClose }) => {
       size="xl"
     >
       <Modal.Header className="blockers-modal-header">
-        <Modal.Title className="blockers-modal-title">Tags</Modal.Title>
+        <div className="blockers-modal-header-left">
+          <Modal.Title className="blockers-modal-title">Tags</Modal.Title>
+          <span className="blockers-modal-subtitle">Tags available across boards</span>
+        </div>
         <button
           type="button"
           className="blockers-modal-close"
@@ -244,48 +247,51 @@ const TagsModal = ({ show, onClose }) => {
         </button>
       </Modal.Header>
       <Modal.Body className="blockers-modal-body tags-modal-body">
-        <div className="blockers-filter-bar">
-          <div className="blockers-filter-left">
-            <input
-              type="text"
-              className="blockers-filter-input"
-              placeholder="Filter"
-              value={searchValue}
-              onChange={(e) => handleSearchChange(e.target.value)}
-            />
+        <div className="blockers-toolbar-section">
+          <div className="blockers-filter-bar">
+            <div className="blockers-filter-left">
+              <input
+                type="text"
+                className="blockers-filter-input"
+                placeholder="Filter"
+                value={searchValue}
+                onChange={(e) => handleSearchChange(e.target.value)}
+              />
+            </div>
+            <div className="blockers-filter-right">
+              <button
+                type="button"
+                className="blockers-add-new-btn"
+                aria-label="Add tag"
+                onClick={handleAddTag}
+              >
+                <FiPlus size={20} />
+              </button>
+            </div>
           </div>
-          <div className="blockers-filter-right">
-            <button
-              type="button"
-              className="blockers-add-btn"
-              aria-label="Add tag"
-              onClick={handleAddTag}
-            >
-              <FiPlus size={20} />
-            </button>
-          </div>
+
+          {tagsError && (
+            <div className="tags-modal-error-banner" role="alert">
+              <FiAlertCircle size={18} aria-hidden />
+              <span className="tags-modal-error-text">{tagsError}</span>
+              <button
+                type="button"
+                className="tags-modal-error-retry"
+                onClick={() =>
+                  fetchKanbanTags({
+                    search: debouncedSearch,
+                    page: currentPage,
+                    per_page: perPage,
+                  })
+                }
+              >
+                Retry
+              </button>
+            </div>
+          )}
         </div>
 
-        {tagsError && (
-          <div className="tags-modal-error-banner" role="alert">
-            <FiAlertCircle size={18} aria-hidden />
-            <span className="tags-modal-error-text">{tagsError}</span>
-            <button
-              type="button"
-              className="tags-modal-error-retry"
-              onClick={() =>
-                fetchKanbanTags({
-                  search: debouncedSearch,
-                  page: currentPage,
-                  per_page: perPage,
-                })
-              }
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
+        <div className="blockers-table-section">
         <div className="blockers-table-wrapper blockers-table-wrapper--tags-min-body">
           <table className="blockers-table">
             <thead>
@@ -455,6 +461,7 @@ const TagsModal = ({ show, onClose }) => {
           >
             Next
           </button>
+        </div>
         </div>
       </Modal.Body>
       <NewTagModal

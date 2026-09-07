@@ -276,7 +276,10 @@ const BlockersModal = ({ show, onClose }) => {
       size="xl"
     >
       <Modal.Header bsPrefix="blockers-modal-header">
-        <Modal.Title className="blockers-modal-title">Blockers</Modal.Title>
+        <div className="blockers-modal-header-left">
+          <Modal.Title className="blockers-modal-title">Blockers</Modal.Title>
+          <span className="blockers-modal-subtitle">Rules that restrict availability across boards</span>
+        </div>
         <button
           type="button"
           className="blockers-modal-close"
@@ -301,7 +304,7 @@ const BlockersModal = ({ show, onClose }) => {
             <div className="blockers-filter-right">
               <button
                 type="button"
-                className="blockers-add-btn"
+                className="blockers-add-new-btn"
                 aria-label="Add blocker"
                 onClick={handleAddBlocker}
               >

@@ -54,7 +54,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
   const {
     getBusinessRules, businessRules, businessRulesCount, isLoadingBusinessRules,
     triggerTypes, isLoadingGet, getTriggerTypes,
-    getBusinessRuleStats, businessRuleStats,
+    getBusinessRuleStats,
     createBusinessRule, isCreatingBusinessRule,
     updateBusinessRule, isUpdatingBusinessRule,
     deleteBusinessRule, isDeletingBusinessRule,
@@ -241,7 +241,7 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
 
         <Modal.Body className="business-rules-modal-body">
           {view === 'table' ? (
-            <>
+            <div className="br-body-inner">
               <div className="br-table-toolbar">
                 <div className="br-table-toolbar-left">
                   <select
@@ -253,7 +253,9 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                     <option value="enabled">Enabled</option>
                     <option value="disabled">Disabled</option>
                   </select>
+                </div>
 
+                <div className="br-table-toolbar-right">
                   <div className="business-rules-search-wrapper br-table-search-wrap">
                     <FiSearch className="business-rules-search-icon" />
                     <input
@@ -264,17 +266,18 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                       onChange={(e) => { setSearchValue(e.target.value.trimStart()); setPage(1); }}
                     />
                   </div>
-                </div>
 
-                <button
-                  type="button"
-                  className="br-add-new-rule-btn"
-                  onClick={handleAddNewRule}
-                >
-                  Add new rule
-                </button>
+                  <button
+                    type="button"
+                    className="br-add-new-rule-btn"
+                    onClick={handleAddNewRule}
+                  >
+                    Add new rule
+                  </button>
+                </div>
               </div>
 
+              <div className="br-table-section">
               <div className="br-table-scroll">
                 <table className="br-table">
                   <thead>
@@ -431,30 +434,31 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
               </div>
 
               <div className="br-table-pagination">
+                <span className="br-table-pagination-total">
+                  Available business rules {businessRulesCount}
+                </span>
                 <div className="br-table-pagination-controls">
-                  <select
-                    className="br-table-page-select"
-                    value={page}
-                    onChange={(e) => setPage(Number(e.target.value))}
-                  >
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
                   <button
-                    className="br-table-page-btn"
                     type="button"
+                    className="br-table-pagination-btn"
+                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                    disabled={page <= 1}
+                  >
+                    Previous
+                  </button>
+                  <span className="br-table-pagination-page">Page {page}</span>
+                  <button
+                    type="button"
+                    className="br-table-pagination-btn"
                     onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
                     disabled={page >= totalPages}
                   >
-                    &gt;
+                    Next
                   </button>
                 </div>
-                <span className="br-table-count">
-                  Available business rules {businessRuleStats.available} / Created business rules {businessRuleStats.created} / Enabled business rules {businessRuleStats.enabled} / Visible business rules {businessRuleStats.visible}
-                </span>
               </div>
-            </>
+              </div>
+            </div>
           ) : (
             <>
             <div className="br-picker-container">
@@ -497,10 +501,6 @@ const BusinessRulesModal = ({ show, onClose, boardName }) => {
                 ) : (
                   <div className="business-rules-empty-state">No rule types found</div>
                 )}
-              </div>
-
-              <div className="br-picker-footer">
-                Available business rules {businessRuleStats.available} / Created business rules {businessRuleStats.created} / Enabled business rules {businessRuleStats.enabled} / Visible business rules {businessRuleStats.visible}
               </div>
             </div>
             </>
