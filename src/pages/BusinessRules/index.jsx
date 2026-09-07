@@ -173,7 +173,7 @@ const BusinessRules = () => {
             <input
               type="text"
               className="form-control br-search-input"
-              placeholder="Filter by business rule name, ID, owner, t"
+              placeholder="Filter by business rule name, ID, owner, board name"
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
             />
@@ -193,14 +193,14 @@ const BusinessRules = () => {
             <thead>
               <tr>
                 <th style={{ width: 40 }} />
-                <th>ID</th>
-                <th>NAME</th>
-                <th>OWNER</th>
-                <th>BOARD NAME</th>
-                <th>EXECUTION ORDER</th>
-                <th>TAGS</th>
-                <th>SHARED WITH</th>
-                <th>STATUS</th>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Owner</th>
+                <th>Board name</th>
+                <th>Execution order</th>
+                <th>Tags</th>
+                <th>Shared with</th>
+                <th>Status</th>
                 <th style={{ width: 40 }} />
               </tr>
             </thead>
