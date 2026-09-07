@@ -132,7 +132,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px 0 20px;
+  padding: 16px 20px 12px 20px;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .br-picker-search-input {
@@ -143,11 +144,11 @@
   font: normal normal 400 13px/1.5 $font-primary;
   color: var(--text-primary);
   outline: none;
-  
+
   &::placeholder {
     color: var(--text-muted);
   }
-  
+
   &:focus {
     border-color: $ffd-navy;
     box-shadow: 0 0 0 2px rgba($ffd-navy, 0.08);
@@ -168,83 +169,105 @@
   }
 }
 
-.br-picker-grid-wrapper {
-  padding: 20px;
+// List wrapper — scrollable area below the search header
+.br-picker-list-wrapper {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  padding: 8px 0;
 }
 
-.br-picker-footer {
+// Reset list defaults
+.br-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.br-picker-list-item {
+  border-bottom: 1px solid $ffd-border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.br-picker-list-btn {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  gap: 14px;
+  width: 100%;
   padding: 10px 20px;
-  border-top: 1px solid var(--border-primary);
-  background: var(--surface-primary);
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.br-picker-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  
-  @media ($sm-991) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  @media ($sm-767) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  @media ($sm-579) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.br-picker-card {
-  background: var(--surface-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 4px;
-  padding: 16px 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  background: transparent;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 120px;
-  justify-content: flex-start;
-  width: 100%;
-  
+  text-align: left;
+  transition: background 0.15s ease;
+
   &:hover {
-    border-color: $ffd-navy;
-    box-shadow: 0 4px 12px rgba($ffd-navy, 0.08);
-    transform: translateY(-1px);
+    background: rgba($ffd-navy, 0.04);
+
+    .br-picker-list-name {
+      color: $ffd-navy;
+    }
+
+    .br-picker-list-arrow {
+      color: $ffd-navy;
+    }
   }
-  
-  &:active {
-    transform: translateY(0);
+
+  &:focus-visible {
+    outline: 2px solid rgba($ffd-navy, 0.35);
+    outline-offset: -2px;
   }
 }
 
-.br-picker-card-title {
-  font: normal normal 400 13px/1.4 $font-primary;
-  color: var(--text-primary);
-  margin-bottom: 12px;
-  width: 100%;
-}
-
-.br-picker-card-icon {
+.br-picker-list-icon {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
-  
-  svg {
-    width: auto;
-    height: 48px; 
+
+  // Scale the SVG icons down for a compact list row
+  .business-rules-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+
+  svg {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.br-picker-list-name {
+  flex: 1;
+  font: normal normal 500 13px/1.4 $font-primary;
+  color: $ffd-text-primary;
+  transition: color 0.15s ease;
+}
+
+.br-picker-list-arrow {
+  flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: $ffd-text-secondary;
+  transition: color 0.15s ease;
+}
+
+// Legacy card styles kept for reference — picker now uses list layout
+// (.br-picker-list, .br-picker-list-item, .br-picker-list-btn above)
+.br-picker-card {
+  display: none; // no longer used
+}
+
+.br-picker-card-title {
+  display: none;
+}
+
+.br-picker-card-icon {
+  display: none;
 }
 
 .business-rules-picker-cancel-btn {
