@@ -265,7 +265,10 @@ const TypesModal = ({ show, onClose }) => {
       size="xl"
     >
       <Modal.Header className="blockers-modal-header">
-        <Modal.Title className="blockers-modal-title">Types</Modal.Title>
+        <div className="blockers-modal-header-left">
+          <Modal.Title className="blockers-modal-title">Types</Modal.Title>
+          <span className="blockers-modal-subtitle">Types available across boards</span>
+        </div>
         <button
           type="button"
           className="blockers-modal-close"
@@ -276,48 +279,51 @@ const TypesModal = ({ show, onClose }) => {
         </button>
       </Modal.Header>
       <Modal.Body className="blockers-modal-body tags-modal-body">
-        <div className="blockers-filter-bar">
-          <div className="blockers-filter-left">
-            <input
-              type="text"
-              className="blockers-filter-input"
-              placeholder="Filter"
-              value={searchValue}
-              onChange={(e) => handleSearchChange(e.target.value)}
-            />
+        <div className="blockers-toolbar-section">
+          <div className="blockers-filter-bar">
+            <div className="blockers-filter-left">
+              <input
+                type="text"
+                className="blockers-filter-input"
+                placeholder="Filter"
+                value={searchValue}
+                onChange={(e) => handleSearchChange(e.target.value)}
+              />
+            </div>
+            <div className="blockers-filter-right">
+              <button
+                type="button"
+                className="blockers-add-new-btn"
+                aria-label="Add type"
+                onClick={handleAddType}
+              >
+                <FiPlus size={20} />
+              </button>
+            </div>
           </div>
-          <div className="blockers-filter-right">
-            <button
-              type="button"
-              className="blockers-add-btn"
-              aria-label="Add type"
-              onClick={handleAddType}
-            >
-              <FiPlus size={20} />
-            </button>
-          </div>
+
+          {cardTypesError && (
+            <div className="tags-modal-error-banner" role="alert">
+              <FiAlertCircle size={18} aria-hidden />
+              <span className="tags-modal-error-text">{cardTypesError}</span>
+              <button
+                type="button"
+                className="tags-modal-error-retry"
+                onClick={() =>
+                  fetchKanbanCardTypes({
+                    search: debouncedSearch,
+                    page: currentPage,
+                    per_page: perPage,
+                  })
+                }
+              >
+                Retry
+              </button>
+            </div>
+          )}
         </div>
 
-        {cardTypesError && (
-          <div className="tags-modal-error-banner" role="alert">
-            <FiAlertCircle size={18} aria-hidden />
-            <span className="tags-modal-error-text">{cardTypesError}</span>
-            <button
-              type="button"
-              className="tags-modal-error-retry"
-              onClick={() =>
-                fetchKanbanCardTypes({
-                  search: debouncedSearch,
-                  page: currentPage,
-                  per_page: perPage,
-                })
-              }
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
+        <div className="blockers-table-section">
         <div className="blockers-table-wrapper blockers-table-wrapper--tags-min-body">
           <table className="blockers-table">
             <thead>
@@ -492,6 +498,7 @@ const TypesModal = ({ show, onClose }) => {
           >
             Next
           </button>
+        </div>
         </div>
       </Modal.Body>
       <NewTypeModal
