@@ -1,4 +1,5 @@
 import Gateway from "../gateway/gateway";
+import { isMockDataEnabled, mockAuthService } from "../mocks/ffd";
 
 const doLoginValidate = (email, password, remember_me = false) =>
   Gateway.post("users/login", { email, password, remember_me });
@@ -8,7 +9,15 @@ const googleLoginValidate = (idToken, tokenType) =>
 
 const getUserProfile = () => Gateway.get("user/profile");
 
-const getUserDetail = (userId) => Gateway.get(`users/getuserdetail/${userId}`);
+const getUserDetail = (userId) => {
+  // Guards against silently sending a relative /api request (resolved against
+  // whatever page is open) when the backend URL was never configured — see
+  // src/mocks/ffd/index.js for the mock-mode branch that normally replaces this.
+  if (!import.meta.env.VITE_API_ENDPOINT) {
+    throw new Error("VITE_API_ENDPOINT is required when mock mode is disabled.");
+  }
+  return Gateway.get(`users/getuserdetail/${userId}`);
+};
 
 // IMPORTANT: For FormData, do NOT manually set content-type
 const editUserProfile = (formData) => Gateway.patch("user/profile", formData);
@@ -33,7 +42,7 @@ const changePassword = ({ current_password, new_password, confirm_password }) =>
 const updateUserDetails = (formData) =>
   Gateway.post("users/update_user_details", formData);
 
-export default {
+const realAuthService = {
   doLoginValidate,
   googleLoginValidate,
   getUserProfile,
@@ -44,3 +53,9 @@ export default {
   changePassword,
   updateUserDetails,
 };
+
+// TEMPORARY: dev-only mock switch — see src/mocks/ffd/index.js. Remove this
+// conditional (keep `export default realAuthService`) once the backend exists.
+export default isMockDataEnabled
+  ? { ...realAuthService, ...mockAuthService }
+  : realAuthService;

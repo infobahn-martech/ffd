@@ -155,9 +155,8 @@ const useAuthReducer = create((set) => ({
     removeItem('vendor_id');
   },
   getUserProfile: async (userId = null, skipApiCall = false) => {
+    set({ isProfileFetchLoading: true });
     try {
-      set({ isProfileFetchLoading: true });
-
       // Get userId from parameter, authData state, or localStorage
       const state = useAuthReducer.getState();
       const finalUserId = userId || state.authData?.userid || getItem('userid');
@@ -176,7 +175,6 @@ const useAuthReducer = create((set) => ({
             set({
               profileData: parsedProfile,
               userProfile: parsedProfile,
-              isProfileFetchLoading: false,
               ...derivePermissionState(parsedProfile),
             });
             // If skipApiCall is true (refresh scenario), don't make API call
@@ -223,7 +221,6 @@ const useAuthReducer = create((set) => ({
         set({
           profileData: fallbackProfileData,
           userProfile: fallbackProfileData,
-          isProfileFetchLoading: false,
           ...derivePermissionState(fallbackProfileData),
         });
         return;
@@ -244,10 +241,11 @@ const useAuthReducer = create((set) => ({
       set({
         profileData,
         userProfile: profileData,
-        isProfileFetchLoading: false,
         ...derivePermissionState(profileData),
       });
     } catch (err) {
+      console.error("getUserProfile: failed to load user profile", err);
+
       // Always return success with fallback profile data
       const state = useAuthReducer.getState();
       const authData = state.authData || {};
@@ -285,10 +283,10 @@ const useAuthReducer = create((set) => ({
       set({
         profileData: fallbackProfileData,
         userProfile: fallbackProfileData,
-        isProfileFetchLoading: false,
         ...derivePermissionState(fallbackProfileData),
       });
-
+    } finally {
+      set({ isProfileFetchLoading: false });
     }
   },
 

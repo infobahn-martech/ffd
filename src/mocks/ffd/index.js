@@ -12,6 +12,8 @@
  *   - src/services/workSpaceService.js
  *   - src/services/kanbanBoardService.js
  *   - src/services/workflowService.js
+ *   - src/services/authService.js (getUserDetail — profile fetch after login/on refresh)
+ *   - src/services/kanbanDashboardService.js (listAllDashboards only)
  *   - src/pages/Authentication/index.jsx (login bypass — see mockUserProfile)
  *
  * Data flows through the exact same path real data will:
@@ -552,4 +554,26 @@ export const mockKanbanBoardService = {
 export const mockWorkflowService = {
   toggleCollapseWorkflow: () => ok(),
   togglePinWorkflow: () => ok(),
+};
+
+/**
+ * Shaped like the real GET /users/getuserdetail/{userId} response (`{ data: { data } }`)
+ * so authService.getUserDetail's caller (useAuthReducer.getUserProfile) consumes it
+ * identically — see src/services/authService.js.
+ */
+export const mockAuthService = {
+  getUserDetail: () => ok({ data: mockUserProfile }),
+};
+
+/**
+ * Only covers listAllDashboards — the one call WorkspacesSideNavPanel fires
+ * unconditionally on mount (so it runs immediately after login, alongside
+ * mockWorkSpaceService's workspace list). No custom dashboards exist yet in
+ * mock mode, so an empty list matches a fresh account and reuses the same
+ * "No dashboards yet" empty state the real API's empty response would hit.
+ * The other kanban_dashboard endpoints are user-triggered CRUD, not part of
+ * initialization, so they're left on the real (not-yet-built) backend.
+ */
+export const mockKanbanDashboardService = {
+  listAllDashboards: () => ok({ data: [] }),
 };
