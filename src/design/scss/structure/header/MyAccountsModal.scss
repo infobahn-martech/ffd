@@ -123,19 +123,31 @@ $my-acc-input-radius: 12px;
       --bs-gutter-y: 1.25rem;
     }
 
-    .form-floating > .form-control {
-      border-radius: $my-acc-input-radius;
+    // The visible border for a floating-label field lives on the outer
+    // `.form-floating` wrapper (see `.form-floating.form-floating` in
+    // form-designs.scss), which also strips the inner `.form-control`'s own
+    // border with `!important` — so hover/focus color must be set here, on
+    // the wrapper, not on the input, or it silently has no effect.
+    .form-floating {
       border-color: rgba($ffd-navy, 0.14);
-      min-height: 52px;
-      font-size: 0.95rem;
       transition:
         border-color 0.2s ease,
         box-shadow 0.2s ease;
 
-      &:focus {
+      &:hover {
+        border-color: rgba($ffd-navy, 0.3);
+      }
+
+      &:focus-within {
         border-color: rgba($ffd-navy, 0.45);
         box-shadow: 0 0 0 3px rgba($ffd-navy, 0.12);
       }
+    }
+
+    .form-floating > .form-control {
+      border-radius: $my-acc-input-radius;
+      min-height: 52px;
+      font-size: 0.95rem;
 
       &:disabled {
         background-color: rgba(248, 249, 252, 0.95) !important;
@@ -163,9 +175,17 @@ $my-acc-input-radius: 12px;
         min-height: 52px !important;
         font-size: 0.95rem !important;
         width: 100% !important;
+        // The flag button sits at left:14px and is ~52px wide (its right
+        // edge lands at 66px), so the global 62px padding-left leaves the
+        // dial code crowding — almost touching — the dropdown arrow.
+        padding-left: 78px !important;
         transition:
           border-color 0.2s ease,
           box-shadow 0.2s ease;
+
+        &:hover:not(:disabled) {
+          border-color: rgba($ffd-navy, 0.3) !important;
+        }
 
         &:focus {
           border-color: rgba($ffd-navy, 0.45) !important;
@@ -176,7 +196,19 @@ $my-acc-input-radius: 12px;
       .flag-dropdown.phone-flag {
         border-radius: $my-acc-input-radius 0 0 $my-acc-input-radius !important;
         border-color: rgba($ffd-navy, 0.14) !important;
-        background: rgba(248, 249, 252, 0.85) !important;
+        background: transparent !important;
+
+        // react-phone-input-2/lib/bootstrap.css (imported above) ships its
+        // own Bootstrap-blue focus ring as `.selected-flag.open:before` —
+        // a pseudo-element, not the button itself, so overriding the
+        // button's own outline/box-shadow has no effect on it.
+        .selected-flag {
+          &:focus:before,
+          &.open:before {
+            border-color: rgba($ffd-navy, 0.14) !important;
+            box-shadow: none !important;
+          }
+        }
       }
     }
   }

@@ -4,6 +4,7 @@ import 'react-phone-input-2/lib/bootstrap.css';
 import { FiCamera } from 'react-icons/fi';
 import CustomModal from '../../components/CustomModal';
 import authService from '../../services/authService';
+import useAlertReducer from '../../store/AlertReducer';
 import { getItem } from '../../shared/helpers/localStorage';
 import '../../design/scss/profile.scss';
 import '../../design/scss/prospect-modal.scss';
@@ -38,8 +39,6 @@ function MyAccountsModal({ show, onClose }) {
   const baselineRef = useRef(null);
   const [isImageBroken, setIsImageBroken] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
-  const [fetchError, setFetchError] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     firstName: '',
@@ -58,7 +57,6 @@ function MyAccountsModal({ show, onClose }) {
 
   useEffect(() => {
     if (!show) {
-      setIsEditing(false);
       return undefined;
     }
 
@@ -66,7 +64,6 @@ function MyAccountsModal({ show, onClose }) {
 
     const load = async () => {
       setFetchLoading(true);
-      setFetchError('');
       try {
         const userId = getItem('userid') || '1';
         const res = await authService.getUserDetail(userId);
@@ -75,15 +72,8 @@ function MyAccountsModal({ show, onClose }) {
         if (payload && typeof payload === 'object') {
           applyFormFromUser(payload);
         }
-      } catch (err) {
-        if (!cancelled) {
-          setFetchError(
-            err?.response?.data?.message ||
-            err?.response?.data?.error ||
-            err?.message ||
-            'Failed to load account details.',
-          );
-        }
+      } catch {
+        // Silently ignore — form falls back to its default (blank) values
       } finally {
         if (!cancelled) setFetchLoading(false);
       }
@@ -97,7 +87,7 @@ function MyAccountsModal({ show, onClose }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const nextValue = name === 'firstName' ? value.replace(/[^A-Za-z\s]/g, '') : value;
+    const nextValue = name === 'firstName' ? value.replace(/[^\p{L}\s'-]/gu, '') : value;
     setFormData((prev) => ({
       ...prev,
       [name]: nextValue,
@@ -144,7 +134,7 @@ function MyAccountsModal({ show, onClose }) {
 
   const validate = () => {
     const next = {};
-    if (formData.firstName?.trim() && !/^[A-Za-z\s]+$/.test(formData.firstName.trim())) {
+    if (formData.firstName?.trim() && !/^[\p{L}\s'-]+$/u.test(formData.firstName.trim())) {
       next.firstName = 'Only letters are allowed';
     }
     const phoneDigits = (formData.phone || '').replace(/\D/g, '');
@@ -158,18 +148,12 @@ function MyAccountsModal({ show, onClose }) {
     return Object.keys(next).length === 0;
   };
 
-  const handleEdit = () => {
-    setErrors({});
-    setIsEditing(true);
-  };
-
   const handleCancel = () => {
     if (baselineRef.current) {
       setFormData({ ...baselineRef.current });
     }
     setErrors({});
-    setFetchError('');
-    setIsEditing(false);
+    onClose();
   };
 
   const handleSave = async () => {
@@ -185,7 +169,6 @@ function MyAccountsModal({ show, onClose }) {
 
     try {
       setProfileEditLoader(true);
-      setFetchError('');
       await authService.updateUserDetails(formDataToSend);
 
       // Re-fetch latest user details to bind fresh values
@@ -203,9 +186,9 @@ function MyAccountsModal({ show, onClose }) {
         baselineRef.current = { ...formData };
       }
 
-      setIsEditing(false);
+      onClose();
     } catch (err) {
-      setFetchError(
+      useAlertReducer.getState().error(
         err?.response?.data?.message ||
         err?.response?.data?.error ||
         err?.message ||
@@ -234,13 +217,7 @@ function MyAccountsModal({ show, onClose }) {
           </div>
         )}
 
-        {!fetchLoading && fetchError && (
-          <div className="alert alert-danger" role="alert">
-            {fetchError}
-          </div>
-        )}
-
-        {!fetchLoading && !fetchError && (
+        {!fetchLoading && (
           <>
             <div className="my-accounts-premium-inner">
               <div className="my-accounts-avatar-col">
@@ -256,44 +233,42 @@ function MyAccountsModal({ show, onClose }) {
                       <div className="my-accounts-initial">{getUserInitial()}</div>
                     )}
                   </div>
-                  {isEditing && (
-                    <label
-                      htmlFor="image-upload"
-                      className="camera-upload-btn"
-                      style={{
-                        position: 'absolute',
-                        bottom: '6px',
-                        right: '6px',
-                        backgroundColor: 'var(--ffd-navy)',
-                        color: '#fff',
-                        borderRadius: '50%',
-                        width: '42px',
-                        height: '42px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'transform 0.2s ease, background-color 0.2s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'var(--ffd-hover-dark)';
-                        e.currentTarget.style.transform = 'scale(1.06)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'var(--ffd-navy)';
-                        e.currentTarget.style.transform = 'scale(1)';
-                      }}
-                    >
-                      <FiCamera size={18} />
-                      <input
-                        id="image-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        style={{ display: 'none' }}
-                      />
-                    </label>
-                  )}
+                  <label
+                    htmlFor="image-upload"
+                    className="camera-upload-btn"
+                    style={{
+                      position: 'absolute',
+                      bottom: '6px',
+                      right: '6px',
+                      backgroundColor: 'var(--ffd-navy)',
+                      color: '#fff',
+                      borderRadius: '50%',
+                      width: '42px',
+                      height: '42px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s ease, background-color 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--ffd-hover-dark)';
+                      e.currentTarget.style.transform = 'scale(1.06)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--ffd-navy)';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <FiCamera size={18} />
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
                 </div>
                 {errors.avatar && (
                   <div className="text-danger small mt-3 text-center px-1" style={{ maxWidth: '240px' }}>
@@ -314,12 +289,11 @@ function MyAccountsModal({ show, onClose }) {
                           name="firstName"
                           value={formData.firstName}
                           onChange={handleInputChange}
-                          disabled={!isEditing}
                           placeholder="First name"
                           autoComplete="name"
                           style={{
-                            backgroundColor: !isEditing ? 'var(--input-disabled-bg)' : 'var(--ffd-surface)',
-                            cursor: !isEditing ? 'not-allowed' : 'text',
+                            backgroundColor: 'var(--ffd-surface)',
+                            cursor: 'text',
                           }}
                         />
                         <label htmlFor="accountFullName">
@@ -343,7 +317,6 @@ function MyAccountsModal({ show, onClose }) {
                           enableSearch
                           value={formData.phone}
                           onChange={handlePhoneChange}
-                          disabled={!isEditing}
                           inputClass={`phone-input ${errors.phone ? 'is-invalid' : ''}`}
                           buttonClass="phone-flag"
                         />
@@ -364,13 +337,11 @@ function MyAccountsModal({ show, onClose }) {
                           name="email"
                           value={formData.email}
                           onChange={handleInputChange}
-                          disabled={!isEditing}
                           placeholder="Email"
                           autoComplete="email"
                           style={{
-                            backgroundColor: !isEditing ? 'var(--input-disabled-bg)' : 'var(--ffd-surface)',
-                            cursor: !isEditing ? 'not-allowed' : 'text',
-                            opacity: !isEditing ? 0.95 : 1,
+                            backgroundColor: 'var(--ffd-surface)',
+                            cursor: 'text',
                           }}
                         />
                         <label htmlFor="email">
@@ -387,69 +358,45 @@ function MyAccountsModal({ show, onClose }) {
             </div>
 
             <div className="my-accounts-actions profile-btn two-btn">
-              {!isEditing ? (
-                <>
-                  <button
-                    type="button"
-                    className="btn-common btn-my-acct-cancel my-accounts-action-btn"
-                    onClick={() => {
-                      setIsEditing(false);
-                      onClose();
-                    }}
-                  >
-                    Close
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-common edit-btn my-accounts-action-btn"
-                    onClick={handleEdit}
-                  >
-                    Edit
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="btn-common btn-my-acct-cancel my-accounts-action-btn"
-                    onClick={handleCancel}
-                    disabled={profileEditLoader}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-common green-btn"
-                    onClick={handleSave}
-                    disabled={profileEditLoader}
-                    style={{
-                      padding: '12px 48px',
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      borderRadius: '10px',
-                      transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!profileEditLoader) {
-                        e.currentTarget.style.backgroundColor = 'var(--ffd-coral-hover)';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--ffd-coral)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    {profileEditLoader ? (
-                      <div className="spinner-border spinner-border-sm" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                    ) : (
-                      'Save'
-                    )}
-                  </button>
-                </>
-              )}
+              <button
+                type="button"
+                className="btn-common btn-my-acct-cancel my-accounts-action-btn"
+                onClick={handleCancel}
+                disabled={profileEditLoader}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-common green-btn"
+                onClick={handleSave}
+                disabled={profileEditLoader}
+                style={{
+                  padding: '12px 48px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  borderRadius: '10px',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!profileEditLoader) {
+                    e.currentTarget.style.backgroundColor = 'var(--ffd-coral-hover)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--ffd-coral)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                {profileEditLoader ? (
+                  <div className="spinner-border spinner-border-sm" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                ) : (
+                  'Save'
+                )}
+              </button>
             </div>
           </>
         )}
@@ -463,10 +410,7 @@ function MyAccountsModal({ show, onClose }) {
       dialgName="modal-dialog modal-dialog-centered"
       createModal
       show={show}
-      closeModal={() => {
-        setIsEditing(false);
-        onClose();
-      }}
+      closeModal={onClose}
       header={
         <div className="modal-header my-accounts-premium-header border-0 pb-0">
           <h5 className="modal-title my-accounts-premium-title">My Accounts</h5>
