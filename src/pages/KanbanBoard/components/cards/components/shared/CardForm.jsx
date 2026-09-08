@@ -1,15 +1,4 @@
 import { useState, useMemo, useCallback, useEffect, useRef, useLayoutEffect } from "react";
-import {
-  JobWindowTabs,
-  JobHeaderPanel,
-  JobOverviewTab,
-  JobCargoDetailsPanel,
-  JobPickupDetailsPanel,
-  JobDeliveryDetailsPanel,
-  JobDocumentationChecklist,
-  JobDocumentsPanel,
-  JobStatusTimeline,
-} from "./CardParts/JobWindow";
 import { createPortal } from "react-dom";
 import kanbanBoardService from "../../../../../../services/kanbanBoardService";
 import PropTypes from "prop-types";
@@ -1217,70 +1206,21 @@ CardFormFooter.propTypes = {
   totalSteps: PropTypes.number,
 };
 
-const JOB_WINDOW_TABS = [
-  { key: "overview", label: "Overview" },
-  { key: "cargo", label: "Cargo" },
-  { key: "pickup", label: "Pickup" },
-  { key: "delivery", label: "Delivery" },
-  { key: "documentation", label: "Documentation" },
-  { key: "documents", label: "Documents" },
-  { key: "status", label: "Status" },
-];
-
 /**
  * Generic card-detail modal: header (title, color, type/tag/blocker/sticker — see
  * TopBar) plus a column-driven stage stepper (see CardFormFooter). The body below
- * the header renders the FFD "Job window" (Job Header + Cargo/Pickup/Delivery/
- * Documentation/Status tabs — see CardParts/JobWindow) whenever the card carries
- * job data (card.job, populated from src/mocks/ffd/jobDetails.js via
- * mapBoardWorkflowFromApi); cards without job data — every other board, and
- * Task Workflow cards — fall back to the original placeholder body unchanged.
+ * the header is intentionally left empty for every card, whether or not it
+ * carries job data (card.job, populated from src/mocks/ffd/jobDetails.js via
+ * mapBoardWorkflowFromApi).
  */
-function CardDetailsBody({ card, onPatchJobSection }) {
-  const [activeTab, setActiveTab] = useState("overview");
+function CardDetailsBody({ card }) {
   const job = card?.job;
 
   if (!job) {
-    return (
-      <div className="cardform-body cardform-body--placeholder">
-        {card?.user && <p className="cardform-body-field">Assignee: {card.user}</p>}
-        {card?.timeLeft && <p className="cardform-body-field">Time left: {card.timeLeft}</p>}
-        <p className="cardform-body-placeholder-note">
-          No additional card fields are configured yet.
-        </p>
-      </div>
-    );
+    return <div className="cardform-body cardform-body--placeholder" />;
   }
 
-  return (
-    <div className="cardform-body cardform-body--job">
-      <JobHeaderPanel header={job.header} onCommit={(fields) => onPatchJobSection("header", fields)} />
-      <JobWindowTabs tabs={JOB_WINDOW_TABS} activeTab={activeTab} onChange={setActiveTab} />
-      {activeTab === "overview" && (
-        <JobOverviewTab
-          numbers={job.numbers}
-          nomination={job.nomination}
-          onPatchSection={onPatchJobSection}
-        />
-      )}
-      {activeTab === "cargo" && (
-        <JobCargoDetailsPanel cargo={job.cargo} onPatchSection={onPatchJobSection} />
-      )}
-      {activeTab === "pickup" && (
-        <JobPickupDetailsPanel pickup={job.pickup} onPatchSection={onPatchJobSection} />
-      )}
-      {activeTab === "delivery" && (
-        <JobDeliveryDetailsPanel delivery={job.delivery} onPatchSection={onPatchJobSection} />
-      )}
-      {activeTab === "documentation" && (
-        <JobDocumentationChecklist documentation={job.documentation} onPatchSection={onPatchJobSection} />
-      )}
-      {activeTab === "documents" && <JobDocumentsPanel card={card} />}
-      {activeTab === "status" && (
-        <JobStatusTimeline status={job.status} onPatchSection={onPatchJobSection} />
-      )}
-    </div>
-  );
+  return <div className="cardform-body cardform-body--job" />;
 }
 
 CardDetailsBody.propTypes = {

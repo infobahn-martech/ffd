@@ -1,153 +1,44 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import CustomModal from '../../components/CustomModal';
 import { FiAnchor, FiDollarSign, FiClock, FiCheck, FiX, FiAlertCircle, FiCheckCircle, FiTruck, FiUsers, FiFileText, FiMapPin } from 'react-icons/fi';
+import useNotificationReducer from '../../store/NotificationReducer';
 import '../../design/scss/common.scss';
 import '../../design/scss/structure/header/NotificationsModal.scss';
 
+// Maps a notification's `status` to an icon until the backend sends its own icon key.
+const STATUS_ICON_MAP = {
+  arrived: FiAnchor,
+  departure: FiAlertCircle,
+  appointment: FiClock,
+  payment: FiDollarSign,
+  invoice: FiDollarSign,
+  cleared: FiCheckCircle,
+  crew: FiUsers,
+  inspection: FiFileText,
+  transport: FiTruck,
+  port: FiMapPin,
+};
+
 function NotificationsModal({ show, onClose }) {
   const [showAll, setShowAll] = useState(false);
+  const notifications = useNotificationReducer((state) => state.notifications);
+  const isLoading = useNotificationReducer((state) => state.isLoading);
+  const getAll = useNotificationReducer((state) => state.getAll);
+  const markAllAsRead = useNotificationReducer((state) => state.markAllAsRead);
 
-  // Reset showAll when modal closes
   useEffect(() => {
-    if (!show) {
+    if (show) {
+      getAll();
+    } else {
       setShowAll(false);
     }
-  }, [show]);
+  }, [show, getAll]);
 
-
-  const initialNotifications = [
-    {
-      id: 1,
-      type: 'vessel',
-      icon: FiAnchor,
-      title: 'Vessel Arrival Notification',
-      message: 'Vessel **MV Sedres Express** has **arrived** at **Dammam Port**. ETA was **08:30 AM**. Please proceed with clearance procedures.',
-      timestamp: '2h ago',
-      isRead: false,
-      status: 'arrived',
-      highlightedText: 'arrived',
-      highlightedColor: 'var(--color-success)',
-      hasSuccessBackground: true
-    },
-    {
-      id: 2,
-      type: 'appointment',
-      icon: FiClock,
-      title: 'Appointment Received',
-      message: 'New appointment received for vessel **MV Al Fajr** at **Al Jubail Commercial Sea Port**. Scheduled for **December 20, 2024 at 10:00 AM**.',
-      timestamp: '3h ago',
-      isRead: false,
-      status: 'appointment',
-      highlightedText: 'December 20, 2024 at 10:00 AM',
-      highlightedColor: 'var(--color-info)'
-    },
-    {
-      id: 3,
-      type: 'billing',
-      icon: FiDollarSign,
-      title: 'Payment Received',
-      message: 'Payment of **$45,000** has been received from **Sedres Maritime Co.** for invoice **INV-2024-1245**. Payment processed **successfully**.',
-      timestamp: '5h ago',
-      isRead: false,
-      status: 'payment',
-      highlightedText: 'successfully',
-      highlightedColor: 'var(--color-success)',
-      hasSuccessBackground: true
-    },
-    {
-      id: 4,
-      type: 'vessel',
-      icon: FiCheckCircle,
-      title: 'Vessel Cleared',
-      message: 'Vessel **MV Global Star** has been **cleared** at **Ras Tanura Refinery**. All documentation is **complete**. Ready for departure.',
-      timestamp: '6h ago',
-      isRead: false,
-      status: 'cleared',
-      highlightedText: 'cleared',
-      highlightedColor: 'var(--color-success)'
-    },
-    {
-      id: 5,
-      type: 'crew',
-      icon: FiUsers,
-      title: 'Crew Assignment Update',
-      message: 'Crew member **Ahmed Hassan** has been assigned to vessel **MV Sedres Express**. Assignment **confirmed** and notified.',
-      timestamp: '8h ago',
-      isRead: false,
-      status: 'crew',
-      highlightedText: 'confirmed',
-      highlightedColor: 'var(--color-success)'
-    },
-    {
-      id: 6,
-      type: 'inspection',
-      icon: FiFileText,
-      title: 'Custom Inspection Scheduled',
-      message: 'Custom inspection for vessel **MV Al Khafji** at **Al Khafji Port** is scheduled for **December 19, 2024 at 2:00 PM**. Please ensure all documents are ready.',
-      timestamp: '10h ago',
-      isRead: false,
-      status: 'inspection',
-      highlightedText: 'December 19, 2024 at 2:00 PM',
-      highlightedColor: 'var(--color-warning)'
-    },
-    {
-      id: 7,
-      type: 'transport',
-      icon: FiTruck,
-      title: 'Transport Request Approved',
-      message: 'Transport request for **Material Type: Steel Beams** from **Dammam Port** to **Al Jubail** has been **approved**. Driver **Mohammed Ali** assigned.',
-      timestamp: '12h ago',
-      isRead: false,
-      status: 'transport',
-      highlightedText: 'approved',
-      highlightedColor: 'var(--color-success)'
-    },
-    {
-      id: 8,
-      type: 'vessel',
-      icon: FiAlertCircle,
-      title: 'Vessel Departure Alert',
-      message: 'Vessel **MV As Safaniya** is scheduled to **depart** from **As Safaniya Port** on **December 18, 2024 at 6:00 PM**. Final checks required.',
-      timestamp: '1d ago',
-      isRead: false,
-      status: 'departure',
-      highlightedText: 'December 18, 2024 at 6:00 PM',
-      highlightedColor: 'var(--color-warning)'
-    },
-    {
-      id: 9,
-      type: 'billing',
-      icon: FiDollarSign,
-      title: 'Invoice Generated',
-      message: 'Invoice **INV-2024-1289** has been generated for **Al Fajr Shipping LLC** amounting to **$32,500**. Invoice sent to **billing@alfajrshipping.com**.',
-      timestamp: '1d ago',
-      isRead: false,
-      status: 'invoice',
-      highlightedText: 'INV-2024-1289',
-      highlightedColor: 'var(--color-info)'
-    },
-    {
-      id: 10,
-      type: 'port',
-      icon: FiMapPin,
-      title: 'Port Status Update',
-      message: 'Port **Dammam Port** status has been updated to **Operational**. All services are **available** and ready for vessel operations.',
-      timestamp: '2d ago',
-      isRead: false,
-      status: 'port',
-      highlightedText: 'Operational',
-      highlightedColor: 'var(--color-success)'
-    }
-  ];
-
-  const [notifications, setNotifications] = useState(initialNotifications);
   const displayedNotifications = showAll ? notifications : notifications.slice(0, 3);
 
   const handleMarkAllAsRead = () => {
-    setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+    markAllAsRead();
   };
-
-
 
   const renderHeader = () => (
     <div className="notifications-modal-header">
@@ -175,9 +66,9 @@ function NotificationsModal({ show, onClose }) {
   );
 
   const formatMessage = (message, highlightedText, highlightedColor) => {
+    if (!message) return null;
     // First, replace the highlighted text with a special marker
-    const highlightedPattern = `**${highlightedText}**`;
-    const parts = message.split(highlightedPattern);
+    const parts = highlightedText ? message.split(`**${highlightedText}**`) : [message];
     const elements = [];
     let keyCounter = 0;
 
@@ -229,51 +120,60 @@ function NotificationsModal({ show, onClose }) {
     <div className="notifications-modal-body">
       <div className="notifications-divider"></div>
 
-      <div className="notifications-group">
-        <h3 className="notifications-group-title">Today</h3>
+      {isLoading ? (
+        <p className="notifications-empty-state">Loading notifications…</p>
+      ) : notifications.length === 0 ? (
+        <p className="notifications-empty-state">No notifications yet.</p>
+      ) : (
+        <>
+          <div className="notifications-group">
+            <h3 className="notifications-group-title">Today</h3>
 
-        <div className="notifications-list">
-          {displayedNotifications.map((notification) => {
-            const IconComponent = notification.icon;
-            return (
-              <div
-                key={notification.id}
-                className={`notification-item ${notification.hasSuccessBackground ? 'success-background' : ''} ${notification.isRead ? 'read' : ''}`}
-              >
-                <div className="notification-icon-wrapper">
-                  <IconComponent className="notification-icon" />
-                </div>
-                <div className="notification-content">
-                  <div className="notification-header">
-                    {!notification.isRead && <span className="notification-dot"></span>}
-                    <h4 className="notification-title">{notification.title}</h4>
-                    <span className="notification-timestamp">{notification.timestamp}</span>
+            <div className="notifications-list">
+              {displayedNotifications.map((notification) => {
+                const IconComponent = STATUS_ICON_MAP[notification.status] || FiAlertCircle;
+                const isRead = notification.isRead ?? notification.is_read ?? false;
+                return (
+                  <div
+                    key={notification.id}
+                    className={`notification-item ${notification.hasSuccessBackground ? 'success-background' : ''} ${isRead ? 'read' : ''}`}
+                  >
+                    <div className="notification-icon-wrapper">
+                      <IconComponent className="notification-icon" />
+                    </div>
+                    <div className="notification-content">
+                      <div className="notification-header">
+                        {!isRead && <span className="notification-dot"></span>}
+                        <h4 className="notification-title">{notification.title}</h4>
+                        <span className="notification-timestamp">{notification.timestamp}</span>
+                      </div>
+                      <p className="notification-message">
+                        {formatMessage(
+                          notification.message,
+                          notification.highlightedText,
+                          notification.highlightedColor
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <p className="notification-message">
-                    {formatMessage(
-                      notification.message,
-                      notification.highlightedText,
-                      notification.highlightedColor
-                    )}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                );
+              })}
+            </div>
+          </div>
 
-      <div className="notifications-divider"></div>
+          <div className="notifications-divider"></div>
 
-      <div className="notifications-footer-link">
-        <button
-          className="view-all-notifications-btn"
-          onClick={() => setShowAll(!showAll)}
-          type="button"
-        >
-          {showAll ? 'Show less' : `View all notifications (${notifications.length})`}
-        </button>
-      </div>
+          <div className="notifications-footer-link">
+            <button
+              className="view-all-notifications-btn"
+              onClick={() => setShowAll(!showAll)}
+              type="button"
+            >
+              {showAll ? 'Show less' : `View all notifications (${notifications.length})`}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 
