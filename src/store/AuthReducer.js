@@ -29,25 +29,28 @@ const useAuthReducer = create((set) => ({
   isProfileFetchLoading: false,
   permissionMap: normalizePermissionSections(undefined),
   isFirstLogin: false,
-  login: async ({ email, password, remember_me = false }) => {
+  login: async ({ username, password, remember_me = false }) => {
     try {
       set({ isLoginLoading: true, errorMessage: "" });
 
-      const { data } = await authService.doLoginValidate(email, password, remember_me);
+      const { data: body } = await authService.doLoginValidate(username, password, remember_me);
+      const data = body?.data;
 
-      // ✅ token location based on your response
+      // ✅ token location based on the users/login response envelope
       const accessToken = data?.access_token;
       const refreshToken = data?.refresh_token;
       const accessExpiresIn = data?.access_expires_in;
       const refreshExpiresIn = data?.refresh_expires_in;
 
       // ✅ user data from response
+      const user = data?.user;
       const authData = {
-        userid: data?.userid,
-        name: data?.name,
-        email: data?.email,
-        status: data?.status,
-        message: data?.message,
+        userid: user?.user_id,
+        name: user?.name,
+        email: user?.email,
+        role_id: user?.role_id,
+        role_code: user?.role_code,
+        message: body?.message,
       };
 
       if (accessToken) {
@@ -69,18 +72,18 @@ const useAuthReducer = create((set) => ({
       }
 
       // Store userid in localStorage for refresh persistence
-      if (data?.userid) setItem("userid", data.userid);
+      if (user?.user_id) setItem("userid", user.user_id);
       // Store user name and email for fallback profile on refresh
-      if (data?.name) setItem("userName", data.name);
-      if (data?.email) setItem("userEmail", data.email);
+      if (user?.name) setItem("userName", user.name);
+      if (user?.email) setItem("userEmail", user.email);
       // Store vendor_id for vendor/company portal dashboards (e.g. Transport Company)
-      if (data?.vendor_id != null) setItem("vendor_id", data.vendor_id);
+      if (user?.vendor_id != null) setItem("vendor_id", user.vendor_id);
+      if (user?.role_id != null) setItem("role_id", String(user.role_id));
 
-      // Purge any previously cached profile/permissions so this login always
-      // fetches authoritative permissions from getuserdetail instead of
-      // reusing a stale or previously logged-in user's cached permissions.
+      // Purge any previously cached profile so this login always fetches
+      // authoritative permissions from getuserdetail instead of reusing a
+      // stale or previously logged-in user's cached permissions.
       removeItem('userProfile');
-      removeItem('role_id');
 
       set({
         authData,
@@ -90,12 +93,12 @@ const useAuthReducer = create((set) => ({
         isFirstLogin: !!data?.is_first_login,
       });
       const { success } = useAlertReducer.getState();
-      success(data && data.message);
+      success(body?.message);
 
       // If token and userid exist, fetch user details (with API call on login)
-      if (accessToken && data?.userid) {
+      if (accessToken && user?.user_id) {
         const { getUserProfile } = useAuthReducer.getState();
-        getUserProfile(data.userid, false); // false = allow API call on login
+        getUserProfile(user.user_id, false); // false = allow API call on login
       }
     } catch (err) {
       const { error } = useAlertReducer.getState();

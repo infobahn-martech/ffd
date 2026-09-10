@@ -1,8 +1,8 @@
 import Gateway from "../gateway/gateway";
 import { isMockDataEnabled, mockAuthService } from "../mocks/ffd";
 
-const doLoginValidate = (email, password, remember_me = false) =>
-  Gateway.post("users/login", { email, password, remember_me });
+const doLoginValidate = (username, password, remember_me = false) =>
+  Gateway.post("users/login", { username, password, remember_me });
 
 const googleLoginValidate = (idToken, tokenType) =>
   Gateway.post("auth/google-signin", { idToken, tokenType });

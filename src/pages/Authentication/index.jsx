@@ -43,7 +43,7 @@ function Index() {
 
   const onSubmit = async (data) => {
     if (!isMockDataEnabled) {
-      await login({ email: data.email, password: data.password, remember_me: data.rememberMe || false });
+      await login({ username: data.email, password: data.password, remember_me: data.rememberMe || false });
       return;
     }
 
