@@ -3,8 +3,12 @@ import authService from '../services/authService';
 import { getAuthData, removeItem, setItem, getItem } from '../shared/helpers/localStorage';
 import useAlertReducer from './AlertReducer';
 import { normalizePermissionSections } from '../shared/utils/permissions';
+import { ROLE_IDS, SUPER_ADMIN_API_ROLE_ID } from '../router/rolePermissions';
 
 const { isLoggedIn } = getAuthData();
+
+const isSuperAdminRole = (roleId) =>
+  roleId === ROLE_IDS.SUPER_ADMIN || roleId === SUPER_ADMIN_API_ROLE_ID;
 
 // New module/submodule/action permission system, additive to the existing
 // role_id-based checks used throughout the app — see rolePermissions.js,
@@ -12,9 +16,14 @@ const { isLoggedIn } = getAuthData();
 // (GET /users/getuserdetail/{userId}) whenever the profile is set, so it
 // persists across refresh via the same userProfile localStorage cache and is
 // cleared on logout. Defaults to an empty map (== no access) while loading
-// or when the API doesn't return permissions.
+// or when the API doesn't return permissions — except Super Admin roles
+// (role_id "1"/"7", same ones rolePermissions.js treats as unrestricted),
+// which always get full access even without a sections list from the backend.
 const derivePermissionState = (profileData) => ({
-  permissionMap: normalizePermissionSections(profileData?.permissions?.sections),
+  permissionMap: normalizePermissionSections(
+    profileData?.permissions?.sections,
+    isSuperAdminRole(profileData?.role?.role_id)
+  ),
 });
 
 const useAuthReducer = create((set) => ({
