@@ -174,7 +174,8 @@ const useAuthReducer = create((set) => ({
         try {
           const parsedProfile = JSON.parse(cachedProfile);
           // Use cached profile if it belongs to the same user
-          if (parsedProfile.userid === finalUserId || parsedProfile.userid === getItem('userid')) {
+          const cachedUserId = parsedProfile.userid ?? parsedProfile.user_id;
+          if (cachedUserId === finalUserId || cachedUserId === getItem('userid')) {
             set({
               profileData: parsedProfile,
               userProfile: parsedProfile,
@@ -231,7 +232,23 @@ const useAuthReducer = create((set) => ({
 
       // Always use getUserDetail endpoint (only if not skipping)
       const response = await authService.getUserDetail(finalUserId);
-      const profileData = response.data?.data || response.data;
+      const rawProfileData = response.data?.data || response.data;
+
+      // The real getuserdetail response carries role_id/role_code as flat
+      // fields, but RouteGuard/PrivateRoute/SideNav/Layout all read the role
+      // off a nested `role.role_id` — normalize once here so every consumer
+      // keeps working without having to know about both shapes.
+      const profileData = rawProfileData && !rawProfileData.role
+        ? {
+          ...rawProfileData,
+          // Route/permission tables (rolePermissions.js, vendorDashboardRoles.js)
+          // compare role_id as a string — the API returns it as a number.
+          role: {
+            role_id: rawProfileData.role_id != null ? String(rawProfileData.role_id) : rawProfileData.role_id,
+            role_code: rawProfileData.role_code,
+          },
+        }
+        : rawProfileData;
 
       // Save to localStorage for future refresh scenarios
       if (profileData) {
