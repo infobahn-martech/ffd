@@ -15,19 +15,23 @@ export const EMPTY_PERMISSION_MAP = {
   moduleActions: new Set(),
   submodules: new Set(),
   submoduleActions: new Set(),
+  isSuperAdmin: false,
 };
 
 /**
  * @param {Array} sections - data.permissions.sections from getuserdetail
- * @returns {{modules: Set, moduleActions: Set, submodules: Set, submoduleActions: Set}}
+ * @param {boolean} isSuperAdmin - bypasses per-section checks entirely (see rolePermissions.js's
+ *   SUPER_ADMIN / SUPER_ADMIN_API_ROLE_ID) since the backend doesn't emit a full sections list for them
+ * @returns {{modules: Set, moduleActions: Set, submodules: Set, submoduleActions: Set, isSuperAdmin: boolean}}
  */
-export const normalizePermissionSections = (sections) => {
+export const normalizePermissionSections = (sections, isSuperAdmin = false) => {
   if (!Array.isArray(sections) || sections.length === 0) {
     return {
       modules: new Set(),
       moduleActions: new Set(),
       submodules: new Set(),
       submoduleActions: new Set(),
+      isSuperAdmin,
     };
   }
 
@@ -60,15 +64,17 @@ export const normalizePermissionSections = (sections) => {
     });
   });
 
-  return { modules, moduleActions, submodules, submoduleActions };
+  return { modules, moduleActions, submodules, submoduleActions, isSuperAdmin };
 };
 
 export const checkHasModule = (permissionMap, moduleKey) => {
+  if (permissionMap?.isSuperAdmin) return true;
   if (!moduleKey) return false;
   return Boolean(permissionMap?.modules?.has(moduleKey));
 };
 
 export const checkHasSubmodule = (permissionMap, moduleKey, submoduleKey) => {
+  if (permissionMap?.isSuperAdmin) return true;
   if (!moduleKey || !submoduleKey) return false;
   return Boolean(
     permissionMap?.submodules?.has(buildCompoundKey(moduleKey, submoduleKey))
@@ -79,6 +85,7 @@ export const checkHasPermission = (
   permissionMap,
   { moduleKey, submoduleKey, actionKey } = {}
 ) => {
+  if (permissionMap?.isSuperAdmin) return true;
   if (!permissionMap || !moduleKey || !actionKey) return false;
 
   if (submoduleKey) {

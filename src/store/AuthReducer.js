@@ -3,8 +3,12 @@ import authService from '../services/authService';
 import { getAuthData, removeItem, setItem, getItem } from '../shared/helpers/localStorage';
 import useAlertReducer from './AlertReducer';
 import { normalizePermissionSections } from '../shared/utils/permissions';
+import { ROLE_IDS, SUPER_ADMIN_API_ROLE_ID } from '../router/rolePermissions';
 
 const { isLoggedIn } = getAuthData();
+
+const isSuperAdminRole = (roleId) =>
+  roleId === ROLE_IDS.SUPER_ADMIN || roleId === SUPER_ADMIN_API_ROLE_ID;
 
 // New module/submodule/action permission system, additive to the existing
 // role_id-based checks used throughout the app — see rolePermissions.js,
@@ -12,9 +16,14 @@ const { isLoggedIn } = getAuthData();
 // (GET /users/getuserdetail/{userId}) whenever the profile is set, so it
 // persists across refresh via the same userProfile localStorage cache and is
 // cleared on logout. Defaults to an empty map (== no access) while loading
-// or when the API doesn't return permissions.
+// or when the API doesn't return permissions — except Super Admin roles
+// (role_id "1"/"7", same ones rolePermissions.js treats as unrestricted),
+// which always get full access even without a sections list from the backend.
 const derivePermissionState = (profileData) => ({
-  permissionMap: normalizePermissionSections(profileData?.permissions?.sections),
+  permissionMap: normalizePermissionSections(
+    profileData?.permissions?.sections,
+    isSuperAdminRole(profileData?.role?.role_id)
+  ),
 });
 
 const useAuthReducer = create((set) => ({
@@ -29,25 +38,28 @@ const useAuthReducer = create((set) => ({
   isProfileFetchLoading: false,
   permissionMap: normalizePermissionSections(undefined),
   isFirstLogin: false,
-  login: async ({ email, password, remember_me = false }) => {
+  login: async ({ username, password, remember_me = false }) => {
     try {
       set({ isLoginLoading: true, errorMessage: "" });
 
-      const { data } = await authService.doLoginValidate(email, password, remember_me);
+      const { data: body } = await authService.doLoginValidate(username, password, remember_me);
+      const data = body?.data;
 
-      // ✅ token location based on your response
+      // ✅ token location based on the users/login response envelope
       const accessToken = data?.access_token;
       const refreshToken = data?.refresh_token;
       const accessExpiresIn = data?.access_expires_in;
       const refreshExpiresIn = data?.refresh_expires_in;
 
       // ✅ user data from response
+      const user = data?.user;
       const authData = {
-        userid: data?.userid,
-        name: data?.name,
-        email: data?.email,
-        status: data?.status,
-        message: data?.message,
+        userid: user?.user_id,
+        name: user?.name,
+        email: user?.email,
+        role_id: user?.role_id,
+        role_code: user?.role_code,
+        message: body?.message,
       };
 
       if (accessToken) {
@@ -69,18 +81,18 @@ const useAuthReducer = create((set) => ({
       }
 
       // Store userid in localStorage for refresh persistence
-      if (data?.userid) setItem("userid", data.userid);
+      if (user?.user_id) setItem("userid", user.user_id);
       // Store user name and email for fallback profile on refresh
-      if (data?.name) setItem("userName", data.name);
-      if (data?.email) setItem("userEmail", data.email);
+      if (user?.name) setItem("userName", user.name);
+      if (user?.email) setItem("userEmail", user.email);
       // Store vendor_id for vendor/company portal dashboards (e.g. Transport Company)
-      if (data?.vendor_id != null) setItem("vendor_id", data.vendor_id);
+      if (user?.vendor_id != null) setItem("vendor_id", user.vendor_id);
+      if (user?.role_id != null) setItem("role_id", String(user.role_id));
 
-      // Purge any previously cached profile/permissions so this login always
-      // fetches authoritative permissions from getuserdetail instead of
-      // reusing a stale or previously logged-in user's cached permissions.
+      // Purge any previously cached profile so this login always fetches
+      // authoritative permissions from getuserdetail instead of reusing a
+      // stale or previously logged-in user's cached permissions.
       removeItem('userProfile');
-      removeItem('role_id');
 
       set({
         authData,
@@ -90,12 +102,12 @@ const useAuthReducer = create((set) => ({
         isFirstLogin: !!data?.is_first_login,
       });
       const { success } = useAlertReducer.getState();
-      success(data && data.message);
+      success(body?.message);
 
       // If token and userid exist, fetch user details (with API call on login)
-      if (accessToken && data?.userid) {
+      if (accessToken && user?.user_id) {
         const { getUserProfile } = useAuthReducer.getState();
-        getUserProfile(data.userid, false); // false = allow API call on login
+        getUserProfile(user.user_id, false); // false = allow API call on login
       }
     } catch (err) {
       const { error } = useAlertReducer.getState();
@@ -155,9 +167,8 @@ const useAuthReducer = create((set) => ({
     removeItem('vendor_id');
   },
   getUserProfile: async (userId = null, skipApiCall = false) => {
+    set({ isProfileFetchLoading: true });
     try {
-      set({ isProfileFetchLoading: true });
-
       // Get userId from parameter, authData state, or localStorage
       const state = useAuthReducer.getState();
       const finalUserId = userId || state.authData?.userid || getItem('userid');
@@ -172,11 +183,11 @@ const useAuthReducer = create((set) => ({
         try {
           const parsedProfile = JSON.parse(cachedProfile);
           // Use cached profile if it belongs to the same user
-          if (parsedProfile.userid === finalUserId || parsedProfile.userid === getItem('userid')) {
+          const cachedUserId = parsedProfile.userid ?? parsedProfile.user_id;
+          if (cachedUserId === finalUserId || cachedUserId === getItem('userid')) {
             set({
               profileData: parsedProfile,
               userProfile: parsedProfile,
-              isProfileFetchLoading: false,
               ...derivePermissionState(parsedProfile),
             });
             // If skipApiCall is true (refresh scenario), don't make API call
@@ -223,7 +234,6 @@ const useAuthReducer = create((set) => ({
         set({
           profileData: fallbackProfileData,
           userProfile: fallbackProfileData,
-          isProfileFetchLoading: false,
           ...derivePermissionState(fallbackProfileData),
         });
         return;
@@ -231,7 +241,23 @@ const useAuthReducer = create((set) => ({
 
       // Always use getUserDetail endpoint (only if not skipping)
       const response = await authService.getUserDetail(finalUserId);
-      const profileData = response.data?.data || response.data;
+      const rawProfileData = response.data?.data || response.data;
+
+      // The real getuserdetail response carries role_id/role_code as flat
+      // fields, but RouteGuard/PrivateRoute/SideNav/Layout all read the role
+      // off a nested `role.role_id` — normalize once here so every consumer
+      // keeps working without having to know about both shapes.
+      const profileData = rawProfileData && !rawProfileData.role
+        ? {
+          ...rawProfileData,
+          // Route/permission tables (rolePermissions.js, vendorDashboardRoles.js)
+          // compare role_id as a string — the API returns it as a number.
+          role: {
+            role_id: rawProfileData.role_id != null ? String(rawProfileData.role_id) : rawProfileData.role_id,
+            role_code: rawProfileData.role_code,
+          },
+        }
+        : rawProfileData;
 
       // Save to localStorage for future refresh scenarios
       if (profileData) {
@@ -244,10 +270,11 @@ const useAuthReducer = create((set) => ({
       set({
         profileData,
         userProfile: profileData,
-        isProfileFetchLoading: false,
         ...derivePermissionState(profileData),
       });
     } catch (err) {
+      console.error("getUserProfile: failed to load user profile", err);
+
       // Always return success with fallback profile data
       const state = useAuthReducer.getState();
       const authData = state.authData || {};
@@ -285,10 +312,10 @@ const useAuthReducer = create((set) => ({
       set({
         profileData: fallbackProfileData,
         userProfile: fallbackProfileData,
-        isProfileFetchLoading: false,
         ...derivePermissionState(fallbackProfileData),
       });
-
+    } finally {
+      set({ isProfileFetchLoading: false });
     }
   },
 

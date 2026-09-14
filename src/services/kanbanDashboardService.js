@@ -1,4 +1,5 @@
 import Gateway from '../gateway/gateway';
+import { isMockDataEnabled, mockKanbanDashboardService } from '../mocks/ffd';
 
 const createDashboard = (data) =>
   Gateway.post('/kanban_dashboard/create_dashboard', {
@@ -32,7 +33,7 @@ const addWidgetToDashboard = (dashboardId, { widget_id }) =>
 const removeWidgetFromDashboard = (dashboardId, { widget_id }) =>
   Gateway.post(`/kanban_dashboard/remove_widget_from_dashboard/${dashboardId}`, { widget_id });
 
-export default {
+const realKanbanDashboardService = {
   createDashboard,
   listAllDashboards,
   renameDashboard,
@@ -44,3 +45,9 @@ export default {
   addWidgetToDashboard,
   removeWidgetFromDashboard,
 };
+
+// TEMPORARY: dev-only mock switch — see src/mocks/ffd/index.js. Remove this
+// conditional (keep `export default realKanbanDashboardService`) once the backend exists.
+export default isMockDataEnabled
+  ? { ...realKanbanDashboardService, ...mockKanbanDashboardService }
+  : realKanbanDashboardService;

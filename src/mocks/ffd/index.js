@@ -13,6 +13,8 @@
  *   - src/services/kanbanBoardService.js
  *   - src/services/workflowService.js
  *   - src/services/roleService.js
+ *   - src/services/authService.js (getUserDetail — profile fetch after login/on refresh)
+ *   - src/services/kanbanDashboardService.js (listAllDashboards only)
  *   - src/pages/Authentication/index.jsx (login bypass — see mockUserProfile)
  *
  * Data flows through the exact same path real data will:
@@ -338,12 +340,12 @@ export const mockWorkSpaceService = {
     workspacesState = workspacesState.map((w) =>
       String(w.workspace_id) === String(workspace_id)
         ? {
-            ...w,
-            boards: [
-              ...(w.boards || []),
-              { board_id: boardId, board_name: board_name || "Untitled board", board_status: "1", total_cards: 0, background: null },
-            ],
-          }
+          ...w,
+          boards: [
+            ...(w.boards || []),
+            { board_id: boardId, board_name: board_name || "Untitled board", board_status: "1", total_cards: 0, background: null },
+          ],
+        }
         : w
     );
     boardsState[boardId] = []; // renders via the existing "No workflows to display" empty state
@@ -593,7 +595,12 @@ export const mockAuthService = {
 
 /**
  * Only covers listAllDashboards — the one call WorkspacesSideNavPanel fires
- * unconditionally on mount. No custom dashboards exist yet in mock mode.
+ * unconditionally on mount (so it runs immediately after login, alongside
+ * mockWorkSpaceService's workspace list). No custom dashboards exist yet in
+ * mock mode, so an empty list matches a fresh account and reuses the same
+ * "No dashboards yet" empty state the real API's empty response would hit.
+ * The other kanban_dashboard endpoints are user-triggered CRUD, not part of
+ * initialization, so they're left on the real (not-yet-built) backend.
  */
 export const mockKanbanDashboardService = {
   listAllDashboards: () => ok({ data: [] }),
