@@ -14,11 +14,11 @@ const useRoleReducer = create((set) => ({
             set({ isLoading: true });
             const { data } = await roleService.getRoles({ params });
             // Transform API response to match component expectations
-            // API returns: { role_id, role, description, ... }
+            // API returns: { role_id, name, description, ... }
             // Component expects: { _id, name, description, ... }
             const transformedRoles = data?.data?.map((role) => ({
                 _id: role.role_id,
-                name: role.role,
+                name: role.name,
                 description: role.description || '',
                 created_by: role.created_by,
                 created_date: role.created_date,

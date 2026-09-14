@@ -12,6 +12,7 @@
  *   - src/services/workSpaceService.js
  *   - src/services/kanbanBoardService.js
  *   - src/services/workflowService.js
+ *   - src/services/roleService.js
  *   - src/pages/Authentication/index.jsx (login bypass — see mockUserProfile)
  *
  * Data flows through the exact same path real data will:
@@ -558,4 +559,19 @@ export const mockKanbanBoardService = {
 export const mockWorkflowService = {
   toggleCollapseWorkflow: () => ok(),
   togglePinWorkflow: () => ok(),
+};
+
+/** Seed data for the roles list — shape matches the real `/roles` response. */
+const mockRoles = [
+  { role_id: 1, name: "Administrator" },
+  { role_id: 3, name: "Operations" },
+];
+
+export const mockRoleService = {
+  getRoles: () =>
+    ok({
+      message: "Roles fetched successfully.",
+      data: mockRoles,
+      pagination: { total: mockRoles.length },
+    }),
 };
