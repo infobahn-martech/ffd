@@ -70,6 +70,18 @@ export const mockUserProfile = {
         actions: [{ action_key: "VIEW_WORKFLOW" }],
         sub_modules: [],
       },
+      {
+        module_key: "USER_MANAGEMENT",
+        actions: [],
+        sub_modules: [
+          {
+            submodule_key: "USERS",
+            actions: ["VIEW", "ADD", "EDIT", "ARCHIVE", "TOGGLE_STATUS", "PERMISSION"].map(
+              (action_key) => ({ action_key })
+            ),
+          },
+        ],
+      },
       // FFD's four modules (see src/shared/constants/permissions.js) — the mock
       // Super Admin gets every action so the sidebar and boards stay fully visible.
       ...["COMMERCIAL_PRICING", "OPERATIONS_MODULE", "CUSTOMS_CLEARANCE", "BILLING_DESK"].map(

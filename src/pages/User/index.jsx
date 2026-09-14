@@ -102,7 +102,7 @@ const User = () => {
   const cols = [
     {
       name: "Name",
-      selector: "firstName",
+      selector: "name",
       width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
@@ -111,7 +111,7 @@ const User = () => {
     },
     {
       name: "Role",
-      selector: "role",
+      selector: "role_name",
       width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
@@ -136,36 +136,39 @@ const User = () => {
     },
     {
       name: "Phone",
-      // selector: "phone",
+      selector: "phone",
       width: "200",
       thclass: "tb-head",
       contentClass: "table-content",
       cell: ({ row }) => (
         <span>
-          {row.phone ? `+${row.phone}` : "-"}
+          {row.phone || "-"}
         </span>
       ),
       sort: true,
     },
     {
       name: "Status",
-      selector: "user_status",
+      selector: "status",
       width: "150",
       thclass: "tb-head",
       contentClass: "table-content",
-      cell: ({ row }) => (
-        <span
-          className={
-            row.user_status === "Active"
-              ? "status-active"
-              : row.user_status === "Inactive"
-                ? "status-inactive"
-                : "status-pending"
-          }
-        >
-          {row.user_status}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const status = String(row.status || "").toLowerCase();
+        return (
+          <span
+            className={
+              status === "active"
+                ? "status-active"
+                : status === "inactive"
+                  ? "status-inactive"
+                  : "status-pending"
+            }
+          >
+            {row.status}
+          </span>
+        );
+      },
     },
     {
       name: "Actions",
