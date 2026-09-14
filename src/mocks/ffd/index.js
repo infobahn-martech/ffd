@@ -41,6 +41,12 @@ import { documentsByCardId, nextDocumentId, DOCUMENT_TYPES } from "./documents";
 
 export const isMockDataEnabled = import.meta.env.VITE_USE_MOCK_DATA === "true";
 
+/** Only credentials accepted by the mock login check in Authentication/index.jsx. */
+export const mockAdminCredentials = {
+  email: "admin@gmail.com",
+  password: "admin@123",
+};
+
 /** Mock profile used to bypass real login while mock mode is on — see Authentication/index.jsx. */
 export const mockUserProfile = {
   userid: "ffd-mock-user",
@@ -574,4 +580,21 @@ export const mockRoleService = {
       data: mockRoles,
       pagination: { total: mockRoles.length },
     }),
+};
+
+/**
+ * Shaped like the real GET /users/getuserdetail/{userId} response (`{ data: { data } }`)
+ * so authService.getUserDetail's caller (useAuthReducer.getUserProfile) consumes it
+ * identically — see src/services/authService.js.
+ */
+export const mockAuthService = {
+  getUserDetail: () => ok({ data: mockUserProfile }),
+};
+
+/**
+ * Only covers listAllDashboards — the one call WorkspacesSideNavPanel fires
+ * unconditionally on mount. No custom dashboards exist yet in mock mode.
+ */
+export const mockKanbanDashboardService = {
+  listAllDashboards: () => ok({ data: [] }),
 };
