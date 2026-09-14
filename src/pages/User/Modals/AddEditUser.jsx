@@ -167,7 +167,7 @@ export function UserModal({ showModal, closeModal, onSuccess }) {
       formData.append("email", data.email);
       formData.append("phone", data.phone);
       formData.append("address", data.address || "");
-      formData.append("roleid", data.roleid);
+      formData.append("role_id", data.roleid);
 
       if (profileImage) {
         formData.append("profileimg", profileImage);
