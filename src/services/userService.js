@@ -33,6 +33,8 @@ const getAllUsers = ({ params } = {}) => Gateway.get('/users/all_users', { param
 
 const createUser = (formData) => Gateway.post('/users/create', formData);
 
+const getUserDetail = (userId) => Gateway.get(`/users/getuserdetail/${userId}`);
+
 const updateUser = (userId, formData) => Gateway.post(`/users/update/${userId}`, formData);
 
 const getUserPermissions = (userId) => Gateway.post(`/permissions/get_permissions_by_user/${userId}`, { user_id: userId });
@@ -53,6 +55,7 @@ export default {
   getNonVendorUsers,
   getAllUsers,
   createUser,
+  getUserDetail,
   updateUser,
   getUserPermissions,
   updateUserPermission,

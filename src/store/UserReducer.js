@@ -10,6 +10,8 @@ const useUserReducer = create((set) => ({
   users: null,
   userCount: null,
   addEditLoader: false,
+  userDetail: null,
+  isLoadingUserDetail: false,
   userPermissions: null,
   isLoadingPermissions: false,
   isUpdatingUserPermission: false,
@@ -55,6 +57,17 @@ const useUserReducer = create((set) => ({
     } catch (err) {
       const { error } = useAlertReducer.getState();
       set({ errorMessage: 'Something went wrong fetching user', addEditLoader: false });
+      error(err?.response?.data?.message ?? err.message);
+    }
+  },
+  getUserDetail: async (userId) => {
+    try {
+      set({ isLoadingUserDetail: true });
+      const { data } = await userService.getUserDetail(userId);
+      set({ userDetail: data?.data || null, isLoadingUserDetail: false });
+    } catch (err) {
+      const { error } = useAlertReducer.getState();
+      set({ userDetail: null, isLoadingUserDetail: false });
       error(err?.response?.data?.message ?? err.message);
     }
   },
