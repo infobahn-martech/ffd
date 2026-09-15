@@ -23,8 +23,9 @@ export const RenderAction = ({
   canArchiveUser = false,
   canToggleUserStatus = false,
 }) => {
-  const isActive = row?.user_status === "Active";
-  const isArchived = row?.user_status === "Archive";
+  const status = String(row?.status || "").toLowerCase();
+  const isActive = status === "active";
+  const isArchived = status === "archived" || status === "archive";
 
   if (isArchived) {
     if (!canArchiveUser) return null;

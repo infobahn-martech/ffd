@@ -12,6 +12,7 @@
  *   - src/services/workSpaceService.js
  *   - src/services/kanbanBoardService.js
  *   - src/services/workflowService.js
+ *   - src/services/roleService.js
  *   - src/services/authService.js (getUserDetail — profile fetch after login/on refresh)
  *   - src/services/kanbanDashboardService.js (listAllDashboards only)
  *   - src/pages/Authentication/index.jsx (login bypass — see mockUserProfile)
@@ -77,6 +78,18 @@ export const mockUserProfile = {
         module_key: "KANBAN_WORKFLOW",
         actions: [{ action_key: "VIEW_WORKFLOW" }],
         sub_modules: [],
+      },
+      {
+        module_key: "USER_MANAGEMENT",
+        actions: [],
+        sub_modules: [
+          {
+            submodule_key: "USERS",
+            actions: ["VIEW", "ADD", "EDIT", "ARCHIVE", "TOGGLE_STATUS", "PERMISSION"].map(
+              (action_key) => ({ action_key })
+            ),
+          },
+        ],
       },
       // FFD's four modules (see src/shared/constants/permissions.js) — the mock
       // Super Admin gets every action so the sidebar and boards stay fully visible.
@@ -327,12 +340,12 @@ export const mockWorkSpaceService = {
     workspacesState = workspacesState.map((w) =>
       String(w.workspace_id) === String(workspace_id)
         ? {
-            ...w,
-            boards: [
-              ...(w.boards || []),
-              { board_id: boardId, board_name: board_name || "Untitled board", board_status: "1", total_cards: 0, background: null },
-            ],
-          }
+          ...w,
+          boards: [
+            ...(w.boards || []),
+            { board_id: boardId, board_name: board_name || "Untitled board", board_status: "1", total_cards: 0, background: null },
+          ],
+        }
         : w
     );
     boardsState[boardId] = []; // renders via the existing "No workflows to display" empty state
@@ -554,6 +567,21 @@ export const mockKanbanBoardService = {
 export const mockWorkflowService = {
   toggleCollapseWorkflow: () => ok(),
   togglePinWorkflow: () => ok(),
+};
+
+/** Seed data for the roles list — shape matches the real `/roles` response. */
+const mockRoles = [
+  { role_id: 1, name: "Administrator" },
+  { role_id: 3, name: "Operations" },
+];
+
+export const mockRoleService = {
+  getRoles: () =>
+    ok({
+      message: "Roles fetched successfully.",
+      data: mockRoles,
+      pagination: { total: mockRoles.length },
+    }),
 };
 
 /**

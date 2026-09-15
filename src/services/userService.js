@@ -12,6 +12,10 @@ const getUsers = ({ params }) => {
     apiParams.sort_by = params.sortBy;
   }
 
+  if (params?.sortOrder) {
+    apiParams.sort_order = params.sortOrder === -1 ? 'DESC' : 'ASC';
+  }
+
   if (params?.page) {
     apiParams.page = params.page;
   }

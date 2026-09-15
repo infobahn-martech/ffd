@@ -48,7 +48,7 @@ import {
   isRestrictedBoardUser,
 } from '../../shared/helpers/restrictedBoardUser';
 import usePermissions from '../../shared/hooks/usePermissions';
-import { PERMISSION_MODULES, PERMISSION_SUBMODULES, PERMISSION_ACTIONS } from '../../shared/constants/permissions';
+import { PERMISSION_MODULES, PERMISSION_ACTIONS } from '../../shared/constants/permissions';
 
 function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
   const { pathname } = useLocation();
@@ -84,13 +84,6 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
     [pathname]
   );
   const { hasPermission } = usePermissions();
-  // User Management → Users is fully migrated to the new permission system:
-  // the backend permission response is authoritative here, no legacy OR.
-  const canViewUsersMenu = hasPermission({
-    moduleKey: PERMISSION_MODULES.USER_MANAGEMENT,
-    submoduleKey: PERMISSION_SUBMODULES.USERS,
-    actionKey: PERMISSION_ACTIONS.VIEW,
-  });
   // Kanban Workspaces is fully migrated to the new permission system: the
   // backend permission response is authoritative here, no legacy OR.
   const canViewWorkspaceMenu = hasPermission({
@@ -368,7 +361,7 @@ function SideNav({ isMobileMenuOpen, onCloseMobileMenu, activePortal = null }) {
       hasPermission: true,
       isOpen: false,
       subMenus: [
-        { menu: 'Users', to: '/users', hasPermission: canViewUsersMenu },
+        { menu: 'Users', to: '/users', hasPermission: true },
         { menu: 'Permissions', to: '/permissions', hasPermission: true },
       ],
       icon: usersIcon,
