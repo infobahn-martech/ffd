@@ -22,6 +22,7 @@ import User from "../pages/User";
 import ActivityLog from "../pages/ActivityLog";
 import Notification from "../pages/Notification";
 import Settings from "../pages/Settings";
+import KPIDashboard from "../pages/KPIDashboard";
 import NotFound from "../pages/NotFound";
 import { ROUTE_PATHS } from "./paths";
 
@@ -51,6 +52,13 @@ const router = createBrowserRouter(
         {
           element: <PrivateRoutes />,
           children: [
+            // Standalone KPI Dashboard — renders its own side nav / header bar,
+            // so it sits outside <Layout />. Sub-pages are tabs of the same screen.
+            { path: ROUTE_PATHS.KPI_DASHBOARD, element: <KPIDashboard /> },
+            { path: "/earning-history", element: <KPIDashboard /> },
+            { path: "/tasks", element: <KPIDashboard /> },
+            { path: "/team-leaderboard", element: <KPIDashboard /> },
+            { path: "/level-management", element: <KPIDashboard /> },
             {
               element: <Layout />,
               children: [
