@@ -28,6 +28,7 @@ import ChangePasswordModal from './ChangePasswordModal';
 import LogoutConfirmationModal from '../../components/LogoutConfirmationModal';
 import NotificationsModal from './NotificationsModal';
 import DocumentsModal from './DocumentsModal';
+import AdvancedSearch from './AdvancedSearch';
 import { useLayoutView } from '../../shared/context/LayoutViewContext';
 import { useThemeStore } from '../../shared/store/themeStore';
 import NavTabButton from '../../components/NavTabButton';
@@ -277,6 +278,8 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
 
 
       </div>
+
+      {!restrictedBoardUser && !vendorDashboardUser && <AdvancedSearch />}
 
       {/* RIGHT — User + Icons (GRO / Custom Clearance / vendor-dashboard roles skip module shortcuts; still show help, alerts, profile) */}
       <div className="right-section">
