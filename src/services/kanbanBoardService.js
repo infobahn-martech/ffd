@@ -133,6 +133,18 @@ const generateDocument = (payload) =>
 const approveDocument = (payload) =>
   Gateway.post('/kanban_card/approve_document', payload);
 
+/** GET — advanced search: cards for a board; response: { data: [{ card_id, title, description, board_id, board_name, column_id, column_name, stage_id, stage_name, owner_id, owner_name, assigned_to, assigned_to_name, call_id, vessel_id, vessel_name, created_date }] } */
+const searchCardDetails = (boardId, params = {}) =>
+  Gateway.get('/kanban_search/card_details', { params: { board_id: boardId, ...params } });
+
+/** GET — advanced search: subtasks for a board; response: { data: [{ subtask_id, description, is_completed, due_date, completed_date, card_id, card_title, board_id, board_name, assigned_to, assigned_to_name, created_date }] } */
+const searchSubtasks = (boardId, params = {}) =>
+  Gateway.get('/kanban_search/subtasks', { params: { board_id: boardId, ...params } });
+
+/** GET — advanced search: documents for a board; response: { data: [{ call_task_document_id, document_name, file_name, uploaded_at, card_id, card_title, board_id, board_name, uploaded_by, uploaded_by_name }] } */
+const searchDocuments = (boardId, params = {}) =>
+  Gateway.get('/kanban_search/documents', { params: { board_id: boardId, ...params } });
+
 const realKanbanBoardService = {
   getFullBoard,
   getCardById,
@@ -164,6 +176,9 @@ const realKanbanBoardService = {
   listDocumentsForCard,
   generateDocument,
   approveDocument,
+  searchCardDetails,
+  searchSubtasks,
+  searchDocuments,
 };
 
 // TEMPORARY: dev-only mock switch — see src/mocks/ffd/index.js. Mock methods not

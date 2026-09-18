@@ -1,0 +1,675 @@
+@import "../../partials/partials";
+
+// Header search box — pill input that sits between the logo and the
+// right-section icon cluster. Opens the search modal on click.
+.advanced-search {
+  position: relative;
+  flex-shrink: 0;
+  margin-right: 14px;
+  width: 300px;
+
+  @media (max-width: 991px) {
+    width: 220px;
+  }
+
+  @media (max-width: 767px) {
+    width: 40px;
+    margin-right: 8px;
+  }
+
+  .advanced-search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 12px;
+    border-radius: $radius-pill;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    cursor: text;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .search-icon {
+      width: 16px;
+      height: 16px;
+      color: rgba(255, 255, 255, 0.75);
+      flex-shrink: 0;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-family: $font-primary;
+      font-size: 14px;
+      color: $white;
+
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      @media (max-width: 767px) {
+        display: none;
+      }
+    }
+
+    @media (max-width: 767px) {
+      width: 38px;
+      padding: 0;
+      justify-content: center;
+    }
+  }
+
+  &.open .advanced-search-box {
+    background: rgba(255, 255, 255, 0.24);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
+  }
+}
+
+// Search modal — a centered, dimmed-backdrop dialog rather than a dropdown
+// anchored under the header's search box.
+.advanced-search-modal {
+  .modal-dialog {
+    max-width: 760px;
+    width: 94%;
+    margin: 4rem auto;
+
+    @media (max-width: 767px) {
+      margin: 1.5rem auto;
+      width: 92%;
+    }
+  }
+
+  .modal-content {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+    overflow: hidden;
+    background: var(--surface-primary);
+    padding: 0;
+    margin: 0;
+    width: 100%;
+  }
+
+  .modal-backdrop {
+    background-color: rgba(15, 42, 61, 0.55);
+  }
+
+  // CustomModal always renders a Modal.Header even with no `header` prop —
+  // this modal builds its own header inside the body markup instead.
+  .modal-header {
+    display: none;
+  }
+}
+
+.advanced-search-modal-content {
+  display: flex;
+  flex-direction: column;
+  padding: 28px 32px 12px;
+  min-height: 460px;
+  max-height: calc(100vh - 8rem);
+
+  @media (max-width: 767px) {
+    padding: 20px 18px 10px;
+    min-height: 60vh;
+    max-height: calc(100vh - 3rem);
+  }
+}
+
+.advanced-search-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.advanced-search-modal-title {
+  font-family: $font-primary;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.advanced-search-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: var(--border-primary);
+    color: var(--text-primary);
+  }
+}
+
+.advanced-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+
+  @media (max-width: 575px) {
+    flex-wrap: wrap;
+  }
+}
+
+.advanced-search-input-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: $radius-pill;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+
+  @media (max-width: 575px) {
+    width: 100%;
+  }
+
+  .search-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: $font-primary;
+    font-size: 15px;
+    color: var(--text-primary);
+
+    &::placeholder {
+      color: var(--text-secondary);
+    }
+  }
+
+  .clear-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &:hover {
+      color: var(--text-primary);
+      background: var(--border-primary);
+    }
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.advanced-search-filter {
+  position: relative;
+  flex-shrink: 0;
+
+  @media (max-width: 575px) {
+    width: 100%;
+  }
+}
+
+.filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 48px;
+  border: 1px solid rgba($ffd-coral, 0.3);
+  background: var(--ffd-coral-soft);
+  color: var(--color-primary-accent);
+  font-family: $font-primary;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 16px;
+  border-radius: $radius-pill;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba($ffd-coral, 0.18);
+  }
+
+  @media (max-width: 575px) {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .chevron {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.2s ease;
+
+    &.open {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.filter-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  overflow: hidden;
+  z-index: 10;
+  animation: advancedSearchFadeIn 0.15s ease;
+
+  @media (max-width: 575px) {
+    left: 0;
+    width: auto;
+  }
+}
+
+@keyframes advancedSearchFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+
+  & + .filter-menu-item {
+    border-top: 1px solid var(--border-primary);
+  }
+}
+
+.filter-menu-label {
+  font-family: $font-primary;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.toggle-switch {
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  padding: 2px;
+  border: none;
+  border-radius: $radius-pill;
+  background: var(--border-primary);
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  .toggle-knob {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: $white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease;
+  }
+
+  &.on {
+    background: var(--ffd-coral);
+
+    .toggle-knob {
+      transform: translateX(16px);
+    }
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.advanced-search-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.search-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: $font-primary;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: $radius-pill;
+  cursor: default;
+
+  .chip-chevron {
+    width: 14px;
+    height: 14px;
+    color: var(--text-secondary);
+  }
+
+  &--active {
+    background: var(--ffd-coral-soft);
+    border-color: rgba($ffd-coral, 0.4);
+    color: var(--color-primary-accent);
+
+    .chip-chevron {
+      color: var(--color-primary-accent);
+    }
+  }
+}
+
+.search-chip-wrap {
+  position: relative;
+
+  .search-chip {
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+}
+
+.chip-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 240px;
+  max-height: 280px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  overflow: hidden;
+  z-index: 10;
+  animation: advancedSearchFadeIn 0.15s ease;
+
+  @media (max-width: 575px) {
+    width: 220px;
+  }
+}
+
+.chip-menu-search {
+  border: none;
+  border-bottom: 1px solid var(--border-primary);
+  padding: 10px 14px;
+  font-family: $font-primary;
+  font-size: 13px;
+  background: transparent;
+  color: var(--text-primary);
+  outline: none;
+  flex-shrink: 0;
+
+  &::placeholder {
+    color: var(--text-secondary);
+  }
+}
+
+.chip-menu-list {
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.chip-menu-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  font-family: $font-primary;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--bg-secondary);
+  }
+
+  &.selected {
+    color: var(--color-primary-accent);
+    font-weight: 700;
+    background: var(--ffd-coral-soft);
+  }
+}
+
+.chip-menu-empty {
+  padding: 14px;
+  text-align: center;
+  font-family: $font-primary;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.advanced-search-results {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+  min-height: 0;
+  margin: 0 -32px;
+  padding: 0 32px 20px;
+
+  @media (max-width: 767px) {
+    margin: 0 -18px;
+    padding: 0 18px 16px;
+  }
+}
+
+.advanced-search-count {
+  font-family: $font-primary;
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 4px 0 12px;
+}
+
+.advanced-search-empty {
+  padding: 24px 0;
+  text-align: center;
+  font-family: $font-primary;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.advanced-search-group + .advanced-search-group {
+  margin-top: 8px;
+}
+
+.advanced-search-group-label {
+  padding: 4px 0;
+  font-family: $font-primary;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-secondary);
+}
+
+.advanced-search-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 8px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--bg-secondary);
+  }
+
+  .item-avatar {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $white;
+    font-family: $font-primary;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .item-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .item-name {
+    font-family: $font-primary;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    mark {
+      background: rgba($ffd-coral, 0.2);
+      color: inherit;
+      border-radius: 3px;
+      padding: 0 1px;
+    }
+  }
+
+  .item-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: $font-primary;
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .item-meta-id {
+      color: var(--text-secondary);
+    }
+  }
+}
+
+// Dark theme — surfaces/text already follow the theme CSS vars; only the
+// translucent header box and coral-tinted states need their own overrides.
+[data-theme="dark"] {
+  .advanced-search {
+    .advanced-search-box {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.1);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    &.open .advanced-search-box {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: none;
+    }
+  }
+
+  .advanced-search-modal .modal-content {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .advanced-search-modal-close {
+    background: rgba(255, 255, 255, 0.06);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+  }
+
+  .advanced-search-input-wrap,
+  .search-chip {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .filter-trigger,
+  .search-chip--active,
+  .chip-menu-option.selected {
+    background: rgba($ffd-coral, 0.18);
+    border-color: rgba($ffd-coral, 0.4);
+  }
+
+  .filter-menu-item + .filter-menu-item {
+    border-top-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .toggle-switch {
+    background: rgba(255, 255, 255, 0.16);
+
+    &.on {
+      background: var(--ffd-coral);
+    }
+  }
+
+  .advanced-search-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .item-name mark {
+    background: rgba($ffd-coral, 0.3);
+  }
+}
