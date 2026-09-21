@@ -98,13 +98,14 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
     pathname === '/kanban-board/operator' ||
     pathname.startsWith('/kanban-board/') ||
     pathname === '/compact';
+  const isWorkspacesRoute = pathname === '/workspaces' || pathname.startsWith('/workspaces/');
   const showKanbanSettingsIcon =
     !activePortal &&
     !restrictedBoardUser &&
     !vendorDashboardUser &&
     (isPortManagerRole || isPortSupervisorRole) &&
     (kanbanFullSidebar || isPortSupervisorRole) &&
-    isKanbanBoardRoute;
+    (isKanbanBoardRoute || isWorkspacesRoute);
 
   const cardManagementSubmenu = [
     { label: 'Blockers', modal: 'blockers' },

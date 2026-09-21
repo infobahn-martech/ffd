@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FiPlus, FiTrash2, FiEdit2, FiCheck, FiX, FiMenu } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiEdit2, FiCheck, FiX, FiMenu, FiArrowLeft } from "react-icons/fi";
 import SearchableSelect from "../../components/form/SearchableSelect";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import useBillingEntityReducer from "../../store/BillingEntityReducer";
@@ -128,6 +128,25 @@ function FieldCard({ field, index, isDragging, isDragOver, onDragStart, onDragOv
                     value={field.label}
                     onChange={(e) => onUpdate(field.id, "label", e.target.value)}
                 />
+                <button
+                    type="button"
+                    className="ctm-field-del-btn"
+                    aria-label="Delete field"
+                    onClick={() => onRequestDelete(field.id)}
+                >
+                    <FiTrash2 size={15} />
+                </button>
+                <button
+                    type="button"
+                    className="ctm-field-add-btn"
+                    aria-label="Add field"
+                    title="Add field"
+                    onClick={() => onAddField(index)}
+                >
+                    <FiPlus size={15} />
+                </button>
+            </div>
+            <div className="ctm-field-row-bottom">
                 <SearchableSelect
                     className="ctm-field-type-select"
                     value={field.type}
@@ -147,23 +166,6 @@ function FieldCard({ field, index, isDragging, isDragOver, onDragStart, onDragOv
                         <span className="ctm-toggle-slider" />
                     </span>
                 </label>
-                <button
-                    type="button"
-                    className="ctm-field-del-btn"
-                    aria-label="Delete field"
-                    onClick={() => onRequestDelete(field.id)}
-                >
-                    <FiTrash2 size={15} />
-                </button>
-                <button
-                    type="button"
-                    className="ctm-field-add-btn"
-                    aria-label="Add field"
-                    title="Add field"
-                    onClick={() => onAddField(index)}
-                >
-                    <FiPlus size={15} />
-                </button>
             </div>
 
             {showOptions && (
@@ -174,6 +176,95 @@ function FieldCard({ field, index, isDragging, isDragOver, onDragStart, onDragOv
                     onRemoveOption={(idx) => onRemoveOption(field.id, idx)}
                 />
             )}
+        </div>
+    );
+}
+
+// ── Live preview ─────────────────────────────────────────────────────────────
+// Renders one builder field the way the real card modal would show it. Inputs are
+// local-state mocks so the preview feels interactive without touching the template.
+function CustomFieldPreviewItem({ field }) {
+    const label = field.label || "Unnamed Field";
+    const [value, setValue] = useState("");
+    const [checked, setChecked] = useState(false);
+    const requiredMark = field.required ? <span className="text-danger">*</span> : null;
+
+    if (field.type === "checkbox") {
+        return (
+            <div className="cf-field ctm-preview-span-full">
+                <label className="ctm-preview-check-mock">
+                    <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} />
+                    <span>{label}{requiredMark}</span>
+                </label>
+            </div>
+        );
+    }
+    if (field.type === "radio") {
+        const radioOptions = (field.options ?? []).filter(Boolean);
+        const displayOptions = radioOptions.length > 0 ? radioOptions : ["Option 1", "Option 2", "Option 3"];
+        return (
+            <div className="cf-field ctm-preview-span-full">
+                <label>{label}{requiredMark}</label>
+                <div className="ctm-preview-radio-mock">
+                    {displayOptions.map((opt, i) => (
+                        <label key={i} className="ctm-preview-radio-option">
+                            <input type="radio" name={`preview-radio-${field.id}`} value={opt} checked={value === opt} onChange={() => setValue(opt)} />
+                            <span>{opt}</span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    if (field.type === "textarea") {
+        return (
+            <div className="cf-field ctm-preview-span-full">
+                <label>{label}{requiredMark}</label>
+                <textarea className="ctm-preview-textarea-mock" rows={3} placeholder="Enter text..." value={value} onChange={(e) => setValue(e.target.value)} />
+            </div>
+        );
+    }
+    if (field.type === "dropdown") {
+        return (
+            <div className="cf-field">
+                <label>{label}{requiredMark}</label>
+                <div className="cf-input ctm-preview-select-input">
+                    <input type="text" placeholder="Select option..." value={value} onChange={(e) => setValue(e.target.value)} />
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </div>
+            </div>
+        );
+    }
+    if (field.type === "file") {
+        return (
+            <div className="cf-field">
+                <label>{label}{requiredMark}</label>
+                <div className="ctm-preview-file-zone">Choose file...</div>
+            </div>
+        );
+    }
+
+    const inputType = { number: "number", date: "date", time: "time", datetime: "datetime-local" }[field.type] ?? "text";
+    return (
+        <div className="cf-field">
+            <label>{label}{requiredMark}</label>
+            <div className="cf-input">
+                <input type={inputType} placeholder={label} value={value} onChange={(e) => setValue(e.target.value)} />
+            </div>
+        </div>
+    );
+}
+
+function PreviewFieldsGrid({ fields }) {
+    const visible = (fields ?? []).filter((f) => f.label);
+    if (visible.length === 0) {
+        return <p className="ctm-preview-no-fields">No fields yet — add fields in the left panel.</p>;
+    }
+    return (
+        <div className="ctm-preview-fields-grid">
+            {visible.map((f) => <CustomFieldPreviewItem key={f.id} field={f} />)}
         </div>
     );
 }
@@ -219,11 +310,14 @@ function CustomTemplateBuilderModal({ show, onClose, initialTemplate = null }) {
         : null;
     const activeFields = hasSubTabs ? (activeSubTab?.fields ?? []) : (activeTab?.fields ?? []);
 
+    // Fetch once per open — the store leaves billingEntities null on failure,
+    // so keying this on billingEntities would refire forever on a network error.
     useEffect(() => {
-        if (show && billingEntities === null && !billingLoading) {
+        if (show && billingEntities === null) {
             getBillingEntities({ params: { page: 1, limit: 1000 } });
         }
-    }, [show, billingEntities, billingLoading, getBillingEntities]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [show]);
 
     const resetState = () => {
         setTemplateName(initialTemplate?.name ?? "");
@@ -483,7 +577,10 @@ function CustomTemplateBuilderModal({ show, onClose, initialTemplate = null }) {
             <div className="cardform-overlay ctm-modal-overlay">
                 <div className="cardform-panel">
                     <div className="cardform-topbar ctm-modal-topbar">
-                        <div>
+                        <div className="ctm-topbar-left">
+                            <button type="button" className="ctm-topbar-back" onClick={handleClose} aria-label="Back">
+                                <FiArrowLeft size={18} />
+                            </button>
                             <span className="ctm-topbar-title">{isEditMode ? "Edit Custom Template" : "Create Custom Template"}</span>
                         </div>
                         <div className="cardform-topbar-right">
@@ -491,6 +588,8 @@ function CustomTemplateBuilderModal({ show, onClose, initialTemplate = null }) {
                         </div>
                     </div>
 
+                    <div className="ctm-split-body">
+                    <div className="ctm-split-left">
                     <div className="ctm-body">
                         <div className="ctm-top-grid">
                             <div className="cf-field">
@@ -750,6 +849,55 @@ function CustomTemplateBuilderModal({ show, onClose, initialTemplate = null }) {
                                 ))}
                             </div>
                         )}
+                    </div>
+                    </div>
+
+                    {/* Right panel: live preview — mirrors the real card modal's
+                        topbar / tabs / sub-tab rail using CardForm.css classes. */}
+                    <div className="ctm-split-right">
+                        <div className="ctm-preview-modal">
+                            <div className="cardform-topbar ctm-preview-topbar">
+                                <span className="cardform-title">{templateName.trim() || "Untitled Template"}</span>
+                            </div>
+
+                            <div className="cardform-tabs">
+                                {tabs.map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        className={`tab ${activeTab?.id === tab.id ? "active" : ""}`}
+                                        onClick={() => handleSelectTab(tab)}
+                                    >
+                                        {tab.name || "Unnamed Tab"}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {hasSubTabs ? (
+                                <div className="operation-wrapper">
+                                    <div className="operation-left">
+                                        {activeTab.subTabs.map((sub) => (
+                                            <button
+                                                key={sub.id}
+                                                type="button"
+                                                className={`op-tab ${activeSubTab?.id === sub.id ? "active" : ""}`}
+                                                onClick={() => setActiveSubTabId(sub.id)}
+                                            >
+                                                {sub.name || "Unnamed Subtab"}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="operation-right">
+                                        <PreviewFieldsGrid fields={activeSubTab?.fields} />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="ctm-preview-body">
+                                    <PreviewFieldsGrid fields={activeTab?.fields} />
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     </div>
 
                     <div className="ctm-footer">

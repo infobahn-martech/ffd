@@ -31,7 +31,8 @@ const useBillingEntityReducer = create((set) => ({
       set({ billingEntities: list, totalCount: total, isLoading: false });
     } catch (error) {
       const { error: showError } = useAlertReducer.getState();
-      set({ errorMessage: error?.message, isLoading: false });
+      // Resolve to [] (not null) so `billingEntities === null` fetch guards don't refire.
+      set({ billingEntities: [], errorMessage: error?.message, isLoading: false });
       showError(
         error?.response?.data?.message ?? error?.message ?? 'Failed to fetch billing entities'
       );
