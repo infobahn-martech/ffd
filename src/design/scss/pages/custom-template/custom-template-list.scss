@@ -1,0 +1,616 @@
+@import '../../partials/partials';
+
+// Styles for the Custom Templates List modal — a split-panel shell (list on the
+// left, structure preview on the right) sharing the builder's footer
+// (ctm-footer/ctm-save-btn) for visual parity. Everything here is scoped with
+// the `ctl-` prefix so it never collides with other modals.
+
+@mixin ctl-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+// ── Modal overlay & topbar ────────────────────────────────────────────────────
+.ctl-modal-overlay {
+  z-index: 1350;
+
+  .cardform-panel {
+    width: 98%;
+    max-height: calc(100vh - 3rem);
+    height: 95%;
+
+    @media (max-width: 991px) {
+      max-width: 95%;
+      width: 95%;
+      max-height: calc(100vh - 2rem);
+    }
+  }
+}
+
+.ctl-modal-topbar {
+  background-color: $ffd-navy;
+}
+
+// When "Create Custom Template" / "Edit Template" is triggered from the list, the
+// builder opens as a modal stacked on top of the list (not replacing it) — bump
+// its overlay above the list's own (ctl-modal-overlay z-index: 1350).
+.ctl-nested-builder .ctm-modal-overlay {
+  z-index: 1360;
+}
+
+.ctl-topbar-title {
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+// ── Split-panel body ─────────────────────────────────────────────────────────
+.ctl-split-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  font-family: $font-primary;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+
+  // Below this, a 420px fixed left panel can exceed the whole modal width
+  // and clip the right panel out of view entirely — stack instead.
+  @media (max-width: 767px) {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+}
+
+.ctl-split-left {
+  width: 420px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-primary);
+  overflow: hidden;
+
+  @media (max-width: 767px) {
+    width: 100%;
+    max-height: 50vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border-primary);
+  }
+
+  .ctl-split-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    @include ctl-scrollbar;
+  }
+}
+
+.ctl-split-right {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 20px;
+  background: var(--surface-primary);
+  display: flex;
+  flex-direction: column;
+  @include ctl-scrollbar;
+}
+
+// ── Left panel: create button + search + template list ───────────────────────
+.ctl-left-top {
+  padding: 16px 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.ctl-create-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 38px;
+  background: $ffd-coral;
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    background: $ffd-coral-hover;
+    box-shadow: 0 2px 8px rgba($ffd-coral, 0.25);
+  }
+}
+
+.ctl-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .ctl-search-icon {
+    position: absolute;
+    left: 12px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    height: 36px;
+    border: 1.5px solid var(--border-primary);
+    border-radius: 6px;
+    padding: 0 12px 0 34px;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--surface-primary);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+
+    &::placeholder {
+      color: var(--text-muted);
+    }
+
+    &:focus {
+      border-color: $ffd-navy;
+      box-shadow: 0 0 0 3px rgba($ffd-navy, 0.12);
+    }
+  }
+}
+
+.ctl-template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 20px;
+}
+
+.ctl-list-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 20px 0;
+}
+
+.ctl-template-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--surface-primary);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:hover {
+    border-color: rgba($ffd-navy, 0.4);
+  }
+
+  &.is-active {
+    border-color: $ffd-navy;
+    background: rgba($ffd-navy, 0.06);
+  }
+}
+
+.ctl-template-checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  border: 1.5px solid var(--border-primary);
+  background: var(--surface-primary);
+  position: relative;
+  transition: border-color 0.15s, background 0.15s;
+
+  &.is-checked {
+    border-color: $ffd-navy;
+    background: $ffd-navy;
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 4px;
+      height: 8px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+  }
+}
+
+.ctl-template-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ctl-template-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ctl-template-meta {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ctl-template-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+
+  &:hover {
+    color: $status-danger;
+    background: rgba($status-danger, 0.08);
+  }
+}
+
+.ctl-template-arrow {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+// ── Right panel: preview ──────────────────────────────────────────────────────
+.ctl-preview-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// ── Preview card: navy header + card-form tab strip + form body ──────────────
+.ctl-preview-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-primary);
+  border-radius: 10px;
+  background: var(--surface-primary);
+  overflow: hidden;
+}
+
+.ctl-preview-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 18px;
+  background: $ffd-navy;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.ctl-preview-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.ctl-preview-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.ctl-preview-entity {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.ctl-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.24);
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+// Reuses .cardform-tabs / .tab from CardForm.css for parity with the real call card.
+.ctl-preview-tabs {
+  gap: 8px;
+  padding: 8px 12px;
+}
+
+// Body below the tab strip: optional sub-tab side nav (e.g. Operation >
+// Pre Arrival / Arrival / Departure) on the left, form preview on the right.
+.ctl-preview-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.ctl-preview-subnav {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 10px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-primary);
+  overflow-y: auto;
+  @include ctl-scrollbar;
+
+  @media (max-width: 767px) {
+    width: 140px;
+  }
+}
+
+.ctl-preview-subnav-item {
+  text-align: left;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: rgba($ffd-navy, 0.06);
+    color: $ffd-navy;
+  }
+
+  &.is-active {
+    background: rgba($ffd-navy, 0.1);
+    color: $ffd-navy;
+    font-weight: 600;
+  }
+}
+
+.ctl-preview-fields-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+  @include ctl-scrollbar;
+}
+
+.ctl-preview-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 30px 0;
+}
+
+.ctl-preview-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-muted);
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    max-width: 240px;
+  }
+}
+
+// ── Form-style field preview (mirrors the real card form controls) ───────────
+.ctl-preview-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 16px;
+  row-gap: 4px;
+
+  @media (max-width: 1199px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 767px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ctl-preview-field {
+  min-width: 0;
+  margin-bottom: 14px;
+
+  &.is-full {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+
+  .cf-input {
+    border: 1px solid var(--border-primary);
+    box-shadow: none;
+    padding: 10px 14px;
+    min-height: 42px;
+
+    input,
+    select,
+    textarea {
+      font-size: 12.5px;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--text-muted);
+      font-size: 12.5px;
+    }
+
+    &:focus-within {
+      border-color: $ffd-navy;
+      box-shadow: 0 0 0 3px rgba($ffd-navy, 0.12);
+    }
+  }
+}
+
+// Dropdowns reuse SearchableSelect (same as the builder modal) so the open
+// list is a styled menu, not the bare native picker.
+.ctl-preview-dropdown .cf-multi-select-email-input {
+  min-height: 42px;
+  border-color: var(--border-primary);
+  box-shadow: none;
+
+  &:hover {
+    border-color: var(--border-primary);
+    box-shadow: none;
+  }
+
+  &:focus-within {
+    border-color: $ffd-navy;
+    box-shadow: 0 0 0 3px rgba($ffd-navy, 0.12);
+  }
+}
+
+.ctl-preview-required-mark {
+  color: $ffd-coral;
+  margin-left: 2px;
+}
+
+.ctl-preview-file {
+  justify-content: center;
+  border-style: dashed !important;
+  cursor: pointer;
+  margin-bottom: 0;
+
+  .ctl-preview-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .ctl-preview-placeholder {
+    color: var(--text-muted);
+    font-size: 12.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &.has-file {
+      color: var(--text-primary);
+    }
+  }
+}
+
+.ctl-preview-textarea {
+  align-items: flex-start;
+
+  textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    outline: none;
+    resize: vertical;
+    color: var(--text-primary);
+    font-family: $font-primary;
+  }
+}
+
+.ctl-preview-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.ctl-preview-check-input {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: $ffd-navy;
+  cursor: pointer;
+}
+
+.ctl-preview-check-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+// The delete-template confirmation is a react-bootstrap Modal, which defaults to
+// a much lower z-index than this raw-overlay modal's 1350 (see ctl-modal-overlay) —
+// without this override it mounts behind the panel and appears unresponsive.
+body .modal-backdrop.fade.ctl-delete-confirm-backdrop,
+body .modal-backdrop.ctl-delete-confirm-backdrop.show {
+  z-index: 1450 !important;
+  background-color: rgba(15, 23, 42, 0.6) !important;
+}
+
+body .modal.fade.ctl-delete-confirm-modal,
+body .modal.ctl-delete-confirm-modal.show {
+  z-index: 1451 !important;
+}
+
+body .modal.ctl-delete-confirm-modal.show .modal-dialog {
+  z-index: 1452 !important;
+  position: relative;
+}
