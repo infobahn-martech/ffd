@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import "../../design/scss/header.scss";
 import {
@@ -16,6 +16,7 @@ import {
   FiActivity,
   FiTruck,
   FiNavigation,
+  FiSettings,
 } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
@@ -29,12 +30,23 @@ import LogoutConfirmationModal from '../../components/LogoutConfirmationModal';
 import NotificationsModal from './NotificationsModal';
 import DocumentsModal from './DocumentsModal';
 import AdvancedSearch from './AdvancedSearch';
+import BusinessRulesModal from '../SideNav/components/BusinessRulesModal';
+import BlockersModal from '../SideNav/components/BlockersModal';
+import StickersModal from '../SideNav/components/StickersModal';
+import TagsModal from '../SideNav/components/TagsModal';
+import TypesModal from '../SideNav/components/TypesModal';
+const CustomTemplateListModal = lazy(() => import('../../pages/CustomTemplate/CustomTemplateListModal'));
 import { useLayoutView } from '../../shared/context/LayoutViewContext';
 import { useThemeStore } from '../../shared/store/themeStore';
 import NavTabButton from '../../components/NavTabButton';
-import { isRestrictedBoardUser, isPortOperatorUser } from '../../shared/helpers/restrictedBoardUser';
+import {
+  isRestrictedBoardUser,
+  isPortOperatorUser,
+  hasKanbanFullSidebar,
+} from '../../shared/helpers/restrictedBoardUser';
 import { isVendorRole, getRoleId } from '../../shared/helpers/vendorDashboardRoles';
 import { getPendingApprovals } from '../../mocks/ffd';
+import { ROUTE_PATHS } from '../../router/paths';
 
 function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePortal = null }) {
   const { pathname } = useLocation();
@@ -48,6 +60,14 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [showSettingsSubmenu, setShowSettingsSubmenu] = useState(false);
+  const [showCardManagementSubmenu, setShowCardManagementSubmenu] = useState(false);
+  const [showBusinessRulesModal, setShowBusinessRulesModal] = useState(false);
+  const [showBlockersModal, setShowBlockersModal] = useState(false);
+  const [showStickersModal, setShowStickersModal] = useState(false);
+  const [showTagsModal, setShowTagsModal] = useState(false);
+  const [showTypesModal, setShowTypesModal] = useState(false);
+  const [showTemplatesListModal, setShowTemplatesListModal] = useState(false);
   const { layoutView, setLayoutView } = useLayoutView();
   const { isDark, toggleTheme } = useThemeStore();
   // Real count of documents pending manager approval (see JobDocumentsPanel /
@@ -55,6 +75,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
   // synchronously and there's no cross-component event bus to push updates.
   const [notificationCount, setNotificationCount] = useState(() => getPendingApprovals().length);
   const dropdownRef = useRef(null);
+  const settingsDropdownRef = useRef(null);
   const doLogout = useAuthReducer((state) => state.doLogout);
   const profileData = useAuthReducer((state) => state.profileData);
   const authData = useAuthReducer((state) => state.authData);
@@ -62,6 +83,36 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
   const restrictedBoardUser = isRestrictedBoardUser(userProfile);
   const portOperatorUser = isPortOperatorUser(userProfile);
   const vendorDashboardUser = isVendorRole(getRoleId());
+  // Kanban settings gear (Business rules / Card management) — same audience and
+  // routes the classic kanban sidebar used before it moved up here.
+  const userRoleId =
+    userProfile?.role_id ||
+    userProfile?.roleId ||
+    userProfile?.role?.role_id ||
+    userProfile?.user?.role_id ||
+    userProfile?.data?.role_id;
+  const isPortManagerRole = String(userRoleId) === '1';
+  const isPortSupervisorRole = String(userRoleId) === '3' || String(userRoleId) === '23';
+  const kanbanFullSidebar = hasKanbanFullSidebar(userProfile);
+  const isKanbanBoardRoute =
+    pathname === '/kanban-board/operator' ||
+    pathname.startsWith('/kanban-board/') ||
+    pathname === '/compact';
+  const showKanbanSettingsIcon =
+    !activePortal &&
+    !restrictedBoardUser &&
+    !vendorDashboardUser &&
+    (isPortManagerRole || isPortSupervisorRole) &&
+    (kanbanFullSidebar || isPortSupervisorRole) &&
+    isKanbanBoardRoute;
+
+  const cardManagementSubmenu = [
+    { label: 'Blockers', modal: 'blockers' },
+    { label: 'Stickers', modal: 'stickers' },
+    { label: 'Tags', modal: 'tags' },
+    { label: 'Types', modal: 'types' },
+    { label: 'Custom Templates', modal: 'templates list' },
+  ];
 
   const getLoggedInUser = () => {
     let parsedLocalProfile = {};
@@ -150,6 +201,63 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
     };
   }, [showUserDropdown]);
 
+  // Close settings dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (settingsDropdownRef.current && !settingsDropdownRef.current.contains(event.target)) {
+        setShowSettingsSubmenu(false);
+        setShowCardManagementSubmenu(false);
+      }
+    };
+
+    if (showSettingsSubmenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSettingsSubmenu]);
+
+  const closeAllSettingsModals = () => {
+    setShowBusinessRulesModal(false);
+    setShowBlockersModal(false);
+    setShowStickersModal(false);
+    setShowTagsModal(false);
+    setShowTypesModal(false);
+    setShowTemplatesListModal(false);
+  };
+
+  const handleSettingsToggle = () => {
+    const next = !showSettingsSubmenu;
+    setShowSettingsSubmenu(next);
+    if (!next) setShowCardManagementSubmenu(false);
+  };
+
+  const handleSettingsBusinessRulesClick = () => {
+    setShowSettingsSubmenu(false);
+    setShowCardManagementSubmenu(false);
+    closeAllSettingsModals();
+    setShowBusinessRulesModal(true);
+  };
+
+  const handleSettingsCardManagementRowClick = (e) => {
+    e.stopPropagation();
+    setShowCardManagementSubmenu((prev) => !prev);
+  };
+
+  const handleCardManagementSubmenuClick = (item) => {
+    setShowCardManagementSubmenu(false);
+    setShowSettingsSubmenu(false);
+    closeAllSettingsModals();
+
+    if (item.modal === 'blockers') setShowBlockersModal(true);
+    if (item.modal === 'stickers') setShowStickersModal(true);
+    if (item.modal === 'tags') setShowTagsModal(true);
+    if (item.modal === 'types') setShowTypesModal(true);
+    if (item.modal === 'templates list') setShowTemplatesListModal(true);
+  };
+
   const handleUserCircleClick = () => {
     setShowUserDropdown(!showUserDropdown);
   };
@@ -201,6 +309,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
   }, [pathname]);
 
   return (
+    <>
     <div className={`sedres-header ${layoutView === 'dark' ? 'sedres-header-dark' : ''}`}>
 
       {/* LEFT — LOGO + NAV LINKS */}
@@ -391,6 +500,57 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
             <span className="notification-badge">{notificationCount > 99 ? '99+' : notificationCount}</span>
           )}
         </div>
+
+        {showKanbanSettingsIcon && (
+          <div className="settings-btn-wrapper" ref={settingsDropdownRef}>
+            {/* Hidden while the dropdown is open — both anchor to the button's
+                bottom edge, so the tooltip would otherwise cover the first item. */}
+            <Tooltip id="settings" place="bottom" content="Settings" hidden={showSettingsSubmenu} />
+            <button
+              type="button"
+              className={`icon-btn ${showSettingsSubmenu ? 'active' : ''}`}
+              aria-label="Settings"
+              onClick={handleSettingsToggle}
+              data-tooltip-id="settings"
+            >
+              <FiSettings />
+            </button>
+
+            {showSettingsSubmenu && (
+              <div className="settings-dropdown">
+                <button
+                  type="button"
+                  className="settings-dropdown-item"
+                  onClick={handleSettingsBusinessRulesClick}
+                >
+                  Business rules
+                </button>
+                <button
+                  type="button"
+                  className={`settings-dropdown-item settings-dropdown-item-with-submenu ${showCardManagementSubmenu ? 'submenu-open' : ''}`}
+                  onClick={handleSettingsCardManagementRowClick}
+                >
+                  Card management
+                </button>
+                {showCardManagementSubmenu && (
+                  <div className="settings-submenu">
+                    {cardManagementSubmenu.map((subItem) => (
+                      <button
+                        type="button"
+                        key={subItem.modal}
+                        className="settings-submenu-item"
+                        onClick={() => handleCardManagementSubmenuClick(subItem)}
+                      >
+                        {subItem.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         <Tooltip id="user-profile" place="bottom" content="User Profile" />
         <div className="user-circle-wrapper" ref={dropdownRef}>
           <div
@@ -480,7 +640,31 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
         onClose={() => setShowDocumentsModal(false)}
       />}
 
+      {/* Kanban settings modals (Business rules / Card management) */}
+      {showKanbanSettingsIcon && (
+        <>
+          <BusinessRulesModal show={showBusinessRulesModal} onClose={() => setShowBusinessRulesModal(false)} />
+          <BlockersModal show={showBlockersModal} onClose={() => setShowBlockersModal(false)} />
+          <StickersModal show={showStickersModal} onClose={() => setShowStickersModal(false)} />
+          <TagsModal show={showTagsModal} onClose={() => setShowTagsModal(false)} />
+          <TypesModal show={showTypesModal} onClose={() => setShowTypesModal(false)} />
+        </>
+      )}
+
     </div>
+
+    {/* Rendered outside .sedres-header: the header is `position: relative; z-index: 100`,
+        which forms a stacking context that would trap this raw-overlay modal beneath
+        the SideNav (z-index 998+) and let the nav rail paint over the left panel. */}
+    {showKanbanSettingsIcon && !!showTemplatesListModal && (
+      <Suspense fallback={null}>
+        <CustomTemplateListModal
+          show={showTemplatesListModal}
+          onClose={() => setShowTemplatesListModal(false)}
+        />
+      </Suspense>
+    )}
+    </>
   );
 }
 
