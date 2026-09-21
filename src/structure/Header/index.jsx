@@ -310,6 +310,7 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
   }, [pathname]);
 
   return (
+    <>
     <div className={`sedres-header ${layoutView === 'dark' ? 'sedres-header-dark' : ''}`}>
 
       {/* LEFT — LOGO + NAV LINKS */}
@@ -658,18 +659,23 @@ function Header({ onMenuToggle, mobileMenuOpen: externalMobileMenuOpen, activePo
           <StickersModal show={showStickersModal} onClose={() => setShowStickersModal(false)} />
           <TagsModal show={showTagsModal} onClose={() => setShowTagsModal(false)} />
           <TypesModal show={showTypesModal} onClose={() => setShowTypesModal(false)} />
-          {!!showTemplatesListModal && (
-            <Suspense fallback={null}>
-              <CustomTemplateListModal
-                show={showTemplatesListModal}
-                onClose={() => setShowTemplatesListModal(false)}
-              />
-            </Suspense>
-          )}
         </>
       )}
 
     </div>
+
+    {/* Rendered outside .sedres-header: the header is `position: relative; z-index: 100`,
+        which forms a stacking context that would trap this raw-overlay modal beneath
+        the SideNav (z-index 998+) and let the nav rail paint over the left panel. */}
+    {showKanbanSettingsIcon && !!showTemplatesListModal && (
+      <Suspense fallback={null}>
+        <CustomTemplateListModal
+          show={showTemplatesListModal}
+          onClose={() => setShowTemplatesListModal(false)}
+        />
+      </Suspense>
+    )}
+    </>
   );
 }
 
