@@ -12,11 +12,13 @@ export default function CustomModal({
   bodyClassname,
   createModal,
   disableCenter,
+  backdropClassName,
 }) {
   return (
     <Modal
       className={className || ''}
       dialogClassName={dialgName || ''}
+      backdropClassName={backdropClassName || ''}
       show={show}
       onHide={closeModal}
       backdrop="static"
