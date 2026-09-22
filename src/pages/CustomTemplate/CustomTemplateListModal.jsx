@@ -324,14 +324,6 @@ function CustomTemplateListModal({ show, onClose }) {
 
                         <div className="ctm-footer">
                             <span className="ctm-required-note">{templates.length} template{templates.length === 1 ? "" : "s"}</span>
-                            <div className="ctm-footer-actions">
-                                <button type="button" className="btn-common close" onClick={onClose}>
-                                    Cancel
-                                </button>
-                                <button type="button" className="ctm-save-btn" onClick={onClose}>
-                                    Close
-                                </button>
-                            </div>
                         </div>
                     </div>
             </div>
