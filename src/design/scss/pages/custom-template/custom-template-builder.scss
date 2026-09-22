@@ -865,8 +865,8 @@ body .modal.ctm-delete-confirm-modal.show .modal-dialog {
     @include ctm-scrollbar;
   }
 
-  // Sub-tab rail: rounded pills, active one tinted navy to match the builder's
-  // own tab pills on the left (CardForm.css's op-tab is square + white when active).
+  // Sub-tab rail: rounded pills; active one uses the same white-surface + navy
+  // text treatment as the top tab strip (.cardform-tabs .tab.active).
   .op-tab {
     width: 100%;
     padding: 11px 16px;
@@ -883,14 +883,16 @@ body .modal.ctm-delete-confirm-modal.show .modal-dialog {
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease;
 
-    &:hover {
-      background: rgba($ffd-navy, 0.04);
+    &:not(.active):hover {
+      background: rgba($ffd-navy, 0.06);
+      color: $ffd-navy;
     }
 
     &.active {
-      background: rgba($ffd-navy, 0.08);
+      background: var(--surface-primary);
       color: $ffd-navy;
       font-weight: 600;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
     }
   }
 

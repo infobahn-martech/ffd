@@ -408,15 +408,18 @@
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
-  &:hover {
+  &:not(.is-active):hover {
     background: rgba($ffd-navy, 0.06);
     color: $ffd-navy;
   }
 
+  // Matches .cardform-tabs .tab.active / .op-tab.active in CardForm.css:
+  // white surface + navy text so it reads as a real selected tab, not a tint.
   &.is-active {
-    background: rgba($ffd-navy, 0.1);
+    background: var(--surface-primary);
     color: $ffd-navy;
     font-weight: 600;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
   }
 }
 
